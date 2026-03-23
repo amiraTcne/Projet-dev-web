@@ -64,6 +64,37 @@ Nous appliquons la méthodologie **Agile (Scrum)** avec un suivi rigoureux :
 
 ![Maquette de projet]([https://lien-vers-l-image.com/logo.png](https://www.figma.com/design/Reaf0zOPxGnkdWiyCBb53w/Projet_DEv_Web?node-id=0-1&t=lkvmPQYINIxXBvR7-1))
 
+
+## 🌳 Arborescence du Projet
+
+```text
+📦 mon-projet-web
+ ┣ 📂 config
+ ┃ ┗ 📜 db.php              # 🔌 Connexion Base de Données (PDO)
+ ┃
+ ┣ 📂 includes
+ ┃ ┣ 📜 header.php          # 🧱 Navigation & Head
+ ┃ ┗ 📜 footer.php          # 🧱 Pied de page & Scripts
+ ┃
+ ┣ 📂 public                # 🌐 RACINE SERVEUR (Public)
+ ┃ ┣ 📂 assets
+ ┃ ┃ ┣ 📂 css               # 🎨 Feuilles de style
+ ┃ ┃ ┣ 📂 js                # ⚡ Logique Client
+ ┃ ┃ ┗ 📂 img               # 🖼️ Médias & Icônes
+ ┃ ┗ 📜 index.php           # 🚀 POINT D'ENTRÉE UNIQUE (Routeur)
+ ┃
+ ┣ 📂 src                   # 🧠 COEUR DE L'APPLICATION (Privé)
+ ┃ ┣ 📂 Controllers         # 🎮 Logique des pages
+ ┃ ┣ 📂 Models              # 🗄️ Gestion des données (SQL)
+ ┃ ┗ 📜 functions.php       # 🛠️ Utilitaires globaux
+ ┃
+ ┣ 📂 vendor                # 📦 Dépendances Framework (Auto-généré)
+ ┃
+ ┣ ⚙️ .env                  # 🔑 Secrets & Identifiants (Privé)
+ ┣ ⚙️ .htaccess             # 🗺️ Réécriture d'URL (URL Clean)
+ ┣ 📜 composer.json         # 📑 Liste des packages
+ ┗ 📜 README.md             # 📖 Documentation projet
+```
 ---
 
 ## 👥 L'Équipe (Groupe 1)

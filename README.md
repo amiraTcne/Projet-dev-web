@@ -88,13 +88,20 @@ Nous appliquons la méthodologie **Agile (Scrum)** avec un suivi rigoureux :
  ┃ ┣ 📂 Models              # 🗄️ Gestion des données (SQL)
  ┃ ┗ 📜 functions.php       # 🛠️ Utilitaires globaux
  ┃
- ┣ 📂 vendor                # 📦 Dépendances Framework (Auto-généré)
+ ┣ 📂 frameworks                # 📦 Dépendances Framework (Auto-généré)
  ┃
  ┣ ⚙️ .env                  # 🔑 Secrets & Identifiants (Privé)
  ┣ ⚙️ .htaccess             # 🗺️ Réécriture d'URL (URL Clean)
  ┣ 📜 composer.json         # 📑 Liste des packages
  ┗ 📜 README.md             # 📖 Documentation projet
 ```
+
+### 🛠️ Fichiers de configuration
+
+* `📄 .env` : **Secrets** (Mots de passe DB, Clés API). *Ne jamais commiter ce fichier !*
+* `📄 composer.json` : Liste des dépendances et packages du projet.
+* `📄 .htaccess` : Règles de réécriture pour des URLs propres (ex: `/login` au lieu de `index.php?p=login`).
+* `📄 README.md` : Guide de survie et documentation du projet.
 ---
 
 ## 👥 L'Équipe (Groupe 1)

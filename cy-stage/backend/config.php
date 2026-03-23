@@ -8,7 +8,7 @@
 
     if(!$connect){
 
-        die("connection mauvaise:" . mysqli_connect_error());
+        die("erreur de connection:" . mysqli_connect_error());
     }
 
     mysqli_close($connect);

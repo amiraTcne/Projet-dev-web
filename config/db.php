@@ -1,13 +1,13 @@
-<?php 
-$host = '   ';
-$user = '   ';
-$Motpasse = '......';
-$db = 'basededonne'
-// Connexion à la base de données
-$connect = mysqli_connect($host, $user, $Motpasse, $db);
+<?php
+    $host = 'localhost';
+    $user = 'user'; // remplacer par votre user
+    $motdepass ='motDePasse'; // remplacer par votre mot de passe
+    $db = 'cyStage';
 
-if (!$connect) {
-    die("Connexion impossible : " . mysqli_connect_error());
-}
-mysqli_close($connect);
+    $connect = mysqli_connect($host,$user,$motdepass,$db);
+
+    if(!$connect){
+        die("erreur de connection:" . mysqli_connect_error());
+    }
+    mysqli_close($connect);
 ?>

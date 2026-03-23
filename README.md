@@ -1,6 +1,6 @@
 # 🎓 Plateforme d'Archivage et de Suivi de Stages (PASS)
 
-![Status](https://img.shields.io/badge/Status-Analyse%20%26%20Conception-orange?style=for-the-badge)
+![Statut](https://img.shields.io/badge/Statut-En%20Cours-orange?style=for-the-badge)
 ![Tech](https://img.shields.io/badge/Stack-PHP%20%7C%20MySQL%20%7C%20JS-blue?style=for-the-badge)
 ![School](https://img.shields.io/badge/CY_Tech-ING1--GI-red?style=for-the-badge)
 
@@ -42,7 +42,7 @@ Le système est conçu autour de 6 piliers fonctionnels :
 
 ### **Backend & Data**
 * **Serveur :** `PHP`
-* **Base de données :** `MySQL` ou `MongoDB`
+* **Base de données :** `MySQL` 
 * **Optimisation :** Lazy loading, compression des assets et gestion du cache serveur.
 
 ---

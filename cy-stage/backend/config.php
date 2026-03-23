@@ -7,10 +7,7 @@
     $connect = mysqli_connect($host,$user,$motdepass,$db);
 
     if(!$connect){
-
         die("erreur de connection:" . mysqli_connect_error());
     }
-
-    mysqli_close($connect);
 
     ?>

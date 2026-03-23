@@ -68,7 +68,7 @@ Nous appliquons la méthodologie **Agile (Scrum)** avec un suivi rigoureux :
 ## 🌳 Arborescence du Projet
 
 ```text
-📦 mon-projet-web
+📦 Projet-dev-web
  ┣ 📂 config
  ┃ ┗ 📜 db.php              # 🔌 Connexion Base de Données (PDO)
  ┃

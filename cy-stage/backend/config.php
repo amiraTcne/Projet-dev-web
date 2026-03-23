@@ -1,6 +1,6 @@
 <?php
     $host = 'localhost';
-    $user = 'use'; // remplacer par votre user
+    $user = 'user'; // remplacer par votre user
     $motdepass ='motDePasse'; // remplacer par votre mot de passe
     $db = 'cyStage';
 

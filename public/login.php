@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Connexion</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body>
     <img class="logo_connexion" src="/assets/img/logo.png">

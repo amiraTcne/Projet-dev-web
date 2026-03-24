@@ -7,14 +7,18 @@ USE cyStages;
 CREATE TABLE Entreprise (
     numeroSiret VARCHAR(14) PRIMARY KEY,
     nbStagiaire INT DEFAULT 0,
-    filiere VARCHAR(100)
+    filiere VARCHAR(100),
+    email VARCHAR(100),
+    mdp VARCHAR(50)
 );
 
 -- Table Admin
 CREATE TABLE Admin (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nom VARCHAR(50),
-    prenom VARCHAR(50)
+    prenom VARCHAR(50),
+    email VARCHAR(100),
+    mdp VARCHAR(50)
 );
 
 -- Table Etudiant
@@ -23,21 +27,27 @@ CREATE TABLE Etudiant (
     nom VARCHAR(50),
     prenom VARCHAR(50),
     filiere VARCHAR(100),
-    niveau VARCHAR(20)
+    niveau VARCHAR(20),
+    email VARCHAR(100),
+    mdp VARCHAR(50)
 );
 
 -- Table Tuteur
 CREATE TABLE Tuteur (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nom VARCHAR(50),
-    prenom VARCHAR(50)
+    prenom VARCHAR(50),
+    email VARCHAR(100),
+    mdp VARCHAR(50)
 );
 
 -- Table Jurys
 CREATE TABLE Jurys (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nom VARCHAR(50),
-    prenom VARCHAR(50)
+    prenom VARCHAR(50),
+    email VARCHAR(100),
+    mdp VARCHAR(50)
 );
 
 -- Table Offre_de_stage

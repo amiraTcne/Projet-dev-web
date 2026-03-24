@@ -184,15 +184,6 @@ h1 {
   margin-bottom: 26px;
 }
 
-/* ── Labels ────────────────────────────────────────────────── */
-form label {
-  display: block;
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--gris-ardoise);
-  margin-bottom: 6px;
-  letter-spacing: 0.02em;
-}
 
 /* ── Champs texte / mot de passe ───────────────────────────── */
 form input[type="text"],
@@ -205,7 +196,7 @@ form input[type="password"] {
   background: var(--input-bg);
   font-family: 'Montserrat', sans-serif;
   font-size: 0.94rem;
-  color: var(--text-main);
+  color: var(--gris-ardoise);
   outline: none;
   margin-bottom: 18px;
   transition: border-color .2s var(--ease),

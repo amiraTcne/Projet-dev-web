@@ -17,23 +17,15 @@ $email = trim($_POST['login'] ?? '');
 $mdp   = $_POST['mdp'] ?? '';
  
 if ($email === '' || $mdp === '') {
-    header('Location: logo.php?erreur=champs_vides');
+    header('Location: login.php?erreur=champs_vides');
     exit;
 }
  
-// ── Connexion PDO ────────────────────────────────────────────
-try {
-    $pdo = new PDO(
-        "mysql:host=$host;dbname=$dbname;charset=utf8mb4",
-        $user,
-        $pass,
-        [
-            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        ]
-    );
-} catch (PDOException $e) {
-    die('Erreur de connexion à la base de données.');
+// Connexion à la base de données
+$connect = mysqli_connect($host, $user, $Motpasse, $db);
+
+if (!$connect) {
+    die("Connexion impossible : " . mysqli_connect_error());
 }
  
 // ── Tables à interroger et rôle associé ──────────────────────
@@ -66,7 +58,7 @@ foreach ($tables as [$table, $colId, $roleNom]) {
 // ── Résultat ─────────────────────────────────────────────────
 if ($utilisateur === null) {
     // Aucun utilisateur trouvé → retour avec erreur
-    header('Location: index.php?erreur=identifiants_incorrects');
+    header('Location: login.php?erreur=identifiants_incorrects');
     exit;
 }
  
@@ -116,4 +108,5 @@ switch ($role) {
 }
 exit;
 
+mysqli_close($connect);
 ?>

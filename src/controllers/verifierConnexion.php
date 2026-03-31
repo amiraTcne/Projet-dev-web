@@ -1,112 +1,101 @@
 <?php
-// ============================================================
-//  verifierConnexion.php
-//  Vérifie le login parmi les 5 types d'utilisateurs
-// ============================================================
- 
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 session_start();
- 
-// ── Paramètres de connexion BDD ──────────────────────────────
-$host = 'localhost';
-$dbname = 'cyStages';
-$user = 'ambre';
-$pass = 'Mdp4Sql!';
- 
-// ── Récupération des données du formulaire ───────────────────
-$email = trim($_POST['login'] ?? '');
-$mdp   = $_POST['mdp'] ?? '';
- 
-if ($email === '' || $mdp === '') {
-    header('Location: login.php?erreur=champs_vides');
-    exit;
-}
- 
-// Connexion à la base de données
-$connect = mysqli_connect($host, $user, $Motpasse, $db);
+
+$host    = 'localhost';
+$dbname  = 'cyStages';
+$db_user = 'ambre';
+$db_pass = 'Mdp4Sql!';
+
+// Connexion avec mysqli
+$connect = mysqli_connect($host, $db_user, $db_pass, $dbname);
 
 if (!$connect) {
-    die("Connexion impossible : " . mysqli_connect_error());
+    header('Location: ../../public/login.php?erreur=2');
+    exit();
 }
- 
-// ── Tables à interroger et rôle associé ──────────────────────
-// [ 'table', 'colonne_id', 'role' ]
+
+$email = $_POST['login'] ?? '';
+$mdp   = $_POST['mdp']   ?? '';
+
+if (empty($email) || empty($mdp)) {
+    header('Location: ../../public/login.php?erreur=1');
+    exit();
+}
+
 $tables = [
-    ['Admin',      'id',            'admin'],
-    ['Etudiant',   'id_etu',        'etudiant'],
-    ['Tuteur',     'id',            'tuteur'],
-    ['Jurys',      'id',            'jury'],
-    ['Entreprise', 'numeroSiret',   'entreprise'],
+    'Entreprise' => ['id_col' => 'numeroSiret', 'extra' => ['filiere', 'nbStagiaire']],
+    'Admin'      => ['id_col' => 'id',          'extra' => ['nom', 'prenom']],
+    'Etudiant'   => ['id_col' => 'id_etu',      'extra' => ['nom', 'prenom', 'filiere', 'niveau']],
+    'Tuteur'     => ['id_col' => 'id',          'extra' => ['nom', 'prenom']],
+    'Jurys'      => ['id_col' => 'id',          'extra' => ['nom', 'prenom']],
 ];
- 
-$utilisateur = null;
-$role        = null;
- 
-foreach ($tables as [$table, $colId, $roleNom]) {
-    $stmt = $pdo->prepare(
-        "SELECT * FROM `$table` WHERE email = :email AND mdp = :mdp LIMIT 1"
-    );
-    $stmt->execute([':email' => $email, ':mdp' => $mdp]);
-    $ligne = $stmt->fetch();
- 
-    if ($ligne) {
-        $utilisateur = $ligne;
-        $role        = $roleNom;
+
+$trouve = false;
+
+foreach ($tables as $table => $config) {
+    $id_col   = $config['id_col'];
+    $colonnes = array_merge([$id_col, 'email'], $config['extra']);
+    $select   = implode(', ', $colonnes);
+
+    // Préparation de la requête avec mysqli
+    $stmt = mysqli_prepare($connect, "SELECT $select FROM $table WHERE email = ? AND mdp = ?");
+    mysqli_stmt_bind_param($stmt, 'ss', $email, $mdp);
+    mysqli_stmt_execute($stmt);
+
+    $result = mysqli_stmt_get_result($stmt);
+    $row    = mysqli_fetch_assoc($result);
+
+    if ($row) {
+        $_SESSION['role']  = $table;
+        $_SESSION['email'] = $row['email'];
+        $_SESSION['id']    = $row[$id_col];
+
+        switch ($table) {
+            case 'Entreprise':
+                $_SESSION['numeroSiret'] = $row['numeroSiret'];
+                $_SESSION['filiere']     = $row['filiere'];
+                $_SESSION['nbStagiaire'] = $row['nbStagiaire'];
+                break;
+            case 'Admin':
+                $_SESSION['nom']    = $row['nom'];
+                $_SESSION['prenom'] = $row['prenom'];
+                break;
+            case 'Etudiant':
+                $_SESSION['nom']     = $row['nom'];
+                $_SESSION['prenom']  = $row['prenom'];
+                $_SESSION['filiere'] = $row['filiere'];
+                $_SESSION['niveau']  = $row['niveau'];
+                break;
+            case 'Tuteur':
+            case 'Jurys':
+                $_SESSION['nom']    = $row['nom'];
+                $_SESSION['prenom'] = $row['prenom'];
+                break;
+        }
+
+        $trouve = true;
+        mysqli_stmt_close($stmt);
         break;
     }
+
+    mysqli_stmt_close($stmt);
 }
- 
-// ── Résultat ─────────────────────────────────────────────────
-if ($utilisateur === null) {
-    // Aucun utilisateur trouvé → retour avec erreur
-    header('Location: login.php?erreur=identifiants_incorrects');
-    exit;
-}
- 
-// Authentification réussie → stockage en session
-$_SESSION['connecte']   = true;
-$_SESSION['role']       = $role;
-$_SESSION['email']      = $email;
- 
-// Stockage des infos selon le type
-switch ($role) {
-    case 'entreprise':
-        $_SESSION['id']  = $utilisateur['numeroSiret'];
-        $_SESSION['nom'] = $utilisateur['filiere'] ?? 'Entreprise';
-        break;
-    case 'etudiant':
-        $_SESSION['id']     = $utilisateur['id_etu'];
-        $_SESSION['nom']    = $utilisateur['prenom'] . ' ' . $utilisateur['nom'];
-        $_SESSION['filiere'] = $utilisateur['filiere'];
-        $_SESSION['niveau']  = $utilisateur['niveau'];
-        break;
-    default:
-        $_SESSION['id']  = $utilisateur['id'];
-        $_SESSION['nom'] = $utilisateur['prenom'] . ' ' . $utilisateur['nom'];
-}
- 
-session_regenerate_id(true);
- 
-// Redirection selon le rôle
-switch ($role) {
-    case 'admin':
-        header('Location: accueil_admin.php');
-        break;
-    case 'etudiant':
-        header('Location: accueil_etudiant.php');
-        break;
-    case 'tuteur':
-        header('Location: acceuil_tuteur.php');
-        break;
-    case 'jury':
-        header('Location: acceuil_jury.php');
-        break;
-    case 'entreprise':
-        header('Location: acceuil_entreprise.php');
-        break;
-    default:
-        header('Location: login.php');
-}
-exit;
 
 mysqli_close($connect);
+if ($trouve) {
+    switch ($_SESSION['role']) {
+        case 'Entreprise': header('Location: accueil_entreprise.php'); break;
+        case 'Admin':      header('Location: accueil_admin.php');      break;
+        case 'Etudiant':   header('Location: accueil_etudiant.php');   break;
+        case 'Tuteur':     header('Location: accueil_tuteur.php');     break;
+        case 'Jurys':      header('Location: accueil_jury.php');       break;
+    }
+} else {
+    header('Location: ../../public/login.php?erreur=3');
+}
+exit();
 ?>

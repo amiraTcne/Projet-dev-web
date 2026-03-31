@@ -66,14 +66,7 @@ body > * {
   z-index: 1;
 }
 
-/* Conteneur carte autour de tous les éléments du body */
-body {
-  /* On crée la carte via un pseudo-élément sur un wrapper implicite */
-}
 
-/* Astuce : on enveloppe visuellement via un conteneur centré.
-   Comme le HTML ne possède pas de <div> wrapper, on stylise
-   les éléments du body pour qu'ils s'affichent comme une carte. */
 
 .logo_connexion,
 h2, h1, form, a[href] {
@@ -128,10 +121,7 @@ body > .logo_connexion:first-child {
   margin-top: 0;
 }
 
-/* Fond de carte via un pseudo sur body (z-index négatif) */
-body > form {
-  /* Le form sera au centre de la carte */
-}
+
 
 /* ═══════════════════════════════════════════════════════════
    APPROCHE FINALE : body comme carte blanche directement

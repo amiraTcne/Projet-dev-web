@@ -3,6 +3,7 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+
 session_start();
 
 $host    = 'localhost';
@@ -27,7 +28,7 @@ if (empty($email) || empty($mdp)) {
 }
 
 $tables = [
-    'Entreprise' => ['id_col' => 'numeroSiret', 'extra' => ['filiere', 'nbStagiaire']],
+    'Entreprise' => ['id_col' => 'numeroSiret', 'extra' => ['filiere', 'nbStagiaire','nom_entreprise']],
     'Admin'      => ['id_col' => 'id',          'extra' => ['nom', 'prenom']],
     'Etudiant'   => ['id_col' => 'id_etu',      'extra' => ['nom', 'prenom', 'filiere', 'niveau']],
     'Tuteur'     => ['id_col' => 'id',          'extra' => ['nom', 'prenom']],
@@ -59,6 +60,7 @@ foreach ($tables as $table => $config) {
                 $_SESSION['numeroSiret'] = $row['numeroSiret'];
                 $_SESSION['filiere']     = $row['filiere'];
                 $_SESSION['nbStagiaire'] = $row['nbStagiaire'];
+                $_SESSION['nom_entreprise'] = $row['nom_entreprise'];
                 break;
             case 'Admin':
                 $_SESSION['nom']    = $row['nom'];

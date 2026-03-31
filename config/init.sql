@@ -5,6 +5,7 @@ USE cyStages;
 CREATE TABLE Entreprise (
     numeroSiret VARCHAR(14) PRIMARY KEY,
     nbStagiaire INT DEFAULT 0,
+    nom_entreprise VARCHAR(100),
     filiere VARCHAR(100),
     email VARCHAR(100),
     mdp VARCHAR(50)
@@ -79,5 +80,14 @@ CREATE TABLE DossierDeStage (
     FOREIGN KEY (stage_id) REFERENCES Stage(numero_stage)
 );
 
-INSERT INTO Entreprise (numeroSiret, nbStagiaire, filiere, email, mdp)
-VALUES ('01234567891234', 5, 'info', 'entreprise@mail.com', 'entreprise26.');
+INSERT INTO Entreprise (numeroSiret, nbStagiaire, nom_entreprise, filiere, email, mdp)
+VALUES ('01234567891234', 5,'entreprise1', 'info', 'entreprise@mail.com', 'entreprise26.');
+
+INSERT INTO Etudiant (id_etu ,nom ,prenom ,filiere ,niveau ,email,mdp)
+VALUES ('22403051', 'Florette','ambre', 'info','bac+3', 'etudiant@mail.com', 'etudiant26.');
+
+INSERT INTO Admin (id ,nom ,prenom,email,mdp)
+VALUES ('12034', 'Fassi','dieudonne','admin@mail.com', 'admin26.');
+
+INSERT INTO Jurys (id ,nom ,prenom,email,mdp)
+VALUES ('1', 'nom','prenom','jurys@mail.com', 'jurys26.');

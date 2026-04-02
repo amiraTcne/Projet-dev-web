@@ -8,8 +8,8 @@ session_start();
 
 $host    = 'localhost';
 $dbname  = 'cyStages';
-$db_user = 'ambre';
-$db_pass = 'Mdp4Sql!';
+$db_user = 'userpro';
+$db_pass = 'projetStage26.';
 
 // Connexion avec mysqli
 $connect = mysqli_connect($host, $db_user, $db_pass, $dbname);

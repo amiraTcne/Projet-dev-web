@@ -117,7 +117,7 @@ Nous appliquons la méthodologie **Agile (Scrum)** avec un suivi rigoureux :
 ## 🚀 Installation & Lancement
 ```bash
 # Avant de commencer : 
-Creer un user sur mysql dans le terminal avec comme nom : userpro et le mdp : projetstage26. pour se connecter a la base de données
+Creer un user sur mysql dans le terminal avec comme nom : userpro et le mdp : projetStage26. pour se connecter a la base de données
 # 1. Cloner le projet
 git clone [https://github.com/votre-compte/projet-web-cytech.git](https://github.com/votre-compte/projet-web-cytech.git)
 

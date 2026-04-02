@@ -1,0 +1,412 @@
+-- =============================================================
+--  BASE DE DONNÉES : Suivi et archivage des stages - Cy Tech
+--  Projet Dev Web ING1 - Année 2025-2026
+--  Encodage : UTF-8 | Moteur : InnoDB
+-- =============================================================
+
+CREATE DATABASE IF NOT EXISTS db_stages
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+
+USE db_stages;
+
+-- =============================================================
+-- 1. RÔLES
+--    Libellés possibles : 'Admin', 'Tuteur', 'Jury', 'Entreprise'
+-- =============================================================
+CREATE TABLE Role (
+    id_role       INT          UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    libelle       VARCHAR(50)  NOT NULL UNIQUE,
+    description   TEXT
+) ENGINE=InnoDB;
+
+-- Données initiales
+INSERT INTO Role (libelle, description) VALUES
+  ('Admin',      'Administrateur de la plateforme'),
+  ('Tuteur',     'Tuteur pédagogique (enseignant)'),
+  ('Jury',       'Membre du jury d''évaluation'),
+  ('Entreprise', 'Représentant d''une entreprise');
+
+
+-- =============================================================
+-- 2. UTILISATEUR
+--    Entité centrale pour Admin / Tuteur / Jury / Entreprise.
+--    Max 3 rôles par utilisateur (contrainte vérifiée par trigger).
+-- =============================================================
+CREATE TABLE Utilisateur (
+    id_user          INT           UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    nom              VARCHAR(100)  NOT NULL,
+    prenom           VARCHAR(100)  NOT NULL,
+    email            VARCHAR(150)  NOT NULL UNIQUE,
+    mot_de_passe     VARCHAR(255)  NOT NULL COMMENT 'Hash bcrypt',
+    date_inscription DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    actif            TINYINT(1)    NOT NULL DEFAULT 1
+) ENGINE=InnoDB;
+
+
+-- =============================================================
+-- 3. AVOIR_ROLE  (association Utilisateur ↔ Role)
+--    Contrainte métier : 1 ≤ nb de rôles ≤ 3 par utilisateur.
+--    Le trigger BEFORE INSERT ci-dessous enforce la limite de 3.
+-- =============================================================
+CREATE TABLE Avoir_Role (
+    id_user   INT UNSIGNED NOT NULL,
+    id_role   INT UNSIGNED NOT NULL,
+    date_ajout DATETIME    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id_user, id_role),
+    CONSTRAINT fk_ar_user FOREIGN KEY (id_user) REFERENCES Utilisateur(id_user) ON DELETE CASCADE,
+    CONSTRAINT fk_ar_role FOREIGN KEY (id_role) REFERENCES Role(id_role)
+) ENGINE=InnoDB;
+
+-- Trigger : empêche plus de 3 rôles par utilisateur
+DELIMITER $$
+CREATE TRIGGER trg_max_roles_par_user
+BEFORE INSERT ON Avoir_Role
+FOR EACH ROW
+BEGIN
+    DECLARE nb_roles INT;
+    SELECT COUNT(*) INTO nb_roles
+    FROM   Avoir_Role
+    WHERE  id_user = NEW.id_user;
+
+    IF nb_roles >= 3 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Un utilisateur ne peut pas avoir plus de 3 rôles.';
+    END IF;
+END$$
+DELIMITER ;
+
+
+-- =============================================================
+-- 4. ÉTUDIANT
+--    Entité séparée (rôle fixe, pas dans Utilisateur/Role).
+-- =============================================================
+CREATE TABLE Etudiant (
+    id_etu       INT          UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    nom          VARCHAR(100) NOT NULL,
+    prenom       VARCHAR(100) NOT NULL,
+    email        VARCHAR(150) NOT NULL UNIQUE,
+    mot_de_passe VARCHAR(255) NOT NULL COMMENT 'Hash bcrypt',
+    filiere      VARCHAR(100) NOT NULL,
+    niveau       VARCHAR(50)  NOT NULL COMMENT 'Ex: L3, M1, ING1...',
+    annee_promo  YEAR         NOT NULL,
+    actif        TINYINT(1)   NOT NULL DEFAULT 1
+) ENGINE=InnoDB;
+
+
+-- =============================================================
+-- 5. ENTREPRISE
+--    Profil enrichi lié à un Utilisateur de rôle 'Entreprise'.
+-- =============================================================
+CREATE TABLE Entreprise (
+    num_siret    CHAR(14)     PRIMARY KEY COMMENT 'SIRET officiel 14 chiffres',
+    nom          VARCHAR(200) NOT NULL,
+    secteur      VARCHAR(100),
+    filiere      VARCHAR(100),
+    adresse      VARCHAR(255),
+    ville        VARCHAR(100),
+    code_postal  CHAR(5),
+    site_web     VARCHAR(200),
+    nb_stagiere  TINYINT      UNSIGNED NOT NULL DEFAULT 0,
+    id_user      INT          UNSIGNED NOT NULL UNIQUE COMMENT 'Compte Utilisateur associé',
+    CONSTRAINT fk_ent_user FOREIGN KEY (id_user) REFERENCES Utilisateur(id_user)
+) ENGINE=InnoDB;
+
+
+-- =============================================================
+-- 6. OFFRE_STAGE
+--    Déposée par une Entreprise.
+-- =============================================================
+CREATE TABLE Offre_Stage (
+    num_offre        INT          UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    titre            VARCHAR(200) NOT NULL,
+    mission          TEXT         NOT NULL,
+    competences      TEXT,
+    filiere_ciblee   VARCHAR(100),
+    duree_semaines   TINYINT      UNSIGNED NOT NULL,
+    date_debut       DATE,
+    date_publication DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    statut           ENUM('ouverte','pourvue','archivee') NOT NULL DEFAULT 'ouverte',
+    num_siret        CHAR(14)     NOT NULL,
+    CONSTRAINT fk_offre_ent FOREIGN KEY (num_siret) REFERENCES Entreprise(num_siret)
+) ENGINE=InnoDB;
+
+
+-- =============================================================
+-- 7. FAVORIS  (Etudiant ↔ Offre_Stage)
+-- =============================================================
+CREATE TABLE Favori (
+    id_etu    INT UNSIGNED NOT NULL,
+    num_offre INT UNSIGNED NOT NULL,
+    date_ajout DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id_etu, num_offre),
+    CONSTRAINT fk_fav_etu   FOREIGN KEY (id_etu)    REFERENCES Etudiant(id_etu)    ON DELETE CASCADE,
+    CONSTRAINT fk_fav_offre FOREIGN KEY (num_offre) REFERENCES Offre_Stage(num_offre) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+
+-- =============================================================
+-- 8. TUTEUR
+--    Profil enrichi lié à un Utilisateur de rôle 'Tuteur'.
+-- =============================================================
+CREATE TABLE Tuteur (
+    id_tuteur    INT          UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id_user      INT          UNSIGNED NOT NULL UNIQUE,
+    specialite   VARCHAR(100),
+    departement  VARCHAR(100),
+    CONSTRAINT fk_tut_user FOREIGN KEY (id_user) REFERENCES Utilisateur(id_user)
+) ENGINE=InnoDB;
+
+
+-- =============================================================
+-- 9. JURY
+--    Profil enrichi lié à un Utilisateur de rôle 'Jury'.
+-- =============================================================
+CREATE TABLE Jury (
+    id_jury     INT          UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    id_user     INT          UNSIGNED NOT NULL UNIQUE,
+    specialite  VARCHAR(100),
+    commission  VARCHAR(100),
+    annee       YEAR         NOT NULL,
+    CONSTRAINT fk_jury_user FOREIGN KEY (id_user) REFERENCES Utilisateur(id_user)
+) ENGINE=InnoDB;
+
+
+-- =============================================================
+-- 10. STAGE
+--     Affecté à un Étudiant, lié à une Entreprise et une Offre.
+-- =============================================================
+CREATE TABLE Stage (
+    num_stage        INT          UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    titre            VARCHAR(200) NOT NULL,
+    mission          TEXT,
+    avancement       TINYINT      UNSIGNED NOT NULL DEFAULT 0 COMMENT 'Pourcentage 0-100',
+    duree_semaines   TINYINT      UNSIGNED,
+    date_debut       DATE,
+    date_fin         DATE,
+    profil_recherche TEXT,
+    competences      TEXT,
+    statut           ENUM('en_attente','en_cours','termine','annule') NOT NULL DEFAULT 'en_attente',
+    id_etu           INT          UNSIGNED NOT NULL,
+    num_siret        CHAR(14)     NOT NULL,
+    num_offre        INT          UNSIGNED,
+    id_tuteur        INT          UNSIGNED,
+    CONSTRAINT fk_stage_etu    FOREIGN KEY (id_etu)      REFERENCES Etudiant(id_etu),
+    CONSTRAINT fk_stage_ent    FOREIGN KEY (num_siret)   REFERENCES Entreprise(num_siret),
+    CONSTRAINT fk_stage_offre  FOREIGN KEY (num_offre)   REFERENCES Offre_Stage(num_offre),
+    CONSTRAINT fk_stage_tuteur FOREIGN KEY (id_tuteur)   REFERENCES Tuteur(id_tuteur)
+) ENGINE=InnoDB;
+
+
+-- =============================================================
+-- 11. DOSSIER_STAGE
+--     Généré automatiquement à la création d'un Stage.
+-- =============================================================
+CREATE TABLE Dossier_Stage (
+    num_dossier       INT          UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    statut            ENUM('incomplet','en_cours','soumis','valide','rejete') NOT NULL DEFAULT 'incomplet',
+    rapport_url       VARCHAR(500) COMMENT 'Chemin/URL vers le rapport de stage',
+    resume_url        VARCHAR(500) COMMENT 'Chemin/URL vers le résumé',
+    fiche_eval_url    VARCHAR(500) COMMENT 'Chemin/URL vers la fiche d''évaluation',
+    convention_url    VARCHAR(500) COMMENT 'Convention de stage signée',
+    date_creation     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    date_modification DATETIME     ON UPDATE CURRENT_TIMESTAMP,
+    num_stage         INT          UNSIGNED NOT NULL UNIQUE,
+    id_etu            INT          UNSIGNED NOT NULL,
+    CONSTRAINT fk_doss_stage FOREIGN KEY (num_stage) REFERENCES Stage(num_stage) ON DELETE CASCADE,
+    CONSTRAINT fk_doss_etu   FOREIGN KEY (id_etu)    REFERENCES Etudiant(id_etu)
+) ENGINE=InnoDB;
+
+-- Trigger : crée automatiquement un dossier à chaque nouveau stage
+DELIMITER $$
+CREATE TRIGGER trg_creer_dossier
+AFTER INSERT ON Stage
+FOR EACH ROW
+BEGIN
+    INSERT INTO Dossier_Stage (num_stage, id_etu)
+    VALUES (NEW.num_stage, NEW.id_etu);
+END$$
+DELIMITER ;
+
+
+-- =============================================================
+-- 12. VALIDATION_CONVENTION
+--     Trace les validations de convention (Tuteur + Entreprise).
+-- =============================================================
+CREATE TABLE Validation_Convention (
+    id_validation  INT      UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    num_dossier    INT      UNSIGNED NOT NULL,
+    validee_par    ENUM('tuteur','entreprise') NOT NULL,
+    id_validateur  INT      UNSIGNED NOT NULL COMMENT 'id_user du validateur',
+    date_validation DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    commentaire    TEXT,
+    CONSTRAINT fk_val_dossier FOREIGN KEY (num_dossier)   REFERENCES Dossier_Stage(num_dossier),
+    CONSTRAINT fk_val_user    FOREIGN KEY (id_validateur)  REFERENCES Utilisateur(id_user)
+) ENGINE=InnoDB;
+
+
+-- =============================================================
+-- 13. REMARQUE
+--     Commentaires ajoutés par Tuteur, Jury, Entreprise ou Étudiant
+--     sur un Dossier de stage.
+-- =============================================================
+CREATE TABLE Remarque (
+    id_remarque   INT      UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    contenu       TEXT     NOT NULL,
+    date_creation DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    num_dossier   INT      UNSIGNED NOT NULL,
+    -- Auteur : soit un Utilisateur (Tuteur/Jury/Entreprise/Admin), soit un Étudiant
+    id_user       INT      UNSIGNED DEFAULT NULL COMMENT 'Auteur Utilisateur (nullable)',
+    id_etu        INT      UNSIGNED DEFAULT NULL COMMENT 'Auteur Étudiant (nullable)',
+    CONSTRAINT fk_rem_dossier FOREIGN KEY (num_dossier) REFERENCES Dossier_Stage(num_dossier),
+    CONSTRAINT fk_rem_user    FOREIGN KEY (id_user)     REFERENCES Utilisateur(id_user),
+    CONSTRAINT fk_rem_etu     FOREIGN KEY (id_etu)      REFERENCES Etudiant(id_etu),
+    -- Au moins un auteur obligatoire
+    CONSTRAINT chk_rem_auteur CHECK (
+        (id_user IS NOT NULL AND id_etu IS NULL)
+        OR
+        (id_user IS NULL AND id_etu IS NOT NULL)
+    )
+) ENGINE=InnoDB;
+
+
+-- =============================================================
+-- 14. EVALUATION_JURY
+--     Note/avis du Jury sur un Dossier de stage.
+-- =============================================================
+CREATE TABLE Evaluation_Jury (
+    id_eval       INT      UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    note          DECIMAL(4,2) COMMENT 'Note sur 20',
+    appreciation  TEXT,
+    valide        TINYINT(1)   NOT NULL DEFAULT 0,
+    date_eval     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    num_dossier   INT      UNSIGNED NOT NULL,
+    id_jury       INT      UNSIGNED NOT NULL,
+    CONSTRAINT fk_eval_dossier FOREIGN KEY (num_dossier) REFERENCES Dossier_Stage(num_dossier),
+    CONSTRAINT fk_eval_jury    FOREIGN KEY (id_jury)     REFERENCES Jury(id_jury)
+) ENGINE=InnoDB;
+
+
+-- =============================================================
+-- 15. ARCHIVE
+--     Archivage d'un dossier par un Admin.
+-- =============================================================
+CREATE TABLE Archive (
+    id_archive       INT      UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    date_archivage   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    motif            VARCHAR(255),
+    annee_academique VARCHAR(9) COMMENT 'Ex: 2025-2026',
+    num_dossier      INT      UNSIGNED NOT NULL,
+    id_user_admin    INT      UNSIGNED NOT NULL COMMENT 'Admin ayant effectué l''archivage',
+    CONSTRAINT fk_arch_dossier FOREIGN KEY (num_dossier)   REFERENCES Dossier_Stage(num_dossier),
+    CONSTRAINT fk_arch_admin   FOREIGN KEY (id_user_admin)  REFERENCES Utilisateur(id_user)
+) ENGINE=InnoDB;
+
+
+-- =============================================================
+-- 16. TRACE_LOG
+--     Fichier trace des actions (exigence cahier des charges §4).
+--     Toutes les actions importantes y sont consignées.
+-- =============================================================
+CREATE TABLE Trace_Log (
+    id_log          BIGINT       UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    action          VARCHAR(100) NOT NULL COMMENT 'Ex: CONNEXION, DEPOT_OFFRE, SOUMISSION_DOSSIER...',
+    entite          VARCHAR(50)  COMMENT 'Table concernée',
+    entite_id       INT          COMMENT 'ID de l''enregistrement concerné',
+    description     TEXT,
+    date_heure      DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    ip_address      VARCHAR(45)  COMMENT 'IPv4 ou IPv6',
+    -- Auteur : Utilisateur ou Étudiant
+    id_user         INT          UNSIGNED DEFAULT NULL,
+    id_etu          INT          UNSIGNED DEFAULT NULL,
+    CONSTRAINT fk_log_user FOREIGN KEY (id_user) REFERENCES Utilisateur(id_user) ON DELETE SET NULL,
+    CONSTRAINT fk_log_etu  FOREIGN KEY (id_etu)  REFERENCES Etudiant(id_etu)     ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+
+-- =============================================================
+-- 17. DEMANDE_FILIERE
+--     Requête étudiant → Admin pour ajouter une filière manquante
+--     (exigence cahier des charges §3).
+-- =============================================================
+CREATE TABLE Demande_Filiere (
+    id_demande    INT          UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    filiere_demandee VARCHAR(150) NOT NULL,
+    justification TEXT,
+    statut        ENUM('en_attente','approuvee','rejetee') NOT NULL DEFAULT 'en_attente',
+    date_demande  DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    date_traitement DATETIME,
+    id_etu        INT          UNSIGNED NOT NULL,
+    id_user_admin INT          UNSIGNED DEFAULT NULL COMMENT 'Admin ayant traité la demande',
+    CONSTRAINT fk_dem_etu   FOREIGN KEY (id_etu)          REFERENCES Etudiant(id_etu),
+    CONSTRAINT fk_dem_admin FOREIGN KEY (id_user_admin)    REFERENCES Utilisateur(id_user)
+) ENGINE=InnoDB;
+
+
+-- =============================================================
+-- VUES UTILES
+-- =============================================================
+
+-- Vue : Rôles d'un utilisateur (lisible)
+CREATE OR REPLACE VIEW v_utilisateur_roles AS
+SELECT
+    u.id_user,
+    u.nom,
+    u.prenom,
+    u.email,
+    GROUP_CONCAT(r.libelle ORDER BY r.libelle SEPARATOR ', ') AS roles
+FROM Utilisateur u
+JOIN Avoir_Role ar ON ar.id_user = u.id_user
+JOIN Role r        ON r.id_role  = ar.id_role
+GROUP BY u.id_user, u.nom, u.prenom, u.email;
+
+-- Vue : Tableau de bord stage étudiant
+CREATE OR REPLACE VIEW v_tableau_bord_stage AS
+SELECT
+    e.id_etu,
+    CONCAT(e.prenom, ' ', e.nom) AS etudiant,
+    e.filiere,
+    s.num_stage,
+    s.titre         AS titre_stage,
+    s.statut        AS statut_stage,
+    s.avancement,
+    d.num_dossier,
+    d.statut        AS statut_dossier,
+    ent.nom         AS entreprise,
+    CONCAT(u.prenom, ' ', u.nom) AS tuteur
+FROM Etudiant e
+LEFT JOIN Stage s        ON s.id_etu    = e.id_etu
+LEFT JOIN Dossier_Stage d ON d.num_stage = s.num_stage
+LEFT JOIN Entreprise ent  ON ent.num_siret = s.num_siret
+LEFT JOIN Tuteur t        ON t.id_tuteur   = s.id_tuteur
+LEFT JOIN Utilisateur u   ON u.id_user     = t.id_user;
+
+-- Vue : Offres disponibles avec info entreprise
+CREATE OR REPLACE VIEW v_offres_disponibles AS
+SELECT
+    o.num_offre,
+    o.titre,
+    o.mission,
+    o.competences,
+    o.filiere_ciblee,
+    o.duree_semaines,
+    o.date_debut,
+    e.nom           AS entreprise,
+    e.secteur,
+    e.ville
+FROM Offre_Stage o
+JOIN Entreprise e ON e.num_siret = o.num_siret
+WHERE o.statut = 'ouverte';
+
+
+-- =============================================================
+-- INDEX SUPPLÉMENTAIRES (performances)
+-- =============================================================
+CREATE INDEX idx_stage_etu       ON Stage(id_etu);
+CREATE INDEX idx_stage_siret     ON Stage(num_siret);
+CREATE INDEX idx_dossier_stage   ON Dossier_Stage(num_stage);
+CREATE INDEX idx_remarque_doss   ON Remarque(num_dossier);
+CREATE INDEX idx_log_datetime    ON Trace_Log(date_heure);
+CREATE INDEX idx_log_user        ON Trace_Log(id_user);
+CREATE INDEX idx_offre_statut    ON Offre_Stage(statut);
+CREATE INDEX idx_offre_filiere   ON Offre_Stage(filiere_ciblee);

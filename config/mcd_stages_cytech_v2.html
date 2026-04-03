@@ -1,0 +1,214 @@
+
+<div id="erd" style="padding: 1rem 0"></div>
+<script type="module">
+import mermaid from 'https://esm.sh/mermaid@11/dist/mermaid.esm.min.mjs';
+const dark = matchMedia('(prefers-color-scheme: dark)').matches;
+await document.fonts.ready;
+mermaid.initialize({
+  startOnLoad: false,
+  theme: 'base',
+  fontFamily: '"Anthropic Sans", sans-serif',
+  themeVariables: {
+    darkMode: dark,
+    fontSize: '13px',
+    fontFamily: '"Anthropic Sans", sans-serif',
+    lineColor: dark ? '#9c9a92' : '#73726c',
+    textColor: dark ? '#c2c0b6' : '#3d3d3a',
+  },
+});
+
+const diagram = `erDiagram
+  Utilisateur {
+    int id_user PK
+    string nom
+    string prenom
+    string email
+    string mot_de_passe
+    datetime date_inscription
+    bool actif
+  }
+  Role {
+    int id_role PK
+    string libelle
+    string description
+  }
+  Avoir_Role {
+    int id_user FK
+    int id_role FK
+    datetime date_ajout
+  }
+  Profil_Etudiant {
+    int id_user FK
+    string filiere
+    string niveau
+    int annee_promo
+  }
+  Profil_Tuteur {
+    int id_user FK
+    string specialite
+    string departement
+  }
+  Profil_Jury {
+    int id_user FK
+    string specialite
+    string commission
+    int annee
+  }
+  Entreprise {
+    string num_siret PK
+    string nom
+    string secteur
+    string filiere
+    string adresse
+    string ville
+    string code_postal
+    string site_web
+    int nb_stagiere
+    int id_user FK
+  }
+  Offre_Stage {
+    int num_offre PK
+    string titre
+    string mission
+    string competences
+    string filiere_ciblee
+    int duree_semaines
+    date date_debut
+    datetime date_publication
+    string statut
+    string num_siret FK
+  }
+  Favori {
+    int id_user FK
+    int num_offre FK
+    datetime date_ajout
+  }
+  Stage {
+    int num_stage PK
+    string titre
+    string mission
+    int avancement
+    int duree_semaines
+    date date_debut
+    date date_fin
+    string statut
+    int id_etudiant FK
+    string num_siret FK
+    int num_offre FK
+    int id_tuteur FK
+  }
+  Dossier_Stage {
+    int num_dossier PK
+    string statut
+    string rapport_url
+    string convention_url
+    datetime date_creation
+    int num_stage FK
+    int id_etudiant FK
+  }
+  Validation_Convention {
+    int id_validation PK
+    int num_dossier FK
+    string validee_par
+    int id_validateur FK
+    datetime date_validation
+  }
+  Remarque {
+    int id_remarque PK
+    string contenu
+    datetime date_creation
+    int num_dossier FK
+    int id_auteur FK
+  }
+  Evaluation_Jury {
+    int id_eval PK
+    float note
+    string appreciation
+    bool valide
+    datetime date_eval
+    int num_dossier FK
+    int id_jury FK
+  }
+  Archive {
+    int id_archive PK
+    datetime date_archivage
+    string motif
+    string annee_academique
+    int num_dossier FK
+    int id_user_admin FK
+  }
+  Trace_Log {
+    int id_log PK
+    string action
+    string entite
+    int entite_id
+    datetime date_heure
+    string ip_address
+    int id_user FK
+  }
+  Demande_Filiere {
+    int id_demande PK
+    string filiere_demandee
+    string justification
+    string statut
+    datetime date_demande
+    int id_etudiant FK
+    int id_user_admin FK
+  }
+
+  Utilisateur ||--o{ Avoir_Role : "possede"
+  Role ||--o{ Avoir_Role : "attribue"
+  Utilisateur ||--o| Profil_Etudiant : "profil etudiant"
+  Utilisateur ||--o| Profil_Tuteur : "profil tuteur"
+  Utilisateur ||--o| Profil_Jury : "profil jury"
+  Utilisateur ||--o| Entreprise : "profil entreprise"
+  Entreprise ||--o{ Offre_Stage : "publie"
+  Utilisateur ||--o{ Favori : "favori"
+  Offre_Stage ||--o{ Favori : "en favori"
+  Utilisateur ||--o{ Stage : "etudiant de"
+  Entreprise ||--o{ Stage : "accueille"
+  Offre_Stage ||--o| Stage : "origine"
+  Stage ||--|| Dossier_Stage : "genere"
+  Dossier_Stage ||--o{ Validation_Convention : "validee par"
+  Utilisateur ||--o{ Validation_Convention : "valide"
+  Dossier_Stage ||--o{ Remarque : "comporte"
+  Utilisateur ||--o{ Remarque : "redige"
+  Dossier_Stage ||--o{ Evaluation_Jury : "evaluee par"
+  Utilisateur ||--o{ Evaluation_Jury : "evalue"
+  Dossier_Stage ||--o| Archive : "archivee"
+  Utilisateur ||--o{ Archive : "archive"
+  Utilisateur ||--o{ Trace_Log : "genere"
+  Utilisateur ||--o{ Demande_Filiere : "soumet"
+`;
+
+try {
+  const { svg } = await mermaid.render('erd-svg', diagram);
+  document.getElementById('erd').innerHTML = svg;
+
+  document.querySelectorAll('#erd svg .node').forEach(node => {
+    const firstPath = node.querySelector('path[d]');
+    if (!firstPath) return;
+    const d = firstPath.getAttribute('d');
+    const nums = d.match(/-?[\d.]+/g)?.map(Number);
+    if (!nums || nums.length < 8) return;
+    const xs = [nums[0], nums[2], nums[4], nums[6]];
+    const ys = [nums[1], nums[3], nums[5], nums[7]];
+    const x = Math.min(...xs), y = Math.min(...ys);
+    const w = Math.max(...xs) - x, h = Math.max(...ys) - y;
+    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    rect.setAttribute('x', x); rect.setAttribute('y', y);
+    rect.setAttribute('width', w); rect.setAttribute('height', h);
+    rect.setAttribute('rx', '8');
+    for (const a of ['fill', 'stroke', 'stroke-width', 'class', 'style']) {
+      if (firstPath.hasAttribute(a)) rect.setAttribute(a, firstPath.getAttribute(a));
+    }
+    firstPath.replaceWith(rect);
+  });
+
+  document.querySelectorAll('#erd svg .row-rect-odd path, #erd svg .row-rect-even path').forEach(p => {
+    p.setAttribute('stroke', 'none');
+  });
+} catch(e) {
+  document.getElementById('erd').innerHTML = '<pre style="color:var(--color-text-danger);font-size:12px;padding:1rem">' + e.message + '</pre>';
+}
+</script>

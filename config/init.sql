@@ -382,4 +382,4 @@ CREATE INDEX idx_offre_filiere      ON Offre_Stage(filiere_ciblee);
 
 
 INSERT INTO Utilisateur (nom, prenom, email, mot_de_passe, actif, role_premier, role_second, role_troisieme, filiere, niveau, annee_promo) VALUES ('DUPONT', 'Jean', 'jean.dupont@cy-tech.fr','jeanD26.',1, 'Etudiant', NULL, NULL, 'Informatique', 'ING1', 2026);  
-
+INSERT INTO Utilisateur (nom, prenom, email,  mot_de_passe, actif, role_premier, role_second, role_troisieme,filiere,niveau, annee_promo,num_siret) VALUES ('ADMIN', 'Directeur', 'admin.cy@cy-tech.fr', 'admin26.', 1,'Admin',NULL,NULL, NULL, NULL,  NULL);   

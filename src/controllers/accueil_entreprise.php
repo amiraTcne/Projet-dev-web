@@ -11,7 +11,7 @@
 <div class="page">
 
     <div class="logo-wrapper">
-        <img src="http://localhost:8080/public/assets/img/logo.png" alt="CY Stage">
+        <img src="../../public/assets/img/logo.png" alt="CY Stage">
     </div>
 
     <div class="nom-entreprise">

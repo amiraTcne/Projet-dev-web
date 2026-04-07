@@ -5,13 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Page Jurys</title>
-    <link rel="stylesheet" href="http://localhost:8080/public/assets/css/style_acceuil.css">
+    <link rel="stylesheet" href="../../public/assets/css/style_acceuil.css">
 </head>
 <body>
 <div class="page">
 
     <div class="logo-wrapper">
-        <img src="http://localhost:8080/public/assets/img/logo.png" alt="CY Stage">
+        <img src="../../public/assets/img/logo.png" alt="CY Stage">
     </div>
 
     <div class="nom-entreprise">

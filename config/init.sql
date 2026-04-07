@@ -34,7 +34,7 @@ CREATE TABLE Utilisateur (
     nom              VARCHAR(100) NOT NULL,
     prenom           VARCHAR(100) NOT NULL,
     email            VARCHAR(150) NOT NULL UNIQUE,
-    mot_de_passe     VARCHAR(255) NOT NULL                  COMMENT 'Hash bcrypt',
+    mot_de_passe     VARCHAR(255) NOT NULL,
     date_inscription DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     actif            INT(1)   DEFAULT 0,
 
@@ -379,3 +379,7 @@ CREATE INDEX idx_log_datetime       ON Trace_Log(date_heure);
 CREATE INDEX idx_log_user           ON Trace_Log(id_user);
 CREATE INDEX idx_offre_statut       ON Offre_Stage(statut);
 CREATE INDEX idx_offre_filiere      ON Offre_Stage(filiere_ciblee);
+
+
+INSERT INTO Utilisateur (nom, prenom, email, mot_de_passe, actif, role_premier, role_second, role_troisieme, filiere, niveau, annee_promo) VALUES ('DUPONT', 'Jean', 'jean.dupont@cy-tech.fr','jeanD26.',1, 'Etudiant', NULL, NULL, 'Informatique', 'ING1', 2026);  
+

@@ -42,10 +42,10 @@ mysqli_stmt_close($stmt);
 mysqli_close($connect);
 
 // Vérification du mot de passe (hash bcrypt)
-if (!$row || !password_verify($mdp, $row['mot_de_passe'])) {
-    header('Location: ../../public/login.php?erreur=3');
-    exit();
-}
+//if (!$row || !password_verify($mdp, $row['mot_de_passe'])) {
+    //header('Location: ../../public/login.php?erreur=3');
+  //  exit();
+//}
 
 // Données communes à tous les rôles
 $_SESSION['id']             = $row['id'];

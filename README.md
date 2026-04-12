@@ -111,7 +111,174 @@ Nous appliquons la méthodologie **Agile (Scrum)** avec un suivi rigoureux :
 * **Amira TARCHOUNE** - *Design IHM & Conception*
 
 **Enseignant référent :** M. FASSI Dieudonné
+--- 
+# 📋 Résumé des profils utilisateurs — Base de données
 
+Récapitulatif des profils insérés dans la table `Utilisateur`.
+
+---
+
+## 🗄️ Structure de la table
+
+```sql
+CREATE TABLE Utilisateur (
+    id               INT          UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    nom              VARCHAR(100) NOT NULL,
+    prenom           VARCHAR(100) NOT NULL,
+    email            VARCHAR(150) NOT NULL UNIQUE,
+    mot_de_passe     VARCHAR(255) NOT NULL,
+    date_inscription DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    actif            INT(1)       DEFAULT 0,
+    role_premier     ENUM('Admin','Tuteur','Jury','Entreprise','Etudiant') NOT NULL,
+    role_second      ENUM('Admin','Tuteur','Jury','Entreprise')            DEFAULT NULL,
+    role_troisieme   ENUM('Admin','Tuteur','Jury','Entreprise')            DEFAULT NULL,
+    filiere          VARCHAR(100) DEFAULT NULL,
+    niveau           VARCHAR(50)  DEFAULT NULL,
+    annee_promo      YEAR         DEFAULT NULL,
+    specialite       VARCHAR(100) DEFAULT NULL,
+    departement      VARCHAR(100) DEFAULT NULL,
+    commission       VARCHAR(100) DEFAULT NULL,
+    annee_jury       YEAR         DEFAULT NULL,
+    num_siret        CHAR(14)     DEFAULT NULL UNIQUE,
+    nom_entreprise   VARCHAR(200) DEFAULT NULL,
+    secteur          VARCHAR(100) DEFAULT NULL,
+    adresse          VARCHAR(255) DEFAULT NULL,
+    ville            VARCHAR(100) DEFAULT NULL,
+    code_postal      CHAR(5)      DEFAULT NULL,
+    site_web         VARCHAR(200) DEFAULT NULL,
+    nb_stagiere      TINYINT UNSIGNED NOT NULL DEFAULT 0
+) ENGINE=InnoDB;
+```
+
+---
+
+## 👤 Profils créés
+
+### 🎓 Etudiant
+
+| Champ | Valeur |
+|-------|--------|
+| **Nom** | DUPONT |
+| **Prénom** | Jean |
+| **Email** | jean.dupont@cy-tech.fr |
+| **Mot de passe** | jeanD26. |
+| **Actif** | 1 |
+| **role_premier** | Etudiant |
+| **role_second** | NULL |
+| **role_troisieme** | NULL |
+| **filiere** | Informatique |
+| **niveau** | ING1 |
+| **annee_promo** | 2026 |
+
+```sql
+INSERT INTO Utilisateur (nom, prenom, email, mot_de_passe, actif, role_premier, role_second, role_troisieme, filiere, niveau, annee_promo)
+VALUES ('DUPONT', 'Jean', 'jean.dupont@cy-tech.fr', 'jeanD26.', 1, 'Etudiant', NULL, NULL, 'Informatique', 'ING1', 2026);
+```
+
+---
+
+### 🛡️ Admin
+
+| Champ | Valeur |
+|-------|--------|
+| **Nom** | Martin |
+| **Prénom** | Marc |
+| **Email** | marc.martin@universite.fr |
+| **Mot de passe** | admin26. |
+| **Actif** | 1 |
+| **role_premier** | Admin |
+| **role_second** | NULL |
+| **role_troisieme** | NULL |
+| **Tous autres champs** | NULL |
+| **nb_stagiere** | 0 |
+
+```sql
+INSERT INTO Utilisateur (nom, prenom, email, mot_de_passe, actif, role_premier, role_second, role_troisieme, filiere, niveau, annee_promo, specialite, departement, commission, annee_jury, num_siret, nom_entreprise, secteur, adresse, ville, code_postal, site_web, nb_stagiere)
+VALUES ('Martin', 'Marc', 'marc.martin@universite.fr', 'admin26.', 1, 'Admin', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0);
+```
+
+---
+
+### 🏢 Entreprise
+
+| Champ | Valeur |
+|-------|--------|
+| **Nom** | Dupont |
+| **Prénom** | Jean |
+| **Email** | contact@techcorp.fr |
+| **Mot de passe** | entreprise26. |
+| **Actif** | 1 |
+| **role_premier** | Entreprise |
+| **num_siret** | 12345678901234 |
+| **nom_entreprise** | TechCorp SAS |
+| **secteur** | Informatique |
+| **adresse** | 12 rue de la Paix |
+| **ville** | Paris |
+| **code_postal** | 75001 |
+| **site_web** | https://techcorp.fr |
+| **nb_stagiere** | 0 |
+
+```sql
+INSERT INTO Utilisateur (nom, prenom, email, mot_de_passe, actif, role_premier, num_siret, nom_entreprise, secteur, adresse, ville, code_postal, site_web, nb_stagiere)
+VALUES ('Dupont', 'Jean', 'contact@techcorp.fr', 'entreprise26.', 1, 'Entreprise', '12345678901234', 'TechCorp SAS', 'Informatique', '12 rue de la Paix', 'Paris', '75001', 'https://techcorp.fr', 0);
+```
+
+---
+
+### ⚖️ Jury
+
+| Champ | Valeur |
+|-------|--------|
+| **Nom** | Bernard |
+| **Prénom** | Sophie |
+| **Email** | sophie.bernard@universite.fr |
+| **Mot de passe** | jurys26. |
+| **Actif** | 1 |
+| **role_premier** | Jury |
+| **specialite** | Informatique & IA |
+| **commission** | Commission Ingénierie |
+| **annee_jury** | 2024 |
+
+```sql
+INSERT INTO Utilisateur (nom, prenom, email, mot_de_passe, actif, role_premier, specialite, commission, annee_jury)
+VALUES ('Bernard', 'Sophie', 'sophie.bernard@universite.fr', 'jurys26.', 1, 'Jury', 'Informatique & IA', 'Commission Ingénierie', 2024);
+```
+
+---
+
+### 🧑‍🏫 Tuteur
+
+| Champ | Valeur |
+|-------|--------|
+| **Nom** | Lefebvre |
+| **Prénom** | Pierre |
+| **Email** | pierre.lefebvre@universite.fr |
+| **Mot de passe** | tuteur26. |
+| **Actif** | 1 |
+| **role_premier** | Tuteur |
+| **specialite** | Mathématiques Appliquées |
+| **departement** | Département Sciences |
+
+```sql
+INSERT INTO Utilisateur (nom, prenom, email, mot_de_passe, actif, role_premier, specialite, departement)
+VALUES ('Lefebvre', 'Pierre', 'pierre.lefebvre@universite.fr', 'tuteur26.', 1, 'Tuteur', 'Mathématiques Appliquées', 'Département Sciences');
+```
+
+---
+
+## 📊 Tableau récapitulatif
+
+| Profil | Nom | Prénom | Email | Mdp (clair) | Attributs renseignés |
+|--------|-----|--------|-------|-------------|----------------------|
+| **Etudiant** | DUPONT | Jean | jean.dupont@cy-tech.fr | jeanD26. | `actif`, `role_premier`, `filiere`, `niveau`, `annee_promo` |
+| **Admin** | Martin | Marc | marc.martin@universite.fr | admin26. | `actif`, `role_premier`, `nb_stagiere=0` |
+| **Entreprise** | Dupont | Jean | contact@techcorp.fr | entreprise26. | `actif`, `role_premier`, `num_siret`, `nom_entreprise`, `secteur`, `adresse`, `ville`, `code_postal`, `site_web`, `nb_stagiere` |
+| **Jury** | Bernard | Sophie | sophie.bernard@universite.fr | jurys26. | `actif`, `role_premier`, `specialite`, `commission`, `annee_jury` |
+| **Tuteur** | Lefebvre | Pierre | pierre.lefebvre@universite.fr | tuteur26. | `actif`, `role_premier`, `specialite`, `departement` |
+
+---
+
+> ⚠️ **Note de sécurité** : Les mots de passe sont affichés en clair à titre de documentation uniquement. En production, utiliser un hashage sécurisé (`bcrypt`, `Argon2`) côté applicatif avant insertion en base.
 ---
 
 ## 🚀 Installation & Lancement

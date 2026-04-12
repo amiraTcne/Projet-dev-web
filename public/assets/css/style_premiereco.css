@@ -1,0 +1,281 @@
+.register-page {
+            min-height: 100vh;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+        }
+
+/* ── PANNEAU GAUCHE ── */
+.register-left {
+    background: linear-gradient(160deg, var(--bleu-royal) 0%, var(--bleu-horizon) 60%, var(--brume-acier) 100%);
+        padding: 3rem;
+        display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .register-left::before {
+            content: '';
+            position: absolute;
+            top: -100px; right: -100px;
+            width: 500px; height: 500px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.05);
+        }
+
+        .register-left::after {
+            content: '';
+            position: absolute;
+            bottom: -80px; left: -60px;
+            width: 300px; height: 300px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.04);
+        }
+
+        .left-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            position: relative;
+            z-index: 1;
+        }
+
+        .left-logo-circle {
+            width: 42px; height: 42px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-weight: 800; font-size: 15px;
+            font-family: 'Montserrat Alternates', sans-serif;
+            backdrop-filter: blur(4px);
+        }
+
+        .left-logo-text {
+            font-family: 'Montserrat Alternates', sans-serif;
+            font-weight: 700; font-size: 20px; color: white;
+        }
+
+        .left-content {
+            position: relative; z-index: 1;
+        }
+
+        .left-content h2 {
+            font-family: 'Montserrat Alternates', sans-serif;
+            font-size: clamp(1.6rem, 2.5vw, 2.2rem);
+            font-weight: 700; color: white; line-height: 1.25;
+            margin-bottom: 1rem;
+        }
+
+        .left-content p {
+            font-size: 14px; color: rgba(255,255,255,0.75);
+            line-height: 1.7; margin-bottom: 2rem;
+        }
+
+        .left-roles {
+            display: flex; flex-direction: column; gap: 10px;
+        }
+
+        .left-role-item {
+            display: flex; align-items: center; gap: 12px;
+            background: rgba(255,255,255,0.1);
+            border-radius: var(--radius-sm);
+            padding: 10px 14px;
+            backdrop-filter: blur(4px);
+        }
+
+        .left-role-icon {
+            font-size: 18px; width: 28px; text-align: center;
+        }
+
+        .left-role-label {
+            font-size: 13px; font-weight: 600; color: white;
+        }
+
+        .left-role-desc {
+            font-size: 11px; color: rgba(255,255,255,0.65);
+        }
+
+        .left-bottom {
+            position: relative; z-index: 1;
+            font-size: 12px; color: rgba(255,255,255,0.5);
+        }
+
+        /* ── PANNEAU DROIT ── */
+        .register-right {
+            background: var(--fond);
+            padding: 3rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .register-right-inner {
+            max-width: 480px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .register-right h1 {
+            font-family: 'Montserrat Alternates', sans-serif;
+            font-size: 24px; font-weight: 700;
+            color: var(--texte); margin-bottom: .4rem;
+        }
+
+        .register-right .subtitle {
+            font-size: 14px; color: var(--texte-muted);
+            margin-bottom: 2rem;
+        }
+
+        .register-right .subtitle a {
+            color: var(--bleu-royal); font-weight: 600; text-decoration: none;
+        }
+
+        /* ── STEPS ── */
+        .steps-bar {
+            display: flex; align-items: center; gap: 0;
+            margin-bottom: 2rem;
+        }
+
+        .step-item {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 12px; font-weight: 600;
+            color: var(--texte-muted);
+        }
+
+        .step-item.active { color: var(--bleu-royal); }
+        .step-item.done   { color: var(--bleu-horizon); }
+
+        .step-circle {
+            width: 26px; height: 26px; border-radius: 50%;
+            border: 2px solid var(--brume-acier);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 700;
+            background: var(--blanc);
+            color: var(--texte-muted);
+            transition: all .3s;
+        }
+
+        .step-item.active .step-circle {
+            border-color: var(--bleu-royal);
+            background: var(--bleu-royal);
+            color: white;
+        }
+
+        .step-item.done .step-circle {
+            border-color: var(--bleu-horizon);
+            background: var(--bleu-horizon);
+            color: white;
+        }
+
+        .step-line {
+            flex: 1; height: 2px;
+            background: var(--brume-acier);
+            margin: 0 8px;
+            transition: background-color .3s;
+        }
+
+        .step-line.done { background: var(--bleu-horizon); }
+
+        /* ── ROLE PICKER ── */
+        .role-grid {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 10px; margin-bottom: 1.5rem;
+        }
+
+        .role-card {
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1rem;
+            cursor: pointer;
+            transition: all .2s;
+            background: var(--blanc);
+            text-align: center;
+        }
+
+        .role-card:hover {
+            border-color: var(--bleu-horizon);
+            transform: translateY(-2px);
+        }
+
+        .role-card.selected {
+            border-color: var(--bleu-royal);
+            background: rgba(37,95,170,0.05);
+        }
+
+        .role-card-icon { font-size: 26px; margin-bottom: 6px; }
+
+        .role-card-label {
+            font-size: 13px; font-weight: 700;
+            color: var(--texte);
+        }
+
+        .role-card-desc {
+            font-size: 11px; color: var(--texte-muted);
+            margin-top: 3px; line-height: 1.4;
+        }
+
+        /* ── FORM FIELDS ── */
+        .form-row {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+        }
+
+        .form-section-title {
+            font-size: 11px; font-weight: 700;
+            color: var(--bleu-royal);
+            text-transform: uppercase; letter-spacing: .08em;
+            margin: 1.25rem 0 .75rem;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .field-block { display: none; }
+        .field-block.visible { display: block; }
+
+        /* ── ALERT ── */
+        .alert-error {
+            background: #fff0f0; border: 1px solid #f7c1c1;
+            border-radius: var(--radius-sm); padding: 10px 14px;
+            font-size: 13px; color: #a32d2d;
+            margin-bottom: 1.25rem;
+        }
+
+        .btn-next, .btn-back {
+            padding: 11px 24px;
+            border-radius: 50px;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 14px; font-weight: 600;
+            cursor: pointer; transition: all .2s;
+        }
+
+        .btn-next {
+            background: var(--bleu-royal); color: white; border: none;
+            flex: 1;
+        }
+
+        .btn-next:hover {
+            background: #1a4a8a;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(37,95,170,0.3);
+        }
+
+        .btn-back {
+            background: transparent;
+            border: 1.5px solid var(--border);
+            color: var(--texte-muted);
+        }
+
+        .btn-back:hover { border-color: var(--bleu-royal); color: var(--bleu-royal); }
+
+        .form-actions {
+            display: flex; gap: 10px; margin-top: 1.5rem;
+        }
+
+        /* ── RESPONSIVE ── */
+        @media (max-width: 768px) {
+            .register-page { grid-template-columns: 1fr; }
+            .register-left { display: none; }
+            .register-right { padding: 2rem 1.25rem; }
+        }

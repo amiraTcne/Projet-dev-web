@@ -69,7 +69,7 @@ mysqli_close($conn);
 
     <div class="nav-actions">
         <a href="../../public/login.php" class="btn-outline" >Se connecter</a>
-        <a href="#" class="btn-primary">S'inscrire</a>
+        <a href="premiere_inscription.php" class="btn-primary">S'inscrire</a>
     </div>
 </nav>
 

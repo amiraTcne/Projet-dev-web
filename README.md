@@ -118,40 +118,6 @@ Récapitulatif des profils insérés dans la table `Utilisateur`.
 
 ---
 
-## 🗄️ Structure de la table
-
-```sql
-CREATE TABLE Utilisateur (
-    id               INT          UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    nom              VARCHAR(100) NOT NULL,
-    prenom           VARCHAR(100) NOT NULL,
-    email            VARCHAR(150) NOT NULL UNIQUE,
-    mot_de_passe     VARCHAR(255) NOT NULL,
-    date_inscription DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    actif            INT(1)       DEFAULT 0,
-    role_premier     ENUM('Admin','Tuteur','Jury','Entreprise','Etudiant') NOT NULL,
-    role_second      ENUM('Admin','Tuteur','Jury','Entreprise')            DEFAULT NULL,
-    role_troisieme   ENUM('Admin','Tuteur','Jury','Entreprise')            DEFAULT NULL,
-    filiere          VARCHAR(100) DEFAULT NULL,
-    niveau           VARCHAR(50)  DEFAULT NULL,
-    annee_promo      YEAR         DEFAULT NULL,
-    specialite       VARCHAR(100) DEFAULT NULL,
-    departement      VARCHAR(100) DEFAULT NULL,
-    commission       VARCHAR(100) DEFAULT NULL,
-    annee_jury       YEAR         DEFAULT NULL,
-    num_siret        CHAR(14)     DEFAULT NULL UNIQUE,
-    nom_entreprise   VARCHAR(200) DEFAULT NULL,
-    secteur          VARCHAR(100) DEFAULT NULL,
-    adresse          VARCHAR(255) DEFAULT NULL,
-    ville            VARCHAR(100) DEFAULT NULL,
-    code_postal      CHAR(5)      DEFAULT NULL,
-    site_web         VARCHAR(200) DEFAULT NULL,
-    nb_stagiere      TINYINT UNSIGNED NOT NULL DEFAULT 0
-) ENGINE=InnoDB;
-```
-
----
-
 ## 👤 Profils créés
 
 ### 🎓 Etudiant

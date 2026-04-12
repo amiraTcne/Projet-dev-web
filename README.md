@@ -112,15 +112,15 @@ Nous appliquons la méthodologie **Agile (Scrum)** avec un suivi rigoureux :
 
 **Enseignant référent :** M. FASSI Dieudonné
 --- 
-# 📋 Résumé des profils utilisateurs — Base de données
+## 📋 Résumé des profils utilisateurs — Base de données
 
 Récapitulatif des profils insérés dans la table `Utilisateur`.
 
 ---
 
-## 👤 Profils créés
+### 👤 Profils créés
 
-### 🎓 Etudiant
+#### 🎓 Etudiant
 
 | Champ | Valeur |
 |-------|--------|
@@ -143,7 +143,7 @@ VALUES ('DUPONT', 'Jean', 'jean.dupont@cy-tech.fr', 'jeanD26.', 1, 'Etudiant', N
 
 ---
 
-### 🛡️ Admin
+#### 🛡️ Admin
 
 | Champ | Valeur |
 |-------|--------|
@@ -165,7 +165,7 @@ VALUES ('Martin', 'Marc', 'marc.martin@universite.fr', 'admin26.', 1, 'Admin', N
 
 ---
 
-### 🏢 Entreprise
+#### 🏢 Entreprise
 
 | Champ | Valeur |
 |-------|--------|
@@ -191,7 +191,7 @@ VALUES ('Dupont', 'Jean', 'contact@techcorp.fr', 'entreprise26.', 1, 'Entreprise
 
 ---
 
-### ⚖️ Jury
+#### ⚖️ Jury
 
 | Champ | Valeur |
 |-------|--------|
@@ -212,7 +212,7 @@ VALUES ('Bernard', 'Sophie', 'sophie.bernard@universite.fr', 'jurys26.', 1, 'Jur
 
 ---
 
-### 🧑‍🏫 Tuteur
+#### 🧑‍🏫 Tuteur
 
 | Champ | Valeur |
 |-------|--------|
@@ -232,7 +232,7 @@ VALUES ('Lefebvre', 'Pierre', 'pierre.lefebvre@universite.fr', 'tuteur26.', 1, '
 
 ---
 
-## 📊 Tableau récapitulatif
+### 📊 Tableau récapitulatif
 
 | Profil | Nom | Prénom | Email | Mdp (clair) | Attributs renseignés |
 |--------|-----|--------|-------|-------------|----------------------|

@@ -62,9 +62,9 @@ mysqli_close($conn);
     </a>
 
     <ul class="nav-links">
-        <li><a href="#">Accueil</a></li>
-        <li><a href="#">Offres de stage</a></li>
-        <li><a href="#">À propos</a></li>
+        <li><a href="#accueil">Accueil</a></li>
+        <li><a href="#offres">Offres de stage</a></li>
+        <li><a href="#apropos">À propos</a></li>
     </ul>
 
     <div class="nav-actions">
@@ -74,11 +74,11 @@ mysqli_close($conn);
 </nav>
 
 <!-- ══════════════════ HERO ══════════════════ -->
-<section class="hero">
+<section class="hero" id="accueil" >
     <div class="hero-inner">
         <div class="hero-tag">Plateforme de stages — CY Tech ING1 2025-2026</div>
         <h1>Trouvez votre stage,<br>construisez votre avenir.</h1>
-        <p>Consultez les offres de stage disponibles déposées par nos entreprises partenaires. Connectez-vous pour postuler, suivre votre dossier et interagir avec votre tuteur.</p>
+        <p>Consultez les offres de stage disponibles déposées par nos entreprises partenaires. Connectez-vous pour postuler, suivre son dossier et interagir avec son tuteur ou encore déposer une offre de stage.</p>
         <div class="hero-stats">
             <div class="hero-stat">
                 <strong><?= count($offres) ?></strong>
@@ -97,11 +97,11 @@ mysqli_close($conn);
 </section>
 
 <!-- ══════════════════ OFFRES ══════════════════ -->
-<div class="section">
+<div class="section" id="offres">
 
     <div class="banner-login">
         <p>👁️ Vous consultez les offres en <strong>mode visiteur</strong>. Connectez-vous pour postuler et accéder à votre espace personnel.</p>
-        <a href="#" class="btn-primary" onclick="openModal('connexion'); return false;">Se connecter →</a>
+        <a href="../../public/login.php" class="btn-primary" >Se connecter →</a>
     </div>
 
     <div class="section-header">
@@ -152,96 +152,45 @@ mysqli_close($conn);
                     <span>⏱ <?= (int)$offre['duree_semaines'] ?> sem.</span>
                     <span>📅 <?= $date_debut ?></span>
                 </div>
-                <button class="btn-voir" onclick="openModal('connexion')">
-                    Voir →
-                </button>
+                <a href="../../public/login.php" class="btn-voir" > Voir → </a>
             </div>
         </div>
         <?php endforeach; ?>
     </div>
     <?php endif; ?>
 </div>
-
-<!-- ══════════════════ MODAL AUTH ══════════════════ -->
-<div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
-    <div class="modal">
-        <button class="modal-close" onclick="closeModal()">✕</button>
-
-        <div class="modal-tabs">
-            <button class="modal-tab active" id="tab-connexion" onclick="switchTab('connexion')">Se connecter</button>
-            <button class="modal-tab" id="tab-inscription" onclick="switchTab('inscription')">S'inscrire</button>
+<!-- ══════════════════ A propos ══════════════════  -->
+<section id="apropos">
+    <div class="section">
+        <div class="section-header">
+            <div class="section-title">À <span>propos</span></div>
         </div>
-
-        <div class="modal-body">
-
-            <!-- CONNEXION -->
-            <form class="modal-form active" id="form-connexion" method="POST" action="login.php">
-                <div class="form-group">
-                    <label>Adresse e-mail</label>
-                    <input type="email" name="email" placeholder="prenom.nom@cy-tech.fr" required>
-                </div>
-                <div class="form-group">
-                    <label>Mot de passe</label>
-                    <input type="password" name="mot_de_passe" placeholder="••••••••" required>
-                </div>
-                <button type="submit" class="form-submit">Se connecter</button>
-            </form>
-
-            <!-- INSCRIPTION -->
-            <form class="modal-form" id="form-inscription" method="POST" action="register.php">
-                <div class="form-group">
-                    <label>Nom</label>
-                    <input type="text" name="nom" placeholder="Dupont" required>
-                </div>
-                <div class="form-group">
-                    <label>Prénom</label>
-                    <input type="text" name="prenom" placeholder="Jean" required>
-                </div>
-                <div class="form-group">
-                    <label>Adresse e-mail</label>
-                    <input type="email" name="email" placeholder="prenom.nom@cy-tech.fr" required>
-                </div>
-                <div class="form-group">
-                    <label>Mot de passe</label>
-                    <input type="password" name="mot_de_passe" placeholder="••••••••" required>
-                </div>
-                <button type="submit" class="form-submit">Créer mon compte</button>
-            </form>
+        <div class="apropos-grid">
+            <div class="apropos-card">
+                <div class="apropos-icon">🎓</div>
+                <h3>Le projet</h3>
+                <p>CyStages est une plateforme développée dans le cadre du projet Dev Web ING1 2025-2026 à CY Tech. Elle centralise la gestion des stages pour tous les acteurs : étudiants, tuteurs, jurys et entreprises. Les developpeuses de ce projet sont : Ambre, Amina, Amira et Sirine</p>
+            </div>
+            <div class="apropos-card">
+                <div class="apropos-icon">👥</div>
+                <h3>Les acteurs</h3>
+                <p>Cinq profils coexistent sur la plateforme : les <strong>étudiants</strong> qui postulent, les <strong>entreprises</strong> qui déposent des offres, les <strong>tuteurs</strong> qui suivent les stages, les <strong>jurys</strong> qui évaluent les dossiers et les <strong> administrateurs </strong> qui gèrent l'ensemble des profils.</p>
+            </div>
+            <div class="apropos-card">
+                <div class="apropos-icon">📋</div>
+                <h3>Fonctionnalités</h3>
+                <p>Consultation des offres en accès libre, gestion de dossiers de stage, suivi de l'avancement, validation des conventions, évaluation jury et archivage — tout en un seul endroit.</p>
+            </div>
 
         </div>
     </div>
-</div>
+</section>
+
 
 <!-- ══════════════════ FOOTER ══════════════════ -->
 <footer>
     <strong>CY Tech</strong> — Plateforme de suivi des stages · Projet Dev Web ING1 · 2025-2026
 </footer>
-
-<script>
-function openModal(tab) {
-    document.getElementById('modalOverlay').classList.add('active');
-    switchTab(tab);
-}
-
-function closeModal() {
-    document.getElementById('modalOverlay').classList.remove('active');
-}
-
-function closeModalOutside(e) {
-    if (e.target === document.getElementById('modalOverlay')) closeModal();
-}
-
-function switchTab(tab) {
-    document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.modal-form').forEach(f => f.classList.remove('active'));
-    document.getElementById('tab-' + tab).classList.add('active');
-    document.getElementById('form-' + tab).classList.add('active');
-}
-
-document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') closeModal();
-});
-</script>
 
 </body>
 </html>

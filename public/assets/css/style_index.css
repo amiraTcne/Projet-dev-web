@@ -30,6 +30,10 @@ body {
     min-height: 100vh;
 }
 
+html {
+    scroll-behavior: smooth;
+}
+
 /* ── NAVBAR ── */
 nav {
     background: var(--blanc);
@@ -228,6 +232,10 @@ nav {
 
 .section-title span { color: var(--bleu-royal); }
 
+.section-title .count-badge {
+    color: white;
+}
+
 .count-badge {
     background: var(--bleu-royal);
     color: white;
@@ -396,128 +404,6 @@ nav {
 
 .empty-state p { font-size: 15px; }
 
-/* ── MODAL ── */
-.modal-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(26,37,53,0.55);
-    z-index: 200;
-    align-items: center;
-    justify-content: center;
-    backdrop-filter: blur(3px);
-}
-
-.modal-overlay.active { display: flex; }
-
-.modal {
-    background: white;
-    border-radius: var(--radius);
-    width: 100%;
-    max-width: 420px;
-    margin: 1rem;
-    overflow: hidden;
-    box-shadow: 0 20px 60px rgba(37,95,170,0.2);
-    animation: modalIn .25s ease;
-    position: relative;
-}
-
-@keyframes modalIn {
-    from { opacity: 0; transform: translateY(16px) scale(.97); }
-    to   { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-.modal-tabs {
-    display: flex;
-    border-bottom: 1px solid var(--border);
-}
-
-.modal-tab {
-    flex: 1;
-    padding: 1rem;
-    text-align: center;
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--texte-muted);
-    cursor: pointer;
-    border: none;
-    background: none;
-    font-family: 'Montserrat', sans-serif;
-    transition: all .2s;
-    border-bottom: 2px solid transparent;
-}
-
-.modal-tab.active {
-    color: var(--bleu-royal);
-    border-bottom-color: var(--bleu-royal);
-}
-
-.modal-body { padding: 1.75rem; }
-
-.modal-form { display: none; }
-.modal-form.active { display: block; }
-
-.modal-close {
-    position: absolute;
-    top: 14px; right: 16px;
-    background: none;
-    border: none;
-    font-size: 20px;
-    cursor: pointer;
-    color: var(--texte-muted);
-    line-height: 1;
-}
-
-/* ── FORMULAIRE ── */
-.form-group { margin-bottom: 1rem; }
-
-.form-group label {
-    display: block;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--texte-muted);
-    text-transform: uppercase;
-    letter-spacing: .05em;
-    margin-bottom: 6px;
-}
-
-.form-group input {
-    width: 100%;
-    padding: 10px 14px;
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius-sm);
-    font-family: 'Montserrat', sans-serif;
-    font-size: 14px;
-    color: var(--texte);
-    transition: border .2s;
-    outline: none;
-    background: var(--fond);
-}
-
-.form-group input:focus {
-    border-color: var(--bleu-horizon);
-    background: white;
-}
-
-.form-submit {
-    width: 100%;
-    padding: 12px;
-    background: linear-gradient(135deg, var(--bleu-royal), var(--bleu-horizon));
-    color: white;
-    border: none;
-    border-radius: var(--radius-sm);
-    font-family: 'Montserrat', sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: opacity .2s, transform .2s;
-    margin-top: .5rem;
-}
-
-.form-submit:hover {
-    opacity: .9;
-    transform: translateY(-1px);
-}
 
 /* ── BANNER LOGIN ── */
 .banner-login {
@@ -539,6 +425,55 @@ nav {
 }
 
 .banner-login strong { color: var(--bleu-royal); }
+
+/* ── À PROPOS ── */
+#apropos {
+    background: var(--blanc);
+    border-top: 1px solid var(--border);
+}
+
+.apropos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+}
+
+.apropos-card {
+    background: var(--fond);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.75rem;
+    transition: transform .2s, box-shadow .2s;
+}
+
+.apropos-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-card);
+}
+
+.apropos-icon {
+    font-size: 28px;
+    margin-bottom: 1rem;
+}
+
+.apropos-card h3 {
+    font-family: 'Montserrat Alternates', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--bleu-royal);
+    margin-bottom: .6rem;
+}
+
+.apropos-card p {
+    font-size: 13px;
+    color: var(--texte-muted);
+    line-height: 1.7;
+}
+
+.apropos-card strong {
+    color: var(--texte);
+    font-weight: 600;
+}
 
 /* ── FOOTER ── */
 footer {

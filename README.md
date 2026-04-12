@@ -110,7 +110,7 @@ Nous appliquons la méthodologie **Agile (Scrum)** avec un suivi rigoureux :
 * **Ambre FLORETTE** - *Analyse & Rédaction*
 * **Amira TARCHOUNE** - *Design IHM & Conception*
 
-**Enseignant référent :** M. FASSI Dieudonné
+##### **Enseignant référent :** M. FASSI Dieudonné
 --- 
 ## 📋 Résumé des profils utilisateurs — Base de données
 

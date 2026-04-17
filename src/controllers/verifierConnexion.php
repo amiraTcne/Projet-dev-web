@@ -42,10 +42,30 @@ mysqli_stmt_close($stmt);
 mysqli_close($connect);
 
 // Vérification du mot de passe (hash bcrypt)
-//if (!$row || !password_verify($mdp, $row['mot_de_passe'])) {
-    //header('Location: ../../public/login.php?erreur=3');
-  //  exit();
-//}
+// si aucun utilisateur trouvé alors on a une erreur 3 (pour ne pas avoir de crash sur null)
+if (!$row) {
+    header('Location: ../../public/login.php?erreur=3');
+    exit();
+}
+
+
+// Vérification du mot de passe : (pour que si le hashage du mot de passe est mis en place dans le future il n'y ai pas de problème à ce niveau)
+// - Si le hash commence par $2y$ alors c'est du bcrypt donc on utilise password_verify()
+// - Sinon c'est le mot de passe en clair du init.sql donc on compare directement
+$hash = $row['mot_de_passe'];
+if (strlen($hash) >= 60 && strpos($hash, '$2y$') === 0) {
+    // Compte créé via l'inscription (mot de passe hashé)
+    if (!password_verify($mdp, $hash)) {
+        header('Location: ../../public/login.php?erreur=3');
+        exit();
+    }
+} else {
+    // Compte de test du init.sql (mot de passe en clair)
+    if ($mdp !== $hash) {
+        header('Location: ../../public/login.php?erreur=3');
+        exit();
+    }
+}
 
 // Données communes à tous les rôles
 $_SESSION['id']             = $row['id'];

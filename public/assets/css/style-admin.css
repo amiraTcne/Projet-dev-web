@@ -1,0 +1,169 @@
+:root {
+  --bg: #f0f4ff;
+  --surface: #ffffff;
+  --accent: #255FAA;
+  --accent2: #e8f0ff;
+  --text: #0f172a;
+  --muted: #64748b;
+  --border: #dde6ff;
+  --danger: #ef4444;
+  --radius: 14px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 40px 16px 60px;
+}
+
+/* CARD */
+.card {
+  width: 100%;
+  max-width: 520px;
+  background: var(--surface);
+  border-radius: 22px;
+  box-shadow: 0 8px 40px rgba(42,82,232,.10), 0 1px 4px rgba(0,0,0,.06);
+  overflow: hidden;
+}
+
+/* HEADER */
+.card-header {
+  background: var(--accent);
+  padding: 28px;
+}
+
+.logo-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-height: 50px; /* Force la hauteur de la ligne */
+}
+
+.logo-row img {
+  height: 40px !important; /* Le !important force le respect de la taille */
+  width: auto;
+  object-fit: contain; /* Garde les proportions sans déformer */
+}
+
+.badge-admin {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--accent);
+  background: white;
+  padding: 3px 9px;
+  border-radius: 20px;
+}
+
+.welcome-label {
+  color: rgba(255,255,255,.7);
+  margin-top: 10px;
+}
+
+.user-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.5rem;
+  color: white;
+}
+
+/* BODY */
+.card-body {
+  padding: 24px;
+}
+
+.section-label {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  text-decoration: none;
+  color: var(--text);
+  margin-bottom: 10px;
+  transition: 0.2s;
+}
+
+.nav-item:hover {
+  background: var(--accent2);
+  border-color: var(--accent);
+}
+
+/* FOOTER */
+.card-footer {
+  padding: 20px;
+}
+
+.btn-logout {
+  display: inline-flex;       /* au lieu de block */
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  width: auto;                /* très important */
+  padding: 10px 16px;         /* taille normale */
+
+  border-radius: 10px;
+  border: 1.5px solid #fee2e2;
+
+  background: transparent;
+  color: #255FAA;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  text-decoration: none;
+  cursor: pointer;
+
+  transition: 0.2s;
+}
+
+/* --- Styles pour la Gestion des Espaces --- */
+
+.badge-role {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    color: white;
+    text-transform: uppercase;
+    font-weight: bold;
+    display: inline-block;
+}
+
+/* Couleurs par rôle selon la base cyStages */
+.role-admin { background-color: #ef4444; }
+.role-etudiant { background-color: #10b981; }
+.role-tuteur { background-color: #f59e0b; }
+.role-entreprise { background-color: #3b82f6; }
+.role-jury { background-color: #8b5cf6; }
+
+.user-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.delete-btn {
+    color: #ef4444;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.delete-btn:hover {
+    transform: scale(1.1);
+}

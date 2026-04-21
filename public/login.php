@@ -15,7 +15,7 @@
         <a href="#">Mot de passe oublié ? </a><br><br>
         <input type="submit" value="Connexion">
     </form>
-   
+    <a href="../src/controllers/index.php" style="display:inline-block; margin-top:20px; text-decoration:none; color:#255FAA; font-weight:bold; text-alignement:center; "> Retour</a>
    
 </body>
 </html>

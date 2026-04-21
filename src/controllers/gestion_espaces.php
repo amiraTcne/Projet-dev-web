@@ -1,57 +1,47 @@
 <?php
-
-
 session_start();
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-session_start();
-
-$host    = 'localhost';
-$dbname  = 'cyStages';
-$db_user = 'userpro';
-$db_pass = 'projetStage26.';
-
-$connect = mysqli_connect($host, $db_user, $db_pass, $dbname);
-if (!$connect) {
-    header('Location: acceuil_admin.php?erreur=2');
-    exit();
-}
-
+$connect = mysqli_connect('localhost', 'userpro', 'projetStage26.', 'cyStages');
+$query = "SELECT * FROM v_utilisateurs ORDER BY date_inscription DESC";
+$result = mysqli_query($connect, $query);
+$utilisateurs = mysqli_fetch_all($result, MYSQLI_ASSOC);
+?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Gestion des Espaces</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion Utilisateurs</title>
     <link rel="stylesheet" href="../../public/assets/css/style-admin.css">
 </head>
 <body>
-    <div class="card">
-        <div class="card-header" style="background:white; border-bottom:1px solid #dde6ff; padding:20px;">
-             <h2 style="color:#255FAA; font-family:sans-serif;">Gestion des Utilisateurs</h2>
-        </div>
-        <div class="card-body" style="padding:20px;">
-            <p style="color:gray; font-size:12px; margin-bottom:15px;">
-                Nombre d'utilisateurs : <?php echo count($utilisateurs); ?>
-            </p>
-            
-            <div class="nav-list">
-                <?php foreach ($utilisateurs as $user): ?>
-                    <div style="border:1px solid #dde6ff; padding:10px; border-radius:10px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
-                        <div>
-                            <strong style="display:block;"><?php echo htmlspecialchars($user['prenom'] . ' ' . $user['nom']); ?></strong>
-                            <span style="font-size:11px; color:white; background:#255FAA; padding:2px 6px; border-radius:5px;">
-                                <?php echo htmlspecialchars($user['role_premier']); ?>
-                            </span>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
-            </div>
-            
-            <a href="accueil_admin.php" style="display:inline-block; margin-top:20px; text-decoration:none; color:#255FAA; font-weight:bold;">
-                ← Retour
-            </a>
-        </div>
+<div class="page">
+    <div class="logo-wrapper">
+        <img src="../../public/assets/img/logo.png" alt="CY Stage">
     </div>
+
+    <div class="nom-page">Gestion des Utilisateurs</div>
+
+    <h3 class="options-title">Liste des inscrits (<?php echo count($utilisateurs); ?>)</h3>
+
+    <div class="nav-grid">
+        <?php foreach ($utilisateurs as $user): ?>
+        <div class="nav">
+            <div class="icon">
+                <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <h4>
+                <?php echo htmlspecialchars($user['nom_complet']); ?><br>
+                <small style="color:var(--gris-texte); font-weight:400; font-size:12px;">
+                    <?php echo $user['role_premier']; ?> • <?php echo $user['actif'] ? 'Actif' : 'Inactif'; ?>
+                </small>
+            </h4>
+        </div>
+        <?php endforeach; ?>
+    </div>
+
+    <div class="deconnexion">
+        <a href="accueil_admin.php" class="btn-retour">← Retour au menu</a>
+    </div>
+</div>
 </body>
 </html>

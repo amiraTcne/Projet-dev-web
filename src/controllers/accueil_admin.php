@@ -1,96 +1,70 @@
-<?php session_start(); ?>
+<?php 
+session_start(); 
+// Sécurité : Si les variables de session ne sont pas définies, on met des valeurs par défaut pour éviter les erreurs
+$prenom = isset($_SESSION['prenom']) ? $_SESSION['prenom'] : 'Admin';
+$nom = isset($_SESSION['nom']) ? $_SESSION['nom'] : '';
+?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Espace Administrateur – CY Stage</title>
-
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
-
-  <!-- Lien vers CSS -->
-  <link rel="stylesheet" href="/public/assets/css/style-admin.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Espace Administrateur – CY Stage</title>
+    <link rel="stylesheet" href="../../public/assets/css/style_acceuil.css">
 </head>
-
 <body>
 
-<div class="card">
+<div class="page">
 
-  <!-- HEADER -->
-  <div class="card-header">
-    <div class="logo-row">
-      <img src="../../public/assets/img/logo.png" alt="CY Stage">
-      <span class="badge-admin">Admin</span>
+    <div class="logo-wrapper">
+        <img src="../../public/assets/img/logo.png" alt="CY Stage">
     </div>
-    <p class="welcome-label">Bienvenue,</p>
-    <p class="user-name">
-      <?php echo htmlspecialchars($_SESSION['prenom'] . ' ' . $_SESSION['nom']); ?>
-    </p>
-  </div>
 
-  <!-- BODY -->
-  <div class="card-body">
-    <p class="section-label">Gestion de la plateforme</p>
+    <div class="nom-entreprise">
+        <?php echo htmlspecialchars($prenom . ' ' . $nom); ?>
+    </div>
 
-    <nav class="nav-list">
+    <h3 class="options-title">Gestion de la plateforme</h3>
 
-      <a href="gestion_espaces.php" class="nav-item">
-        <span class="nav-icon">
-          <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        </span>
-        <span class="nav-text">
-          <h4>Gestion des espaces</h4>
-          <p>Étudiants, tuteurs, entreprises, jurys</p>
-        </span>
-        <span class="nav-arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>
-      </a>
+    <div class="nav-grid">
 
-      <a href="gestion_stages.php" class="nav-item">
-        <span class="nav-icon">
-          <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
-        </span>
-        <span class="nav-text">
-          <h4>Gestion des stages proposés</h4>
-          <p>Offres, filières, durée, missions</p>
-        </span>
-        <span class="nav-arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>
-      </a>
+        <a href="gestion_espaces.php" class="nav">
+            <span class="icon">
+                <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </span>
+            <h4>Gestion Utilisateurs</h4>
+            <span class="arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>
+        </a>
 
-      <a href="archives.php" class="nav-item">
-        <span class="nav-icon">
-          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-        </span>
-        <span class="nav-text">
-          <h4>Dossiers archivés</h4>
-          <p>Rapports, conventions, évaluations</p>
-        </span>
-        <span class="nav-arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>
-      </a>
+        <a href="gestion_stages.php" class="nav">
+            <span class="icon">
+                <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+            </span>
+            <h4>Gestion des stages</h4>
+            <span class="arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>
+        </a>
 
-      <a href="notifications.php" class="nav-item">
-        <span class="nav-icon">
-          <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-        </span>
-        <span class="nav-text">
-          <h4>Notifications & requêtes</h4>
-          <p>Demandes en attente des étudiants</p>
-        </span>
-        <span class="nav-arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>
-      </a>
+        <a href="archives.php" class="nav">
+            <span class="icon">
+                <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+            </span>
+            <h4>Archives</h4>
+            <span class="arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>
+        </a>
 
-    </nav>
-  </div>
+        <a href="notifications.php" class="nav">
+            <span class="icon">
+                <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            </span>
+            <h4>Notifications</h4>
+            <span class="arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>
+        </a>
 
-  <div class="divider"></div>
+    </div>
 
-  <!-- FOOTER -->
-  <div class="card-footer">
-    <a href="deconnexion.php" class="btn-logout">
-      <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-      Se déconnecter
-    </a>
-  </div>
+    <div class="deconnexion">
+        <a href="deconnexion.php" style="text-decoration:none; color: #ef4444; font-weight:700;">Déconnexion</a>
+    </div>
 
 </div>
 

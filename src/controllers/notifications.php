@@ -1,41 +1,34 @@
-<?php 
-session_start(); 
-// Optionnel : vérifier ici si l'utilisateur est admin
-?>
+<?php session_start(); ?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Notifications – CY Stage</title>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500&family=Syne:wght@700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/public/assets/css/style-admin.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications</title>
+    <link rel="stylesheet" href="../../public/assets/css/style-admin.css">
 </head>
 <body>
-
-<div class="card">
-  <div class="card-header">
-    <div class="logo-row">
-      <img src="/public/assets/img/logo.png" alt="CY Stage">
-      <span class="badge-admin">Notifications</span>
-    </div>
-    <p class="welcome-label">Flux des requêtes étudiantes</p>
-  </div>
-
-  <div class="card-body">
-    <p class="section-label">Demandes d'ajouts de formations </p>
-    
-    <div class="nav-item" style="cursor: default; border-color: #fee2e2;">
-       <span class="nav-text">
-          <h4>Nouvelle formation </h4>
-          <p>Un étudiant souhaite ajouter la filière "IA & Data". </p>
-       </span>
+<div class="page">
+    <div class="logo-wrapper">
+        <img src="../../public/assets/img/logo.png" alt="CY Stage">
     </div>
 
-    <a href="accueil_admin.php" class="btn-logout" style="margin-top: 20px; border-color: var(--border);">
-      ← Retour a a la page admin
-    </a>
-  </div>
+    <div class="nom-page">Alertes & Requêtes</div>
+
+    <h3 class="options-title">Notifications récentes</h3>
+
+    <div class="nav-grid">
+        <div class="nav" style="border-left: 4px solid var(--bleu);">
+            <div class="icon">
+                <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            </div>
+            <h4>Demande de formation : IA & Data</h4>
+        </div>
+    </div>
+
+    <div class="deconnexion">
+        <a href="accueil_admin.php" class="btn-retour">← Retour au menu</a>
+    </div>
 </div>
-
 </body>
 </html>

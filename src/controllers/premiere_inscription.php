@@ -131,9 +131,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Montserrat+Alternates:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="../../public/assets/css/style_premiereco.css">
     <link rel="stylesheet" href="../../public/assets/css/style_index.css">
-    <style>
-        
-    </style>
+    <?php include '../../public/head_bootstrap.php'; ?>
 </head>
 <body>
 

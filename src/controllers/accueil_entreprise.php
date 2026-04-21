@@ -1,50 +1,102 @@
-<?php session_start(); ?>
+<?php 
+session_start(); 
+// On récupère le nom de l'entreprise, avec une valeur par défaut par sécurité
+$nom_entreprise = isset($_SESSION['nom_entreprise']) ? $_SESSION['nom_entreprise'] : 'Entreprise';
+?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Page entreprise</title>
+    <title>Espace Entreprise — CY Stage</title>
     <link rel="stylesheet" href="../../public/assets/css/style_acceuil.css">
+    <?php include '../../public/frameworks.php'; ?>
 </head>
 <body>
-<div class="page">
 
-    <div class="logo-wrapper">
-        <img src="../../public/assets/img/logo.png" alt="CY Stage">
-    </div>
-
-    <div class="nom-entreprise">
-        <?php echo $_SESSION['nom_entreprise']; ?>
-    </div>
-
-    <h3 class="options-title">Options</h3>
-
-    <!-- ⬇️ Grille responsive -->
-    <div class="nav-grid">
-
-        <a href="#" class="nav">
-            <span class="icon"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
-            <h4>Profil</h4>
-            <span class="arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>
+<nav class="navbar shadow-sm mb-4" style="background: linear-gradient(135deg, #1B4F9B, #2563c7);">
+    <div class="container-fluid px-4 d-flex align-items-center justify-content-between">
+        <a class="navbar-brand" href="#">
+            <img src="../../public/assets/img/logo.png" alt="CY Stage" height="36">
         </a>
-
-        <a href="#" class="nav">
-            <span class="icon"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></span>
-            <h4>Offres de stage</h4>
-            <span class="arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>
+        <span class="fw-bold text-white">
+            <i class="bi bi-building me-2"></i>
+            <?php echo htmlspecialchars($nom_entreprise); ?>
+        </span>
+        <a href="deconnexion.php" class="btn btn-outline-light btn-sm">
+            <i class="bi bi-box-arrow-right me-1"></i> Déconnexion
         </a>
-
-        <a href="#" class="nav">
-            <span class="icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
-            <h4>Stages en cours</h4>
-            <span class="arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>
-        </a>
-
     </div>
-    <div class="deconnexion">
-    <a href="deconnexion.php">Se déconnecter</a>
+</nav>
+
+<div class="container" style="max-width:900px;">
+
+    <div class="nom-page mb-4 text-center text-sm-start" style="font-size: 1.8rem; font-weight: 700; color: #1B4F9B;">
+        Tableau de bord Entreprise
     </div>
-</div>
-</body>
+
+    <h3 class="options-title mb-4">
+        <i class="bi bi-grid-fill me-2" style="color:#1B4F9B;"></i>Options de gestion
+    </h3>
+
+    <div class="row g-4">
+
+        <div class="col-12 col-sm-6">
+            <a href="#" 
+               class="d-flex align-items-center gap-3 p-3 rounded-3 border bg-white shadow-sm text-decoration-none"
+               style="transition:.15s"
+               onmouseover="this.style.borderColor='#1B4F9B';this.style.transform='translateY(-2px)'"
+               onmouseout="this.style.borderColor='';this.style.transform=''">
+                <div class="icon rounded-3 p-2" style="background:#f0f7ff;">
+                    <i class="bi bi-person-badge-fill fs-4" style="color:#1B4F9B;"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="fw-semibold text-dark">Profil</div>
+                    <div class="text-muted" style="font-size:.8rem;">Modifier vos informations</div>
+                </div>
+                <i class="bi bi-chevron-right text-secondary"></i>
+            </a>
+        </div>
+
+        <div class="col-12 col-sm-6">
+            <a href="#" 
+               class="d-flex align-items-center gap-3 p-3 rounded-3 border bg-white shadow-sm text-decoration-none"
+               style="transition:.15s"
+               onmouseover="this.style.borderColor='#1B4F9B';this.style.transform='translateY(-2px)'"
+               onmouseout="this.style.borderColor='';this.style.transform=''">
+                <div class="icon rounded-3 p-2" style="background:#f0f7ff;">
+                    <i class="bi bi-megaphone-fill fs-4" style="color:#1B4F9B;"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="fw-semibold text-dark">Offres de stage</div>
+                    <div class="text-muted" style="font-size:.8rem;">Publier et gérer vos annonces</div>
+                </div>
+                <i class="bi bi-chevron-right text-secondary"></i>
+            </a>
+        </div>
+
+        <div class="col-12 col-sm-6">
+            <a href="#" 
+               class="d-flex align-items-center gap-3 p-3 rounded-3 border bg-white shadow-sm text-decoration-none"
+               style="transition:.15s"
+               onmouseover="this.style.borderColor='#1B4F9B';this.style.transform='translateY(-2px)'"
+               onmouseout="this.style.borderColor='';this.style.transform=''">
+                <div class="icon rounded-3 p-2" style="background:#f0f7ff;">
+                    <i class="bi bi-file-earmark-text-fill fs-4" style="color:#1B4F9B;"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="fw-semibold text-dark">Stages en cours</div>
+                    <div class="text-muted" style="font-size:.8rem;">Suivi des stagiaires actuels</div>
+                </div>
+                <i class="bi bi-chevron-right text-secondary"></i>
+            </a>
+        </div>
+
+    </div><div class="mt-5 p-4 rounded-4 bg-light text-center border-dashed">
+        <p class="text-muted mb-0 small">
+            Besoin d'aide pour recruter ? Contactez le support CY Stage.
+        </p>
+    </div>
+
+</div></body>
 </html>

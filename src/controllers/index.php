@@ -159,6 +159,24 @@ mysqli_close($conn);
     </div>
     <?php endif; ?>
 </div>
+<!-- ══════════════════ Ecole ══════════════════  -->
+<section id="ecole">
+    <div class="section">
+        <div class="section-header">
+            <div class="section-title">Notre <span>École</span></div>
+        </div>
+        <div class="ecole-grid">
+            <div class="ecole-texte">
+                <p>CY Tech s'affirme comme une grande école d'ingénieurs publique de référence, intégrée à CY Cergy Paris Université et solidement implantée sur ses campus de Cergy et de Pau. Véritable pôle d'excellence en sciences exactes, l'école propose une offre de formation diversifiée couvrant des secteurs stratégiques tels que les mathématiques appliquées, l'informatique, le génie civil, la chimie et les biotechnologies. Sa pédagogie se distingue par une forte culture de l'innovation et de l'interdisciplinarité, illustrée notamment par des doubles cursus prestigieux en management ou en design.</p>
+                <br>
+                <p>Tournée vers l'avenir, l'institution place l'international et la recherche au cœur de son parcours, imposant une mobilité à l'étranger pour forger des profils ouverts et adaptables. Grâce à des liens étroits avec le monde industriel et une immersion professionnelle constante (stages, alternance, projets), CY Tech garantit à ses diplômés une insertion rapide sur un marché du travail en quête d'experts capables de relever les défis de la transition numérique et écologique.</p>
+            </div>
+            <div class="ecole-image">
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQSBHcEmQ0Uow3JX1Sm0BI0liGamyX9c5_UkA&s" alt="Campus CY Tech">
+            </div>
+        </div>
+    </div>
+</section>
 <!-- ══════════════════ A propos ══════════════════  -->
 <section id="apropos">
     <div class="section">

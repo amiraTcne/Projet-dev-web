@@ -426,6 +426,43 @@ nav {
 
 .banner-login strong { color: var(--bleu-royal); }
 
+
+/* ── ECOLE ── */
+#ecole {
+    background: var(--blanc);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+}
+
+.ecole-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+    align-items: center;
+}
+
+.ecole-texte p {
+    font-size: 14px;
+    color: var(--texte-muted);
+    line-height: 1.8;
+}
+
+.ecole-image img {
+    width: 100%;
+    height: 380px;
+    object-fit: cover;
+    border-radius: var(--radius);
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .ecole-grid {
+        grid-template-columns: 1fr;
+    }
+    .ecole-image img {
+        height: 240px;
+    }
+}
 /* ── À PROPOS ── */
 #apropos {
     background: var(--blanc);
@@ -486,3 +523,4 @@ footer {
 }
 
 footer strong { color: rgba(255,255,255,0.8); }
+

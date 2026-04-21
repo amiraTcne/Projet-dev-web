@@ -1,29 +1,22 @@
 <?php
-// On affiche les erreurs pour comprendre ce qui ne va pas
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
+
 
 session_start();
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+session_start();
 
-// 1. Vérification du fichier de config
-if (!file_exists('../../config.php')) {
-    die("Erreur : Le fichier config.php est introuvable au chemin ../../config.php");
-}
-require_once '../../config.php'; 
+$host    = 'localhost';
+$dbname  = 'cyStages';
+$db_user = 'userpro';
+$db_pass = 'projetStage26.';
 
-// 2. Récupération des données (On teste la requête)
-try {
-    $stmt = $pdo->query("SELECT id, nom, prenom, role_premier FROM Utilisateur ORDER BY nom ASC");
-    $utilisateurs = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
-    // On log l'action (Obligatoire point 4 du cahier des charges) [cite: 79]
-    if (function_exists('loggerAction')) {
-        loggerAction("Consultation de la gestion des espaces.");
-    }
-} catch (Exception $e) {
-    die("Erreur SQL : " . $e->getMessage());
+$connect = mysqli_connect($host, $db_user, $db_pass, $dbname);
+if (!$connect) {
+    header('Location: acceuil_admin.php?erreur=2');
+    exit();
 }
-?>
 
 <!DOCTYPE html>
 <html lang="fr">

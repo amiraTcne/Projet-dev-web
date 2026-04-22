@@ -1,5 +1,5 @@
 <?php
-/* Démarrage de la session */
+/* on démarre la session */
 session_start();
 
 /* on regarde si c'est un étudiant qui est connecté uniquement */
@@ -8,7 +8,8 @@ if (!isset($_SESSION['id']) || $_SESSION['role'] !== 'Etudiant') {
     exit();
 }
 
-/* on récupère l'identifiant de l'offre depuis l'URL et on force le type entier (pour ne pas avoir à injecter en SQL c'est plus simple) */
+/* on récupère l'identifiant de l'offre depuis l'URL et on force le type entier
+   pour éviter les injections SQL */
 $id_offre = (int)($_GET['id'] ?? 0);
 
 /* si l'ID est invalide, on retourne à la liste des offres */
@@ -17,18 +18,18 @@ if ($id_offre <= 0) {
     exit();
 }
 
-/* les variables qui nous permettent d'avoir l'état de la page */
+/* les variables qui nous permettent de gérer l'état de la page */
 $conn         = mysqli_connect('localhost', 'userpro', 'projetStage26.', 'cyStages');
-$offre        = null;  /* Données de l'offre */
-$est_favori   = false; /* L'offre est-elle en favori ? */
-$deja_postule = false; /* L'étudiant a-t-il déjà postulé ? */
-$msg_ok       = '';    /* Message de succès */
-$msg_err      = '';    /* Message d'erreur */
+$offre        = null;  /* les données de l'offre */
+$est_favori   = false; /* est-ce que l'offre est en favori ? */
+$deja_postule = false; /* est-ce que l'étudiant a déjà postulé ? */
+$msg_ok       = '';    /* message de succès affiché si la candidature est envoyée */
+$msg_err      = '';    /* message d'erreur affiché si quelque chose se passe mal */
 
-/* on traite la candidature */
+/* on traite la candidature quand l'étudiant soumet le formulaire */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $conn) {
 
-    /* On vérifie d'abord que l'étudiant n'a pas déjà postulé */
+    /* on vérifie d'abord que l'étudiant n'a pas déjà postulé */
     $chk = mysqli_prepare($conn, "SELECT 1 FROM Stage WHERE id_etudiant = ? AND num_offre = ?");
     mysqli_stmt_bind_param($chk, 'ii', $_SESSION['id'], $id_offre);
     mysqli_stmt_execute($chk);
@@ -37,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $conn) {
     if (mysqli_stmt_num_rows($chk) > 0) {
         $msg_err = 'Tu as déjà postulé à cette offre.';
     } else {
-        /* On récupère l'id_entreprise pour créer le Stage correctement */
+        /* on récupère l'id de l'entreprise pour pouvoir créer le Stage correctement */
         $ge = mysqli_prepare($conn, "SELECT id_entreprise, titre FROM Offre_Stage WHERE num_offre = ?");
         mysqli_stmt_bind_param($ge, 'i', $id_offre);
         mysqli_stmt_execute($ge);
@@ -45,15 +46,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $conn) {
         mysqli_stmt_close($ge);
 
         if ($ent) {
-            /* on insère le stage : le trigger SQL crée le Dossier_Stage automatiquement */
+            /* on prépare la requête SQL avec des '?' pour la sécurité */
             $ins = mysqli_prepare($conn,
                 "INSERT INTO Stage (titre, id_etudiant, id_entreprise, num_offre, statut)
                  VALUES (?, ?, ?, ?, 'en_attente')"
             );
+
+            /* on lie les variables aux '?', le 'siii' veut dire (String, Integer, Integer, Integer) */
             mysqli_stmt_bind_param($ins, 'siii',
-                $ent['titre'], $_SESSION['id'], $ent['id_entreprise'], $id_offre
+                $ent['titre'],        /* le titre du stage */
+                $_SESSION['id'],      /* l'ID de l'étudiant récupéré depuis la session */
+                $ent['id_entreprise'],/* l'ID de l'entreprise */
+                $id_offre             /* le numéro de l'offre concernée */
             );
 
+            /* on exécute la requête — le trigger SQL va créer le Dossier_Stage automatiquement */
             if (mysqli_stmt_execute($ins)) {
                 $msg_ok       = 'Candidature envoyée !';
                 $deja_postule = true;
@@ -62,39 +69,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $conn) {
             }
             mysqli_stmt_close($ins);
         }
-        if ($ent) {
-            /* on prépare la requête SQL avec des '?' pour la sécurité*/
-            $ins = mysqli_prepare($conn,
-                "INSERT INTO Stage (titre, id_etudiant, id_entreprise, num_offre, statut)
-                VALUES (?, ?, ?, ?, 'en_attente')"
-            );
-
-            /* puis on lie les variables aux '?', le 'siii' veut dire (String, Integer, Integer, Integer) */
-            mysqli_stmt_bind_param($ins, 'siii',
-                $ent['titre'],// Le titre du stage
-                $_SESSION['id'],// L'ID de l'étudiant (récupéré depuis la session)
-                $ent['id_entreprise'],// L'ID de l'entreprise
-                $id_offre// Le numéro de l'offre concernée
-            );
-
-            /* on lance l'exécution de la requête. Et trigger SQL va générer automatiquement le Dossier_Stage correspondant. */
-            if (mysqli_stmt_execute($ins)) {
-                // Si ça marche, on prépare les variables de succès
-                $msg_ok = 'Candidature envoyée !';
-                $deja_postule = true;
-            } else {
-                // Si ça ne fonctionne pas (ex: doublon ou erreur BDD)
-                $msg_err = "Erreur lors de l'envoi.";
-            }
-
-            /* puis on ferme la requête*/
-            mysqli_stmt_close($ins);
-        }
     }
     mysqli_stmt_close($chk);
 }
 
-/* on change les données de l'offre depuis la base */
+/* on charge les données de l'offre depuis la base */
 if ($conn) {
     mysqli_set_charset($conn, 'utf8mb4');
 
@@ -112,7 +91,7 @@ if ($conn) {
     mysqli_stmt_close($stmt);
 
     if ($offre) {
-        /* on vérifie si l'offre est en favori */
+        /* on vérifie si l'offre est déjà en favori pour colorier le cœur */
         $cf = mysqli_prepare($conn, "SELECT 1 FROM Favori WHERE id_user = ? AND num_offre = ?");
         mysqli_stmt_bind_param($cf, 'ii', $_SESSION['id'], $id_offre);
         mysqli_stmt_execute($cf);
@@ -120,7 +99,7 @@ if ($conn) {
         $est_favori = mysqli_stmt_num_rows($cf) > 0;
         mysqli_stmt_close($cf);
 
-        /* on vérifie si l'étudiant a déjà postulé (si pas déjà traité en POST) */
+        /* on vérifie aussi si l'étudiant a déjà postulé (utile si la page est chargée sans POST) */
         if (!$deja_postule) {
             $cp = mysqli_prepare($conn, "SELECT 1 FROM Stage WHERE id_etudiant = ? AND num_offre = ?");
             mysqli_stmt_bind_param($cp, 'ii', $_SESSION['id'], $id_offre);
@@ -133,7 +112,7 @@ if ($conn) {
     mysqli_close($conn);
 }
 
-/* si l'offre n'existe pas ou elle est plus disponible, on retourne à la liste */
+/* si l'offre n'existe pas ou n'est plus disponible, on retourne à la liste */
 if (!$offre) {
     header('Location: offres_etudiant.php');
     exit();
@@ -154,7 +133,7 @@ $duree = $offre['duree_semaines'] ? round($offre['duree_semaines'] / 4) . ' mois
 <body>
 <div class="page anim">
 
-    <!-- l'en-tête avec retour et bouton favori -->
+    <!-- l'en-tête avec le bouton retour et le bouton favori -->
     <header class="entete">
         <a href="offres_etudiant.php" class="btn-retour" aria-label="Retour">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -163,7 +142,7 @@ $duree = $offre['duree_semaines'] ? round($offre['duree_semaines'] / 4) . ' mois
         </a>
         <span class="entete-titre">Détail de l'offre</span>
 
-        <!-- le bouton cœur dans l'en-tête -->
+        <!-- le bouton cœur : rouge si l'offre est en favori, gris sinon -->
         <button class="btn-coeur <?php echo $est_favori ? 'actif' : ''; ?>"
                 id="btn-fav"
                 data-id="<?php echo $id_offre; ?>"
@@ -177,7 +156,7 @@ $duree = $offre['duree_semaines'] ? round($offre['duree_semaines'] / 4) . ' mois
 
     <div class="contenu">
 
-        <!-- le bandeau avec titre et les informations principales -->
+        <!-- le bandeau bleu avec le titre et les informations principales -->
         <div class="bandeau">
             <h2><?php echo htmlspecialchars($offre['titre']); ?></h2>
             <p>
@@ -198,7 +177,7 @@ $duree = $offre['duree_semaines'] ? round($offre['duree_semaines'] / 4) . ' mois
             </div>
         </div>
 
-        <!-- le message de succès après candidature -->
+        <!-- le message de succès après que la candidature a été envoyée -->
         <?php if ($msg_ok) : ?>
         <div style="background:rgba(22,163,74,.09); border:1px solid var(--vert); border-radius:10px; padding:11px 14px; display:flex; align-items:center; gap:10px;">
             <span style="width:32px; height:32px; border-radius:50%; background:var(--vert); display:flex; align-items:center; justify-content:center; flex-shrink:0; color:#fff;">✓</span>
@@ -206,14 +185,14 @@ $duree = $offre['duree_semaines'] ? round($offre['duree_semaines'] / 4) . ' mois
         </div>
         <?php endif; ?>
 
-        <!-- le message d'erreur -->
+        <!-- le message d'erreur si quelque chose s'est mal passé -->
         <?php if ($msg_err) : ?>
         <div style="background:#fff0f0; border:1px solid #fca5a5; border-radius:8px; padding:10px 13px; font-size:.83rem; color:var(--rouge);">
             <?php echo htmlspecialchars($msg_err); ?>
         </div>
         <?php endif; ?>
 
-        <!-- la localisation, la durée, la date de début etc. -->
+        <!-- la localisation, la durée et la date de début -->
         <p class="label-section">Informations</p>
         <div class="carte">
             <?php if ($offre['ville']) : ?>
@@ -276,7 +255,7 @@ $duree = $offre['duree_semaines'] ? round($offre['duree_semaines'] / 4) . ' mois
         </div>
         <?php endif; ?>
 
-        <!-- les technologies et compétences requises -->
+        <!-- les technologies et compétences requises pour le stage -->
         <?php if (!empty($techs)) : ?>
         <p class="label-section">Compétences recherchées</p>
         <div class="carte" style="display:flex; flex-wrap:wrap; gap:7px;">
@@ -288,7 +267,7 @@ $duree = $offre['duree_semaines'] ? round($offre['duree_semaines'] / 4) . ' mois
         </div>
         <?php endif; ?>
 
-        <!-- le bouton de candidature ou message si déjà postulé -->
+        <!-- si l'étudiant a déjà postulé on lui affiche un message, sinon on affiche le bouton -->
         <?php if ($deja_postule && !$msg_err) : ?>
         <div class="btn" style="background:var(--gris-fond); color:var(--gris-texte); cursor:default;">
             ✓ Candidature déjà envoyée
@@ -308,10 +287,14 @@ $duree = $offre['duree_semaines'] ? round($offre['duree_semaines'] / 4) . ' mois
     </div>
 </div>
 
+<!-- le toast est invisible au départ mais il va s'afficher pour
+     confirmer ou signaler une erreur quand on clique sur le cœur -->
 <div class="toast cache" id="toast"></div>
 
 <script>
-    /*le toggle favori depuis la page de détail */
+    /* le toggle favori depuis la page de détail :
+       on envoie une requête vers api_favori.php sans recharger la page,
+       puis on met à jour l'apparence du cœur */
     document.getElementById('btn-fav').addEventListener('click', async function () {
         var action = this.classList.contains('actif') ? 'remove' : 'add';
         try {
@@ -324,6 +307,7 @@ $duree = $offre['duree_semaines'] ? round($offre['duree_semaines'] / 4) . ' mois
             if (d.success) {
                 this.classList.toggle('actif');
                 this.querySelector('svg').setAttribute('fill', action === 'add' ? 'currentColor' : 'none');
+                /* on affiche le toast de confirmation en bas de l'écran */
                 var t = document.getElementById('toast');
                 t.textContent = action === 'add' ? '💙 Ajouté aux favoris' : 'Retiré des favoris';
                 t.className   = 'toast' + (action === 'add' ? ' ok' : '');

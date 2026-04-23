@@ -559,3 +559,42 @@ SET character_set_client = @saved_cs_client;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
 -- Dump completed on 2026-04-23  9:09:17
+
+-- Offre 2 : Développeur Mobile (Android/iOS)
+INSERT INTO Offre_Stage (titre, mission, competences, filiere_ciblee, duree_semaines, date_debut, statut, id_entreprise)
+VALUES (
+    'Développeur Mobile Android & iOS',
+    'Conception et développement d\'une application mobile de suivi de livraisons en temps réel. Intégration d\'une API REST existante, gestion des notifications push et tests sur devices physiques.',
+    'Flutter, Dart, Android Studio, API REST, Git',
+    'Informatique',
+    16,
+    '2026-06-15',
+    'ouverte',
+    3
+);
+
+-- Offre 3 : Data Analyst
+INSERT INTO Offre_Stage (titre, mission, competences, filiere_ciblee, duree_semaines, date_debut, statut, id_entreprise)
+VALUES (
+    'Data Analyst - Visualisation de données',
+    'Analyse des données clients et création de tableaux de bord interactifs. Nettoyage et traitement de données issues de différentes sources, rédaction de rapports hebdomadaires à destination des équipes métier.',
+    'Python, Pandas, SQL, Power BI, Excel',
+    'Mathématiques',
+    12,
+    '2026-07-01',
+    'ouverte',
+    3
+);
+
+-- Offre 4 : Administrateur Systèmes & Réseaux
+INSERT INTO Offre_Stage (titre, mission, competences, filiere_ciblee, duree_semaines, date_debut, statut, id_entreprise)
+VALUES (
+    'Administrateur Systèmes & Réseaux',
+    'Maintenance et supervision de l\'infrastructure réseau de l\'entreprise. Configuration de serveurs Linux, gestion des sauvegardes, surveillance des performances et rédaction de la documentation technique.',
+    'Linux, Bash, VMware, Cisco, TCP/IP, Active Directory',
+    'Informatique',
+    14,
+    '2026-06-01',
+    'ouverte',
+    3
+);

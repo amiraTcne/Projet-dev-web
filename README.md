@@ -250,7 +250,7 @@ VALUES ('Lefebvre', 'Pierre', 'pierre.lefebvre@universite.fr', 'tuteur26.', 1, '
 ## 🚀 Installation & Lancement
 ```bash
 # Avant de commencer : 
-Creer un user sur mysql dans le terminal avec comme nom : userpro et le mdp : projetStage26. pour se connecter a la base de données
+Creer un user sur mysql dans le terminal avec comme nom : userpro et le mdp : projetStage26. pour se connecter a la base de données et telecharger dans la session Sql le fichier init.sql dans config
 # 1. Cloner le projet
 git clone [https://github.com/votre-compte/projet-web-cytech.git](https://github.com/votre-compte/projet-web-cytech.git)
 

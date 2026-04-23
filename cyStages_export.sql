@@ -1,34 +1,3 @@
--- =============================================================
---  BASE DE DONNÉES : Suivi et archivage des stages - Cy Tech
---  Projet Dev Web ING1 - Année 2025-2026
---  v3 : Utilisateur unique (sans table Role séparée)
---  Encodage : UTF-8
--- =============================================================
-
-CREATE DATABASE IF NOT EXISTS cyStages
-      CHARACTER SET utf8mb4
-  COLLATE utf8mb4_unicode_ci;
-
-USE cyStages;
-
--- =============================================================
--- 1. UTILISATEUR
---    Entité unique pour tous les acteurs du système.
---    Rôles possibles : 'Admin', 'Tuteur', 'Jury', 'Entreprise', 'Etudiant'
---    Contrainte métier :
---      - role_premier  : obligatoire
---      - role_second   : optionnel (null si un seul rôle)
---      - role_troisieme: optionnel (null si moins de 3 rôles)
---      - Le rôle 'Etudiant' est exclusif (role_second et role_troisieme NULL)
---      - Max 3 rôles pour les non-étudiants
---
---    Champs requis selon le rôle :
---      Etudiant   → filiere, niveau, annee_promo
---      Tuteur     → specialite, departement
---      Jury       → specialite, commission, annee_jury
---      Entreprise → num_siret, nom_entreprise, secteur, adresse,
---                   ville, code_postal, site_web, nb_stagiere
--- =============================================================
 -- MySQL dump 10.13  Distrib 8.0.44, for Linux (x86_64)
 --
 -- Host: localhost    Database: cyStages
@@ -314,7 +283,7 @@ CREATE TABLE `Stage` (
 
 LOCK TABLES `Stage` WRITE;
 /*!40000 ALTER TABLE `Stage` DISABLE KEYS */;
-INSERT INTO `Stage` VALUES (5,'Développeur Web Full-Stack','Développement et maintenance d une application web interne.',75,12,'2026-06-01','2026-08-22',NULL,NULL,'en_cours',1,3,1,5);
+INSERT INTO `Stage` VALUES (5,'Développeur Web Full-Stack','Développement et maintenance d\'une application web interne.',75,12,'2026-06-01','2026-08-22',NULL,NULL,'en_cours',1,3,1,5);
 /*!40000 ALTER TABLE `Stage` ENABLE KEYS */;
 UNLOCK TABLES;
 

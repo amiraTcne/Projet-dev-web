@@ -1,7 +1,16 @@
 <?php
+/* on démarre la session */
 session_start();
-$prenom = isset($_SESSION['prenom']) ? $_SESSION['prenom'] : 'Admin';
-$nom    = isset($_SESSION['nom'])    ? $_SESSION['nom']    : '';
+
+/* on vérifie que c'est bien un admin connecté */
+if (!isset($_SESSION['id']) || $_SESSION['role'] !== 'Admin') {
+    header('Location: ../../public/login.php?erreur=4');
+    exit();
+}
+
+/* on récupère le nom de l'admin, avec des valeurs par défaut si la session est vide */
+$prenom = $_SESSION['prenom'] ?? 'Admin';
+$nom    = $_SESSION['nom']    ?? '';
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -9,132 +18,64 @@ $nom    = isset($_SESSION['nom'])    ? $_SESSION['nom']    : '';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Espace Administrateur — CY Stage</title>
-    <link rel="stylesheet" href="../../public/assets/css/style_acceuil.css">
-    <?php include '../../public/frameworks.php'; ?>
+    <link rel="stylesheet" href="../../public/assets/css/style-admin.css">
 </head>
 <body>
+<div class="page anim">
 
-<!-- Navbar -->
-<nav class="navbar shadow-sm mb-4" style="background: linear-gradient(135deg, #1B4F9B, #2563c7);">
-    <div class="container-fluid px-4 d-flex align-items-center justify-content-between">
-        <a class="navbar-brand" href="#">
-            <img src="../../public/assets/img/logo.png" alt="CY Stage" height="36">
-        </a>
-        <span class="fw-bold text-white">
-            <i class="bi bi-shield-lock-fill me-2"></i>
-            <?php echo htmlspecialchars($prenom . ' ' . $nom); ?> — Admin
-        </span>
-        <a href="deconnexion.php" class="btn btn-outline-light btn-sm">
-            <i class="bi bi-box-arrow-right me-1"></i> Déconnexion
-        </a>
-    </div>
-</nav>
-
-<div class="container" style="max-width:900px;">
-
-    <!-- Bandeau titre -->
-    <div class="nom-page mb-4">Gestion de la plateforme</div>
-
-    <h3 class="options-title mb-3">
-        <i class="bi bi-grid-fill me-2" style="color:#1B4F9B;"></i>Actions
-    </h3>
-
-    <div class="row g-3">
-
-        <!-- Gestion Utilisateurs -->
-        <div class="col-12 col-sm-6">
-            <a href="gestion_espaces.php"
-               class="d-flex align-items-center gap-3 p-3 rounded-3 border bg-white shadow-sm text-decoration-none"
-               style="transition:.15s"
-               onmouseover="this.style.borderColor='#1B4F9B';this.style.transform='translateY(-2px)'"
-               onmouseout="this.style.borderColor='';this.style.transform=''">
-                <div class="icon rounded-3 p-2" style="background:#f0f7ff;">
-                    <i class="bi bi-people-fill fs-4" style="color:#1B4F9B;"></i>
-                </div>
-                <div class="flex-grow-1">
-                    <div class="fw-semibold text-dark">Gestion Utilisateurs</div>
-                    <div class="text-muted" style="font-size:.8rem;">Voir et gérer les inscrits</div>
-                </div>
-                <i class="bi bi-chevron-right text-secondary"></i>
-            </a>
-        </div>
-
-        <!-- Gestion des stages -->
-        <div class="col-12 col-sm-6">
-            <a href="gestion_stages.php"
-               class="d-flex align-items-center gap-3 p-3 rounded-3 border bg-white shadow-sm text-decoration-none"
-               style="transition:.15s"
-               onmouseover="this.style.borderColor='#1B4F9B';this.style.transform='translateY(-2px)'"
-               onmouseout="this.style.borderColor='';this.style.transform=''">
-                <div class="icon rounded-3 p-2" style="background:#f0f7ff;">
-                    <i class="bi bi-briefcase-fill fs-4" style="color:#1B4F9B;"></i>
-                </div>
-                <div class="flex-grow-1">
-                    <div class="fw-semibold text-dark">Gestion des Stages</div>
-                    <div class="text-muted" style="font-size:.8rem;">Diffuser et rechercher des offres</div>
-                </div>
-                <i class="bi bi-chevron-right text-secondary"></i>
-            </a>
-        </div>
-
-        <!-- Archives -->
-        <div class="col-12 col-sm-6">
-            <a href="archives.php"
-               class="d-flex align-items-center gap-3 p-3 rounded-3 border bg-white shadow-sm text-decoration-none"
-               style="transition:.15s"
-               onmouseover="this.style.borderColor='#1B4F9B';this.style.transform='translateY(-2px)'"
-               onmouseout="this.style.borderColor='';this.style.transform=''">
-                <div class="icon rounded-3 p-2" style="background:#f0f7ff;">
-                    <i class="bi bi-archive-fill fs-4" style="color:#1B4F9B;"></i>
-                </div>
-                <div class="flex-grow-1">
-                    <div class="fw-semibold text-dark">Archives</div>
-                    <div class="text-muted" style="font-size:.8rem;">Dossiers et historiques</div>
-                </div>
-                <i class="bi bi-chevron-right text-secondary"></i>
-            </a>
-        </div>
-
-        <!-- Notifications -->
-        <div class="col-12 col-sm-6">
-            <a href="notifications.php"
-               class="d-flex align-items-center gap-3 p-3 rounded-3 border bg-white shadow-sm text-decoration-none"
-               style="transition:.15s"
-               onmouseover="this.style.borderColor='#1B4F9B';this.style.transform='translateY(-2px)'"
-               onmouseout="this.style.borderColor='';this.style.transform=''">
-                <div class="icon rounded-3 p-2" style="background:#f0f7ff;">
-                    <!-- Badge Bootstrap pour simuler des notifs non lues -->
-                    <span class="position-relative">
-                        <i class="bi bi-bell-fill fs-4" style="color:#1B4F9B;"></i>
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                              style="font-size:.6rem;">
-                            1
-                        </span>
-                    </span>
-                </div>
-                <div class="flex-grow-1">
-                    <div class="fw-semibold text-dark">Notifications</div>
-                    <div class="text-muted" style="font-size:.8rem;">Alertes & requêtes</div>
-                </div>
-                <i class="bi bi-chevron-right text-secondary"></i>
-            </a>
-        </div>
-
-    </div><!-- /row -->
-
-    <!-- Toast de confirmation Bootstrap (Alpine.js) -->
-    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index:9999;"
-         x-data="{ show: false }" x-init="setTimeout(() => show = false, 3000)">
-        <div x-show="show" x-transition class="toast show align-items-center text-bg-primary border-0" role="alert">
-            <div class="d-flex">
-                <div class="toast-body">✓ Action réalisée avec succès</div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto"
-                        @click="show = false"></button>
-            </div>
-        </div>
+    <!-- le logo en haut à droite -->
+    <div class="logo-wrapper">
+        <img src="../../public/assets/img/logo.png" alt="CY Stage">
     </div>
 
-</div><!-- /container -->
+    <!-- le bandeau bleu avec le nom de l'admin connecté -->
+    <div class="nom-entreprise">
+        <?php echo htmlspecialchars($prenom . ' ' . $nom); ?>
+    </div>
 
+    <h3 class="options-title">Gestion de la plateforme</h3>
+
+    <!-- les 4 cartes vers les sections de l'interface admin -->
+    <div class="nav-grid">
+
+        <a href="gestion_espaces.php" class="nav">
+            <span class="icon">
+                <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </span>
+            <h4>Gestion Utilisateurs</h4>
+            <span class="arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>
+        </a>
+
+        <a href="gestion_stages.php" class="nav">
+            <span class="icon">
+                <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
+            </span>
+            <h4>Gestion des stages</h4>
+            <span class="arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>
+        </a>
+
+        <a href="archives.php" class="nav">
+            <span class="icon">
+                <svg viewBox="0 0 24 24"><path d="M21 8v13H3V8"/><rect x="1" y="3" width="22" height="5" rx="1"/><path d="M10 12h4"/></svg>
+            </span>
+            <h4>Archives</h4>
+            <span class="arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>
+        </a>
+
+        <a href="notifications.php" class="nav">
+            <span class="icon">
+                <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            </span>
+            <h4>Notifications</h4>
+            <span class="arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>
+        </a>
+
+    </div>
+
+    <div class="deconnexion">
+        <a href="deconnexion.php">Se déconnecter</a>
+    </div>
+
+</div>
 </body>
 </html>

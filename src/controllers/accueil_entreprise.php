@@ -59,7 +59,7 @@ $nom_entreprise = isset($_SESSION['nom_entreprise']) ? $_SESSION['nom_entreprise
         </div>
 
         <div class="col-12 col-sm-6">
-            <a href="#" 
+            <a href="offres_entreprisefram.php" 
                class="d-flex align-items-center gap-3 p-3 rounded-3 border bg-white shadow-sm text-decoration-none"
                style="transition:.15s"
                onmouseover="this.style.borderColor='#1B4F9B';this.style.transform='translateY(-2px)'"

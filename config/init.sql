@@ -387,7 +387,8 @@ CREATE TABLE `Utilisateur` (
   UNIQUE KEY `email` (`email`),
   UNIQUE KEY `num_siret` (`num_siret`),
   KEY `idx_user_role` (`role_premier`),
-  KEY `idx_user_siret` (`num_siret`)
+  KEY `idx_user_siret` (`num_siret`),
+  `description` varchar(1000) DEFAULT NULL
 ) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -397,7 +398,8 @@ CREATE TABLE `Utilisateur` (
 
 LOCK TABLES `Utilisateur` WRITE;
 /*!40000 ALTER TABLE `Utilisateur` DISABLE KEYS */;
-INSERT INTO `Utilisateur` VALUES (1,'DUPONT','Jean','jean.dupont@cy-tech.fr','jeanD26.','2026-04-07 12:52:27',1,'Etudiant',NULL,NULL,'Informatique','ING1',2026,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0),(2,'Martin','Marc','marc.martin@universite.fr','admin26.','2026-04-12 12:26:19',1,'Admin',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0),(3,'Dupont','Jean','contact@techcorp.fr','entreprise26.','2026-04-12 12:36:05',1,'Entreprise',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'12345678901234','TechCorp SAS','Informatique','12 rue de la Paix','Paris','75001','https://techcorp.fr',0),(4,'Bernard','Sophie','sophie.bernard@universite.fr','jurys26.','2026-04-12 12:38:14',1,'Jury',NULL,NULL,NULL,NULL,NULL,'Informatique & IA',NULL,'Commission Ingénierie',2024,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0),(5,'Lefebvre','Pierre','pierre.lefebvre@universite.fr','tuteur26.','2026-04-12 12:41:03',1,'Tuteur',NULL,NULL,NULL,NULL,NULL,'Mathématiques Appliquées','Département Sciences',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0),(6,'Dupont','Jade','jade.dupont@etu.cyu.fr','$2y$10$Xml9K1XUxWmpH9KGe1JgKuoPxLlc3qcmUfVA.HTReCptOTeFPij0S','2026-04-12 14:52:10',1,'Etudiant',NULL,NULL,'Informatique','M2',2024,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0);
+INSERT INTO `Utilisateur` VALUES (1,'DUPONT','Jean','jean.dupont@cy-tech.fr','jeanD26.','2026-04-07 12:52:27',1,'Etudiant',NULL,NULL,'Informatique','ING1',2026,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0,NULL),(2,'Martin','Marc','marc.martin@universite.fr','admin26.','2026-04-12 12:26:19',1,'Admin',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0,NULL),(3,'Dupont','Jean','contact@techcorp.fr','entreprise26.','2026-04-12 12:36:05',1,'Entreprise',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'12345678901234','TechCorp SAS','Informatique','12 rue de la Paix','Paris','75001','https://techcorp.fr',0,'TechCorp est une entreprise spécialisée dans le digital et la création de sites internet. Nous utilisons toutes sortes de langages, que ce soit du front-end & back-end.
+Nous nous engageons à offrir à nos salariés un environnement de travail sain, avec une organisation d’entreprise horizontale. N’hésitez pas à nous rejoindre en postulant aux différentes offres de stage !'),(4,'Bernard','Sophie','sophie.bernard@universite.fr','jurys26.','2026-04-12 12:38:14',1,'Jury',NULL,NULL,NULL,NULL,NULL,'Informatique & IA',NULL,'Commission Ingénierie',2024,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0,NULL),(5,'Lefebvre','Pierre','pierre.lefebvre@universite.fr','tuteur26.','2026-04-12 12:41:03',1,'Tuteur',NULL,NULL,NULL,NULL,NULL,'Mathématiques Appliquées','Département Sciences',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0,NULL),(6,'Dupont','Jade','jade.dupont@etu.cyu.fr','$2y$10$Xml9K1XUxWmpH9KGe1JgKuoPxLlc3qcmUfVA.HTReCptOTeFPij0S','2026-04-12 14:52:10',1,'Etudiant',NULL,NULL,'Informatique','M2',2024,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0,NULL);
 /*!40000 ALTER TABLE `Utilisateur` ENABLE KEYS */;
 UNLOCK TABLES;
 

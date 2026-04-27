@@ -2,9 +2,11 @@
 session_start();
 
 if (!isset($_SESSION['id']) || !isset($_SESSION['role']) || $_SESSION['role'] !== 'Entreprise') {
-    header('Location: ../../public/login.php?erreur=4');
+    header('Location: ../../public/login.php');
     exit();
 }
+
+$idEntreprise = (int) $_SESSION['id'];
 
 $host    = 'localhost';
 $dbname  = 'cyStages';
@@ -21,7 +23,30 @@ mysqli_set_charset($connect, "utf8mb4");
 
 $message = '';
 $erreur = '';
+$offres = [];
+$nomEntreprise = 'Entreprise';
 
+// Récupération du nom de l'entreprise connectée
+$sqlEntreprise = "SELECT nom_entreprise 
+                  FROM Utilisateur 
+                  WHERE id = ? AND role_premier = 'Entreprise'";
+
+$stmtEntreprise = mysqli_prepare($connect, $sqlEntreprise);
+
+if ($stmtEntreprise) {
+    mysqli_stmt_bind_param($stmtEntreprise, "i", $idEntreprise);
+    mysqli_stmt_execute($stmtEntreprise);
+    $resultEntreprise = mysqli_stmt_get_result($stmtEntreprise);
+    $entreprise = mysqli_fetch_assoc($resultEntreprise);
+
+    if ($entreprise && !empty($entreprise['nom_entreprise'])) {
+        $nomEntreprise = $entreprise['nom_entreprise'];
+    }
+
+    mysqli_stmt_close($stmtEntreprise);
+}
+
+// Ajout d'une offre
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajouter_offre'])) {
     $titre = trim($_POST['titre'] ?? '');
     $duree = trim($_POST['duree'] ?? '');
@@ -35,18 +60,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajouter_offre'])) {
     } elseif (!ctype_digit($duree) || (int)$duree <= 0) {
         $erreur = "La durée doit être un nombre entier positif.";
     } else {
-        $sql = "INSERT INTO Offre_Stage
-                (titre, mission, competences, filiere_ciblee, duree_semaines, date_debut, statut, id_entreprise)
-                VALUES (?, ?, ?, ?, ?, ?, 'ouverte', ?)";
+        $sqlInsert = "INSERT INTO Offre_Stage
+                      (titre, mission, competences, filiere_ciblee, duree_semaines, date_debut, statut, id_entreprise)
+                      VALUES (?, ?, ?, ?, ?, ?, 'ouverte', ?)";
 
-        $stmt = mysqli_prepare($connect, $sql);
+        $stmtInsert = mysqli_prepare($connect, $sqlInsert);
 
-        if ($stmt) {
+        if ($stmtInsert) {
             $dateSql = ($date_debut !== '') ? $date_debut : null;
-            $dureeInt = (int)$duree;
+            $dureeInt = (int) $duree;
 
             mysqli_stmt_bind_param(
-                $stmt,
+                $stmtInsert,
                 "ssssisi",
                 $titre,
                 $description,
@@ -57,21 +82,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajouter_offre'])) {
                 $idEntreprise
             );
 
-            if (mysqli_stmt_execute($stmt)) {
+            if (mysqli_stmt_execute($stmtInsert)) {
                 $message = "L'offre de stage a bien été publiée.";
             } else {
                 $erreur = "Erreur lors de l'ajout de l'offre.";
             }
 
-            mysqli_stmt_close($stmt);
+            mysqli_stmt_close($stmtInsert);
         } else {
             $erreur = "Erreur dans la préparation de la requête.";
         }
     }
 }
 
-$offres = [];
-
+// Récupération des offres de l'entreprise connectée
 $sqlOffres = "SELECT num_offre, titre, mission, competences, filiere_ciblee, duree_semaines, date_debut, date_publication, statut
               FROM Offre_Stage
               WHERE id_entreprise = ?
@@ -82,16 +106,15 @@ $stmtOffres = mysqli_prepare($connect, $sqlOffres);
 if ($stmtOffres) {
     mysqli_stmt_bind_param($stmtOffres, "i", $idEntreprise);
     mysqli_stmt_execute($stmtOffres);
-    $result = mysqli_stmt_get_result($stmtOffres);
+    $resultOffres = mysqli_stmt_get_result($stmtOffres);
 
-    while ($row = mysqli_fetch_assoc($result)) {
+    while ($row = mysqli_fetch_assoc($resultOffres)) {
         $offres[] = $row;
     }
 
     mysqli_stmt_close($stmtOffres);
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -134,6 +157,7 @@ if ($stmtOffres) {
             border: 1px solid rgba(171, 186, 205, 0.45);
             border-radius: 1.3rem;
             box-shadow: 0 12px 32px rgba(37, 95, 170, 0.10);
+            background-color: #ffffff;
         }
 
         .offer-card {
@@ -154,6 +178,7 @@ if ($stmtOffres) {
             font-weight: 600;
             border-radius: 999px;
             padding: 0.45rem 0.8rem;
+            text-transform: capitalize;
         }
 
         .btn-cy {
@@ -210,7 +235,7 @@ if ($stmtOffres) {
             <h1 class="page-title mb-1">Offres de stage</h1>
             <p class="muted-cy mb-0">
                 Entreprise connectée :
-                <strong><?php echo htmlspecialchars($_SESSION['nom_entreprise'] ?? 'TechCorp SAS'); ?></strong>
+                <strong><?php echo htmlspecialchars($nomEntreprise); ?></strong>
             </p>
         </div>
         <div class="muted-cy fw-semibold">CY Tech • Espace entreprise</div>
@@ -251,11 +276,17 @@ if ($stmtOffres) {
                                 </p>
 
                                 <?php if (!empty($offre['competences'])) : ?>
-                                    <p class="mb-1"><strong>Compétences :</strong> <?php echo htmlspecialchars($offre['competences']); ?></p>
+                                    <p class="mb-1">
+                                        <strong>Compétences :</strong>
+                                        <?php echo htmlspecialchars($offre['competences']); ?>
+                                    </p>
                                 <?php endif; ?>
 
                                 <?php if (!empty($offre['filiere_ciblee'])) : ?>
-                                    <p class="mb-1"><strong>Profil recherché :</strong> <?php echo htmlspecialchars($offre['filiere_ciblee']); ?></p>
+                                    <p class="mb-1">
+                                        <strong>Profil recherché :</strong>
+                                        <?php echo htmlspecialchars($offre['filiere_ciblee']); ?>
+                                    </p>
                                 <?php endif; ?>
 
                                 <p class="mb-0 fw-semibold" style="color:#5686D9;">

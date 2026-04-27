@@ -1,7 +1,10 @@
-<?php 
-session_start(); 
-$nom    = isset($_SESSION['nom'])    ? $_SESSION['nom']    : '';
-$prenom = isset($_SESSION['prenom']) ? $_SESSION['prenom'] : 'Tuteur';
+<?php
+session_start();
+
+if (!isset($_SESSION['id']) || $_SESSION['role'] !== 'Tuteur') {
+    header('Location: ../../public/login.php?erreur=4');
+    exit();
+}
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -10,67 +13,104 @@ $prenom = isset($_SESSION['prenom']) ? $_SESSION['prenom'] : 'Tuteur';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Espace Tuteur — CY Stage</title>
     <link rel="stylesheet" href="../../public/assets/css/style_acceuil.css">
-    <?php include '../../public/frameworks.php'; ?>
 </head>
 <body>
+<div class="page">
 
-<nav class="navbar shadow-sm mb-4" style="background: linear-gradient(135deg, #1B4F9B, #2563c7);">
-    <div class="container-fluid px-4 d-flex align-items-center justify-content-between">
-        <a class="navbar-brand" href="#">
-            <img src="../../public/assets/img/logo.png" alt="CY Stage" height="36">
-        </a>
-        <span class="fw-bold text-white">
-            <i class="bi bi-mortarboard-fill me-2"></i>
-            Tuteur : <?php echo htmlspecialchars($prenom . ' ' . $nom); ?>
-        </span>
-        <a href="deconnexion.php" class="btn btn-outline-light btn-sm">
-            <i class="bi bi-box-arrow-right me-1"></i> Déconnexion
-        </a>
+    <div class="logo-wrapper">
+        <img src="../../public/assets/img/logo.png" alt="CY Stage">
     </div>
-</nav>
 
-<div class="container" style="max-width:900px;">
+    <div class="nom-entreprise">
+        <?php echo htmlspecialchars($_SESSION['prenom'] . ' ' . $_SESSION['nom']); ?>
+    </div>
 
-    <div class="nom-page mb-4" style="font-size: 1.8rem; font-weight: 700; color: #1B4F9B;">Tableau de bord Tuteur</div>
+    <h3 class="options-title">Options</h3>
 
-    <h3 class="options-title mb-3">
-        <i class="bi bi-journal-check me-2" style="color:#1B4F9B;"></i>Mes étudiants en stage
-    </h3>
+    <div class="nav-grid">
 
-    <div class="row g-3">
-        <div class="col-12 col-md-6">
-            <a href="#"
-               class="d-flex align-items-center gap-3 p-3 rounded-3 border bg-white shadow-sm text-decoration-none"
-               style="transition:.15s"
-               onmouseover="this.style.borderColor='#1B4F9B';this.style.transform='translateY(-2px)'"
-               onmouseout="this.style.borderColor='';this.style.transform=''">
-                <div class="icon rounded-3 p-2" style="background:#f0f7ff;">
-                    <i class="bi bi-person-fill fs-4" style="color:#1B4F9B;"></i>
-                </div>
-                <div class="flex-grow-1">
-                    <div class="fw-semibold text-dark">Nom Prénom Étudiant</div>
-                    <div class="text-muted" style="font-size:.8rem;">Suivi de stage & rapports</div>
-                </div>
-                <i class="bi bi-chevron-right text-secondary"></i>
-            </a>
-        </div>
+        <a href="profil_tuteur.php" class="nav">
+            <span class="icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                </svg>
+            </span>
+            <h4>Profil</h4>
+            <span class="arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>
+        </a>
 
-        <div class="col-12 col-md-6">
-            <a href="#"
-               class="d-flex align-items-center gap-3 p-3 rounded-3 border bg-white shadow-sm text-decoration-none"
-               style="transition:.15s"
-               onmouseover="this.style.borderColor='#1B4F9B';this.style.transform='translateY(-2px)'"
-               onmouseout="this.style.borderColor='';this.style.transform=''">
-                <div class="icon rounded-3 p-2" style="background:#f0f7ff;">
-                    <i class="bi bi-person-fill fs-4" style="color:#1B4F9B;"></i>
-                </div>
-                <div class="flex-grow-1">
-                    <div class="fw-semibold text-dark">Nom Prénom Étudiant</div>
-                    <div class="text-muted" style="font-size:.8rem;">Suivi de stage & rapports</div>
-                </div>
-                <i class="bi bi-chevron-right text-secondary"></i>
-            </a>
-        </div>
+        <a href="offres_tuteur.php" class="nav">
+            <span class="icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="2" y="7" width="20" height="14" rx="2"/>
+                    <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+                </svg>
+            </span>
+            <h4>Offres de Stages</h4>
+            <span class="arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>
+        </a>
+
+        <a href="depot_document_tuteur.php" class="nav">
+            <span class="icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8l6 6v12a2 2 0 0 1-2 2z"/>
+                    <path d="M14 2v6h6"/>
+                    <path d="M12 10v7"/><path d="M9 14l3-4 3 4"/>
+                </svg>
+            </span>
+            <h4>Dépôt documents</h4>
+            <span class="arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>
+        </a>
+
+        <a href="document_tuteur.php" class="nav">
+            <span class="icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"/>
+                    <path d="M14 2v5a1 1 0 0 0 1 1h5"/>
+                    <path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/>
+                </svg>
+            </span>
+            <h4>Documents envoyés</h4>
+            <span class="arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>
+        </a>
+
+        <a href="validation_convention_tuteur.php" class="nav">
+            <span class="icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 11l3 3L22 4"/>
+                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                </svg>
+            </span>
+            <h4>Valider conventions</h4>
+            <span class="arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>
+        </a>
+
+        <a href="suivi_stage_tuteur.php" class="nav">
+            <span class="icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M13 5h8"/><path d="M13 12h8"/><path d="M13 19h8"/>
+                    <path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/>
+                </svg>
+            </span>
+            <h4>Suivre de stage</h4>
+            <span class="arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>
+        </a>
+
+        <a href="remarques_tuteur.php" class="nav">
+            <span class="icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+            </span>
+            <h4>Remarques</h4>
+            <span class="arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>
+        </a>
+
+    </div>
+
+    <div class="deconnexion">
+        <a href="deconnexion.php">Se déconnecter</a>
     </div>
 
 </div>

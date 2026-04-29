@@ -337,7 +337,7 @@ if (!$offre) {
                     </div>
 
                     <p class="modal-delete-text">
-                        Êtes-vous sûr de vouloir supprimer cette offre ?
+                        Êtes-vous sûr.e de vouloir supprimer cette offre ?
                     </p>
 
                     <form method="POST" class="modal-delete-actions">

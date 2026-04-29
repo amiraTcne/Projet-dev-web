@@ -270,7 +270,7 @@ CREATE TABLE `Remarque` (
 
 LOCK TABLES `Remarque` WRITE;
 /*!40000 ALTER TABLE `Remarque` DISABLE KEYS */;
-INSERT INTO `Remarque` VALUES (1,'Bonjour Jean, n\'oublie pas de remplir ton rapport de mi-stage avant la fin du mois.','2026-04-23 08:47:24',1,5),(2,'Bonjour M. Lefebvre, bien noté ! Je dépose le rapport cette semaine.','2026-04-23 08:47:24',1,1),(3,'[AVANCEMENT SEMAINE] Finalisation du module d\'authentification et début de l\'intégration de l\'API REST.','2026-04-23 08:47:24',1,1);
+INSERT INTO `Remarque` VALUES (1,'Bonjour Jean, noublie pas de remplir ton rapport de mi-stage avant la fin du mois.','2026-04-23 08:47:24',1,5),(2,'Bonjour M. Lefebvre, bien noté ! Je dépose le rapport cette semaine.','2026-04-23 08:47:24',1,1),(3,'[AVANCEMENT SEMAINE] Finalisation du module d authentification et début de l\'intégration de l\'API REST.','2026-04-23 08:47:24',1,1);
 /*!40000 ALTER TABLE `Remarque` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -387,11 +387,11 @@ CREATE TABLE `Utilisateur` (
   UNIQUE KEY `email` (`email`),
   UNIQUE KEY `num_siret` (`num_siret`),
   KEY `idx_user_role` (`role_premier`),
-  KEY `idx_user_siret` (`num_siret`),
-  `description` varchar(1000) DEFAULT NULL
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  KEY `idx_user_siret` (`num_siret`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
+ALTER TABLE Utilisateur ADD COLUMN description VARCHAR(1000) DEFAULT NULL;
 --
 -- Dumping data for table `Utilisateur`
 --
@@ -402,6 +402,7 @@ INSERT INTO `Utilisateur` VALUES (1,'DUPONT','Jean','jean.dupont@cy-tech.fr','je
 Nous nous engageons à offrir à nos salariés un environnement de travail sain, avec une organisation d’entreprise horizontale. N’hésitez pas à nous rejoindre en postulant aux différentes offres de stage !'),(4,'Bernard','Sophie','sophie.bernard@universite.fr','jurys26.','2026-04-12 12:38:14',1,'Jury',NULL,NULL,NULL,NULL,NULL,'Informatique & IA',NULL,'Commission Ingénierie',2024,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0,NULL),(5,'Lefebvre','Pierre','pierre.lefebvre@universite.fr','tuteur26.','2026-04-12 12:41:03',1,'Tuteur',NULL,NULL,NULL,NULL,NULL,'Mathématiques Appliquées','Département Sciences',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0,NULL),(6,'Dupont','Jade','jade.dupont@etu.cyu.fr','$2y$10$Xml9K1XUxWmpH9KGe1JgKuoPxLlc3qcmUfVA.HTReCptOTeFPij0S','2026-04-12 14:52:10',1,'Etudiant',NULL,NULL,'Informatique','M2',2024,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0,NULL);
 /*!40000 ALTER TABLE `Utilisateur` ENABLE KEYS */;
 UNLOCK TABLES;
+
 
 --
 -- Table structure for table `Validation_Convention`

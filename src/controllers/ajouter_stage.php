@@ -7,6 +7,7 @@ if (!isset($_SESSION['id']) || $_SESSION['role'] !== 'Admin') {
     exit();
 }
 
+
 $conn    = mysqli_connect('localhost', 'userpro', 'projetStage26.', 'cyStages');
 $msg_ok  = '';
 $msg_err = '';
@@ -21,25 +22,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $conn) {
     $date_debut    = trim($_POST['date_debut'] ?? '');
     $id_entreprise = (int)($_POST['id_entreprise'] ?? 0);
 
+    // 1. On vérifie les champs obligatoires
     if (empty($titre) || empty($mission) || $duree <= 0 || $id_entreprise <= 0) {
         $msg_err = 'Titre, mission, durée et entreprise sont obligatoires.';
     } else {
+        // 2. On prépare la requête
         $ins = mysqli_prepare($conn,
             "INSERT INTO Offre_Stage (titre, mission, competences, filiere_ciblee,
              duree_semaines, date_debut, statut, id_entreprise)
              VALUES (?, ?, ?, ?, ?, ?, 'ouverte', ?)"
         );
-        /* on utilise NULL si la date de début n'est pas renseignée */
-        $date_val = empty($date_debut) ? null : $date_debut;
-        mysqli_stmt_bind_param($ins, 'ssssiis',
-            $titre, $mission, $competences, $filiere, $duree, $date_val, $id_entreprise
-        );
-        if (mysqli_stmt_execute($ins)) {
-            $msg_ok = 'Offre de stage ajoutée avec succès !';
+
+        // 3. On sécurise : on vérifie que mysqli_prepare a fonctionné (sinon erreur SQL)
+        if ($ins) {
+            $date_val = empty($date_debut) ? null : $date_debut;
+            
+            // CORRECTION ICI : ssssisi au lieu de ssssiis
+            mysqli_stmt_bind_param($ins, 'ssssisi',
+                $titre, $mission, $competences, $filiere, $duree, $date_val, $id_entreprise
+            );
+            
+            // On exécute
+            if (mysqli_stmt_execute($ins)) {
+                $msg_ok = 'Offre de stage ajoutée avec succès !';
+            } else {
+                $msg_err = "Erreur lors de l'exécution de la requête : " . mysqli_stmt_error($ins);
+            }
+            mysqli_stmt_close($ins);
         } else {
-            $msg_err = "Erreur lors de l'ajout.";
+            // Si $ins est false (par exemple si la table n'existe pas ou erreur de syntaxe SQL)
+            $msg_err = "Erreur SQL interne : " . mysqli_error($conn);
         }
-        mysqli_stmt_close($ins);
     }
 }
 

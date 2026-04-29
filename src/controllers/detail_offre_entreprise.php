@@ -243,6 +243,7 @@ if (!$offre) {
         .btn-cancel-modal {
             background: #2f6db5;
             color: #ffffff;
+            min-width: 140px;
         }
 
         .btn-cancel-modal:hover {
@@ -252,6 +253,7 @@ if (!$offre) {
         .btn-confirm-modal {
             background: #1f4f8f;
             color: #ffffff;
+            min-width: 85px;
         }
 
         .btn-confirm-modal:hover {

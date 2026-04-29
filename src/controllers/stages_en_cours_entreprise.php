@@ -21,6 +21,9 @@ mysqli_set_charset($connect, "utf8mb4");
 
 $stages = [];
 
+
+$idEntreprise = $_SESSION['id']; 
+
 $sql = "SELECT 
             s.num_stage,
             s.titre,

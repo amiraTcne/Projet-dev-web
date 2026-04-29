@@ -225,7 +225,7 @@ $statuts_labels = [
 
             <!-- Commentaire -->
             <?php if ($d['deja_valide'] == 0) : ?>
-            <form method="POST" action="valider_conventions_tuteur.php">
+            <form method="POST" action="validation_convention_tuteur.php">
                 <input type="hidden" name="num_dossier" value="<?php echo (int)$d['num_dossier']; ?>">
                 <textarea class="textarea" name="commentaire" rows="2" placeholder="Commentaire optionnel…" style="margin-bottom:9px;"></textarea>
 

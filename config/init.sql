@@ -601,3 +601,52 @@ VALUES (
     'ouverte',
     3
 );
+
+
+-- Table des notifications pour les étudiants (et autres rôles)
+CREATE TABLE IF NOT EXISTS `Notification` (
+  `id_notif`    INT UNSIGNED    NOT NULL AUTO_INCREMENT,
+  `id_user`     INT UNSIGNED    NOT NULL COMMENT 'Destinataire',
+  `type`        ENUM(
+                  'candidature_validee',
+                  'candidature_refusee',
+                  'stage_cree',
+                  'remarque',
+                  'autre'
+                ) NOT NULL DEFAULT 'autre',
+  `titre`       VARCHAR(200)    NOT NULL,
+  `message`     TEXT            NOT NULL,
+  `lien`        VARCHAR(300)    DEFAULT NULL COMMENT 'URL optionnelle vers la page concernée',
+  `lu`          TINYINT(1)      NOT NULL DEFAULT 0,
+  `date_creation` DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id_notif`),
+  KEY `idx_notif_user` (`id_user`),
+  KEY `idx_notif_lu`   (`lu`),
+  CONSTRAINT `fk_notif_user`
+    FOREIGN KEY (`id_user`) REFERENCES `Utilisateur` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ 
+-- Colonne pour tracker l'état côté étudiant sur le Stage
+-- ('en_attente' = candidature soumise, 'acceptee_entreprise' = entreprise a validé,
+--  'confirmee_etudiant' = étudiant a confirmé → stage réel créé,
+--  'refusee_entreprise', 'refusee_etudiant')
+ALTER TABLE `Stage`
+  ADD COLUMN `statut_candidature` 
+    ENUM(
+      'en_attente',
+      'acceptee_entreprise',
+      'confirmee_etudiant',
+      'refusee_entreprise',
+      'refusee_etudiant'
+    ) NOT NULL DEFAULT 'en_attente' 
+    AFTER `statut`;
+
+-- 1. Mise à jour du stage
+UPDATE Stage 
+SET statut = 'en_cours', 
+    statut_candidature = 'confirmee_etudiant' 
+WHERE num_stage = 5 AND id_etudiant = 1;
+
+-- 2. Création du dossier
+INSERT INTO Dossier_Stage (statut, num_stage, id_etudiant, date_creation)
+VALUES ('incomplet', 5, 1, NOW());

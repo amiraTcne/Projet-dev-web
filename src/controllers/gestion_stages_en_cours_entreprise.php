@@ -1,6 +1,8 @@
 <?php
 session_start();
-
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 if (!isset($_SESSION['id']) || !isset($_SESSION['role']) || $_SESSION['role'] !== 'Entreprise') {
     header('Location: ../../public/login.php?erreur=4');
     exit();
@@ -28,7 +30,7 @@ $erreur = '';
 if ($numStage <= 0) {
     die("Stage introuvable.");
 }
-
+$idEntreprise = $_SESSION['id'];
 $sqlStage = "SELECT 
                 s.num_stage,
                 s.titre,
@@ -48,7 +50,8 @@ $sqlStage = "SELECT
              WHERE s.num_stage = ? AND s.id_entreprise = ?";
 
 $stmtStage = mysqli_prepare($connect, $sqlStage);
-mysqli_stmt_bind_param($stmtStage, "ii", $numStage, $idEntreprise);
+// 2. Utilisez $idEntreprise qui est maintenant définie
+mysqli_stmt_bind_param($stmtStage, "ii", $numStage, $idEntreprise); 
 mysqli_stmt_execute($stmtStage);
 $resultStage = mysqli_stmt_get_result($stmtStage);
 $stage = mysqli_fetch_assoc($resultStage);

@@ -70,7 +70,7 @@ Nous appliquons la méthodologie **Agile (Scrum)** avec un suivi rigoureux :
 ```text
 📦 Projet-dev-web
  ┣ 📂 config
- ┃ ┗ 📜 db.php              # 🔌 Connexion Base de Données (PDO)
+ ┃ ┗ 📜 init.sql              # Base de Données 
  ┃
  ┣ 📂 includes
  ┃ ┣ 📜 header.php          # 🧱 Navigation & Head
@@ -81,33 +81,23 @@ Nous appliquons la méthodologie **Agile (Scrum)** avec un suivi rigoureux :
  ┃ ┃ ┣ 📂 css               # 🎨 Feuilles de style
  ┃ ┃ ┣ 📂 js                # ⚡ Logique Client
  ┃ ┃ ┗ 📂 img               # 🖼️ Médias & Icônes
- ┃ ┗ 📜 index.php           # 🚀 POINT D'ENTRÉE UNIQUE (Routeur)
+ ┃ ┗ 📜 login.php           # 🚀 POINT D'ENTRÉE CONNEXION
+ ┃ ┗ 📜 frameworks.php           # utilisation framework
+ ┃ ┗ 📜 mail.php           
  ┃
  ┣ 📂 src                   # 🧠 COEUR DE L'APPLICATION (Privé)
- ┃ ┣ 📂 Controllers         # 🎮 Logique des pages
- ┃ ┣ 📂 Models              # 🗄️ Gestion des données (SQL)
- ┃ ┗ 📜 functions.php       # 🛠️ Utilitaires globaux
- ┃
- ┣ 📂 frameworks                # 📦 Dépendances Framework (Auto-généré)
- ┃
- ┣ ⚙️ .env                  # 🔑 Secrets & Identifiants (Privé)
- ┣ ⚙️ .htaccess             # 🗺️ Réécriture d'URL (URL Clean)
- ┣ 📜 composer.json         # 📑 Liste des packages
+ ┃ ┣ 📂 Controllers         # 🎮 Page des application
  ┗ 📜 README.md             # 📖 Documentation projet
 ```
 
 ### 🛠️ Fichiers de configuration
-
-* `📄 .env` : **Secrets** (Mots de passe DB, Clés API). *Ne jamais commiter ce fichier !*
-* `📄 composer.json` : Liste des dépendances et packages du projet.
-* `📄 .htaccess` : Règles de réécriture pour des URLs propres (ex: `/login` au lieu de `index.php?p=login`).
 * `📄 README.md` : Guide de survie et documentation du projet.
 ---
 
 ## 👥 L'Équipe (Groupe 1)
-* **Sirine AJIMI** - *Coordination & Rédaction*
-* **Amina ATTAF** - *Design IHM & Organisation*
-* **Ambre FLORETTE** - *Analyse & Rédaction*
+* **Sirine AJIMI** - *Developpeuse & Rédaction*
+* **Amina ATTAF** - *Design IHM & Organisation & Rédaction*
+* **Ambre FLORETTE** - *Organisation & gestion projet & developpeuse php*
 * **Amira TARCHOUNE** - *Design IHM & Conception*
 
 ##### **Enseignant référent :** M. FASSI Dieudonné

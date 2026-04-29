@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Connexion — CY Stage</title>
 
-    <!-- Votre CSS existant conservé -->
+    <!-- CSS existant conservé -->
     <link rel="stylesheet" href="assets/css/style.css">
 
     <!-- Bootstrap 5 -->

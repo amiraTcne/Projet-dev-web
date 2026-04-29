@@ -650,3 +650,24 @@ WHERE num_stage = 5 AND id_etudiant = 1;
 -- 2. Création du dossier
 INSERT INTO Dossier_Stage (statut, num_stage, id_etudiant, date_creation)
 VALUES ('incomplet', 5, 1, NOW());
+
+
+CREATE TABLE IF NOT EXISTS Double_Authentification (
+    id_2fa INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    id_user INT UNSIGNED NOT NULL,
+    code_verification CHAR(4) NOT NULL,
+    date_creation DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    date_expiration DATETIME NOT NULL,
+    utilise TINYINT(1) NOT NULL DEFAULT 0,
+    PRIMARY KEY (id_2fa),
+    KEY idx_2fa_user (id_user),
+    CONSTRAINT fk_2fa_user
+        FOREIGN KEY (id_user) REFERENCES Utilisateur(id)
+        ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO Utilisateur (
+    nom, prenom, email, mot_de_passe, actif, role_premier, filiere, niveau, annee_promo
+) VALUES (
+    'Amira', 'Ta', 'mira.tcne@gmail.com', 'projetStage26.', 1, 'Etudiant', 'Informatique', 'ING1', 2026
+);

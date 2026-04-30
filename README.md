@@ -171,7 +171,7 @@ Chaque entreprise possède une ou deux offres prêtes à être postulées.
 - **Jurys** : Systèmes, Mathématiques, IA, Éthique, Innovation.
 
 ---
-> ⚠️ **Note de sécurité** : Les mots de passe sont affichés en clair à titre de documentation uniquement. Lors d'une inscription normale, le mot de passe est cryptés. En production, utiliser un hashage sécurisé côté applicatif avant insertion en base.
+> ⚠️ **Note de sécurité** : Les mots de passe sont affichés en clair à titre de documentation uniquement. Lors d'une inscription normale, le mot de passe est cryptés. En production, on utilise un hashage sécurisé côté applicatif avant insertion en base.
 ---
 
 ## 🚀 Installation & Lancement

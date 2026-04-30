@@ -18,17 +18,14 @@ if (!isset($_SESSION['id']) || $_SESSION['role'] !== 'Etudiant') {
 </head>
 <body>
 
-<!-- ═══ NAVBAR Bootstrap (nouveau) ═══ -->
 <nav class="navbar navbar-expand-lg shadow-sm mb-4"
      style="background: linear-gradient(135deg, #1B4F9B, #2563c7);">
     <div class="container-fluid px-4">
 
-        <!-- Logo -->
         <a class="navbar-brand" href="#">
             <img src="../../public/assets/img/logo.png" alt="CY Stage" height="36">
         </a>
 
-        <!-- Bouton hamburger mobile -->
         <button class="navbar-toggler border-0" type="button"
                 data-bs-toggle="collapse" data-bs-target="#navEtudiant">
             <span class="navbar-toggler-icon" style="filter:invert(1);"></span>
@@ -154,6 +151,21 @@ if (!isset($_SESSION['id']) || $_SESSION['role'] !== 'Etudiant') {
                     </svg>
                 </span>
                 <h4 class="mb-0 flex-grow-1 fs-6 fw-semibold text-dark">Notifications</h4>
+                <i class="bi bi-chevron-right text-secondary"></i>
+            </a>
+        </div>
+        <!-- Candidatures déposées -->
+        <div class="col-12 col-sm-6 col-lg-4">
+            <a href="notifications_etudiant.php" class="nav text-decoration-none d-flex align-items-center gap-3 p-3 rounded-3 border bg-white shadow-sm"
+               style="transition: transform .15s, box-shadow .15s;"
+               onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(27,79,155,.15)'"
+               onmouseout="this.style.transform='';this.style.boxShadow=''">
+                <span class="icon">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#1B4F9B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                    </svg>
+                </span>
+                <h4 class="mb-0 flex-grow-1 fs-6 fw-semibold text-dark">Candidatures déposées</h4>
                 <i class="bi bi-chevron-right text-secondary"></i>
             </a>
         </div>

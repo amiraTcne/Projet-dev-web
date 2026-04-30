@@ -59,7 +59,6 @@ if (strlen($hash) >= 60 && strpos($hash, '$2y$') === 0) {
     }
 }
 
-// Nettoyage d'une ancienne tentative 2FA
 unset($_SESSION['tmp_2fa_user_id']);
 unset($_SESSION['tmp_2fa_email']);
 unset($_SESSION['tmp_2fa_nom']);
@@ -69,7 +68,6 @@ unset($_SESSION['tmp_2fa_role_second']);
 unset($_SESSION['tmp_2fa_role_troisieme']);
 unset($_SESSION['tmp_2fa_code_sent']);
 
-// Stockage temporaire avant validation du code
 $_SESSION['tmp_2fa_user_id']        = $row['id'];
 $_SESSION['tmp_2fa_email']          = $row['email'];
 $_SESSION['tmp_2fa_nom']            = $row['nom'];
@@ -78,7 +76,6 @@ $_SESSION['tmp_2fa_role']           = $row['role_premier'];
 $_SESSION['tmp_2fa_role_second']    = $row['role_second'];
 $_SESSION['tmp_2fa_role_troisieme'] = $row['role_troisieme'];
 
-// Données spécifiques éventuellement utiles après validation 2FA
 $_SESSION['tmp_2fa_filiere']        = $row['filiere'] ?? null;
 $_SESSION['tmp_2fa_niveau']         = $row['niveau'] ?? null;
 $_SESSION['tmp_2fa_annee_promo']    = $row['annee_promo'] ?? null;

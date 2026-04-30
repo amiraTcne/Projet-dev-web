@@ -109,58 +109,9 @@ Récapitulatif des profils insérés dans la table `Utilisateur`.
 ---
 
 ### 👤 Profils créés
-
-#### 🎓 Etudiant
-
-| Champ | Valeur |
-|-------|--------|
-| **Nom** | DUPONT |
-| **Prénom** | Jean |
-| **Email** | jean.dupont@cy-tech.fr |
-| **Mot de passe** | jeanD26. |
-| **Actif** | 1 |
-| **role_premier** | Etudiant |
-| **role_second** | NULL |
-| **role_troisieme** | NULL |
-| **filiere** | Informatique |
-| **niveau** | ING1 |
-| **annee_promo** | 2026 |
-
-```sql
-INSERT INTO Utilisateur (nom, prenom, email, mot_de_passe, actif, role_premier, role_second, role_troisieme, filiere, niveau, annee_promo)
-VALUES ('DUPONT', 'Jean', 'jean.dupont@cy-tech.fr', 'jeanD26.', 1, 'Etudiant', NULL, NULL, 'Informatique', 'ING1', 2026);
-```
-
----
-
-#### 🛡️ Admin
-
-| Champ | Valeur |
-|-------|--------|
-| **Nom** | Martin |
-| **Prénom** | Marc |
-| **Email** | marc.martin@universite.fr |
-| **Mot de passe** | admin26. |
-| **Actif** | 1 |
-| **role_premier** | Admin |
-| **role_second** | NULL |
-| **role_troisieme** | NULL |
-| **Tous autres champs** | NULL |
-| **nb_stagiere** | 0 |
-
-```sql
-INSERT INTO Utilisateur (nom, prenom, email, mot_de_passe, actif, role_premier, role_second, role_troisieme, filiere, niveau, annee_promo, specialite, departement, commission, annee_jury, num_siret, nom_entreprise, secteur, adresse, ville, code_postal, site_web, nb_stagiere)
-VALUES ('Martin', 'Marc', 'marc.martin@universite.fr', 'admin26.', 1, 'Admin', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 0);
-```
-
----
-
-#### 🏢 Entreprise
-
----
-
 ## 1. Identifiants de Connexion
 Tous les comptes utilisent l'extension `@yopmail.com`. Les mots de passe sont en clair pour faciliter vos tests.
+Pour recuperer les code d'authentification, il faut se rendre sur https://yopmail.com/fr/ et entrer que la partie AVANT '@'
 
 | Symbole | Type | Nom / Entreprise | Email | Mot de passe |
 | :--- | :--- | :--- | :--- | :--- |
@@ -175,17 +126,17 @@ Tous les comptes utilisent l'extension `@yopmail.com`. Les mots de passe sont en
 | 🏢 |**Entreprise** | AutoDrive | autodrive@yopmail.com | autodrive2026! |
 | 🏢 |**Entreprise** | MediaFlow | mediaflow@yopmail.com | mediaflow2026! |
 | 🏢 |**Étudiant** | Lucas Lemoine | lucas.lemoine@yopmail.com | lucas2026! |
-| |**Étudiant** | Sarah Petit | sarah.petit@yopmail.com | sarah2026! |
-| |**Étudiant** | Thomas Garnier | thomas.garnier@yopmail.com | thomas2026! |
-| **Étudiant** | Emma Rousseau | emma.rousseau@yopmail.com | emma2026! |
-| **Étudiant** | Hugo Moreau | hugo.moreau@yopmail.com | hugo2026! |
-| **Étudiant** | Chloé Blanc | chloe.blanc@yopmail.com | chloé2026! |
-| **Étudiant** | Nathan Faure | nathan.faure@yopmail.com | nathan2026! |
-| **Étudiant** | Léa Mercier | lea.mercier@yopmail.com | léa2026! |
-| **Étudiant** | Axel Guerin | axel.guerin@yopmail.com | axel2026! |
-| **Étudiant** | Inès Boyer | ines.boyer@yopmail.com | inès2026! |
-| **Étudiant** | Enzo Fontaine | enzo.fontaine@yopmail.com | enzo2026! |
-| **Étudiant** | Clara Robin | clara.robin@yopmail.com | clara2026! |
+| 🎓 |**Étudiant** | Sarah Petit | sarah.petit@yopmail.com | sarah2026! |
+| 🎓 |**Étudiant** | Thomas Garnier | thomas.garnier@yopmail.com | thomas2026! |
+| 🎓 |**Étudiant** | Emma Rousseau | emma.rousseau@yopmail.com | emma2026! |
+| 🎓 |**Étudiant** | Hugo Moreau | hugo.moreau@yopmail.com | hugo2026! |
+| 🎓 |**Étudiant** | Chloé Blanc | chloe.blanc@yopmail.com | chloé2026! |
+| 🎓 |**Étudiant** | Nathan Faure | nathan.faure@yopmail.com | nathan2026! |
+| 🎓 |**Étudiant** | Léa Mercier | lea.mercier@yopmail.com | léa2026! |
+| 🎓 |**Étudiant** | Axel Guerin | axel.guerin@yopmail.com | axel2026! |
+| 🎓 |**Étudiant** | Inès Boyer | ines.boyer@yopmail.com | inès2026! |
+| 🎓 |**Étudiant** | Enzo Fontaine | enzo.fontaine@yopmail.com | enzo2026! |
+| 🎓 |**Étudiant** | Clara Robin | clara.robin@yopmail.com | clara2026! |
 | 🧑‍🏫 | **Tuteur** | Marc Lefebvre | m.lefebvre@yopmail.com | marc2026! |
 | 🧑‍🏫 | **Tuteur** | Alice Cordier | a.cordier@yopmail.com | alice2026! |
 | 🧑‍🏫 | **Tuteur** | Julien Masson | j.masson@yopmail.com | julien2026! |
@@ -196,6 +147,10 @@ Tous les comptes utilisent l'extension `@yopmail.com`. Les mots de passe sont en
 | ⚖️ |**Jury** | Céline Dumas | c.dumas@yopmail.com | céline2026! |
 | ⚖️ |**Jury** | Victor Hugo | v.hugo@yopmail.com | victor2026! |
 | ⚖️ |**Jury** | Sabine Morel | s.morel@yopmail.com | sabine2026! |
+| 🛡️ |**Admin** |Admin |admin.grand@yopmail.com | grand2026! |
+| 🛡️ |**Admin** |Admin |admin.tech@yopmail.com | tech2026! |
+| 🛡️ |**Admin** |Sup Admin |admin.sup@yopmail.com|sup2026! |
+
 
 ## 2. Détails des Offres de Stage
 Chaque entreprise possède une ou deux offres prêtes à être postulées.
@@ -215,21 +170,25 @@ Chaque entreprise possède une ou deux offres prêtes à être postulées.
 - **Tuteurs** : Algorithmique, Structures de données, Réseaux, Statistiques, Web.
 - **Jurys** : Systèmes, Mathématiques, IA, Éthique, Innovation.
 
-
 ---
-
-> ⚠️ **Note de sécurité** : Les mots de passe sont affichés en clair à titre de documentation uniquement. En production, utiliser un hashage sécurisé (`bcrypt`, `Argon2`) côté applicatif avant insertion en base.
+> ⚠️ **Note de sécurité** : Les mots de passe sont affichés en clair à titre de documentation uniquement. Lors d'une inscription normale, le mot de passe est cryptés. En production, utiliser un hashage sécurisé côté applicatif avant insertion en base.
 ---
 
 ## 🚀 Installation & Lancement
 ```bash
 # Avant de commencer : 
-Creer un user sur mysql dans le terminal avec comme nom : userpro et le mdp : projetStage26. pour se connecter a la base de données et telecharger dans la session Sql le fichier init.sql qui se trouve dans config
+
 # 1. Cloner le projet
 git clone [https://github.com/votre-compte/projet-web-cytech.git](https://github.com/votre-compte/projet-web-cytech.git)
 
 # 2. Se déplacer dans le dossier
 cd projet-web-cytech
 
+# 3. Creer un user sur mysql dans le terminal avec comme nom : userpro et le mdp : projetStage26.N'oubliez pas de vous donner les droits pour accéder à la base de donnée. Pour se connecter à la base de données et télécharger dans la session Sql le fichier init.sql qui se trouve dans config (source config/init.sql si vous etes depuis Projet-dev-Web). 
+
 # 3. Lancer avec un serveur local (ex: XAMPP ou PHP CLI)
 php -S localhost:8000
+
+#4. Lancer un navigateur web et aller à cet endroit : http://localhost:8000/src/controllers/index.php.
+
+#5. Explorer le projet ! 

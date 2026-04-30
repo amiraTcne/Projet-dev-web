@@ -157,80 +157,64 @@ VALUES ('Martin', 'Marc', 'marc.martin@universite.fr', 'admin26.', 1, 'Admin', N
 
 #### 🏢 Entreprise
 
-| Champ | Valeur |
-|-------|--------|
-| **Nom** | Dupont |
-| **Prénom** | Jean |
-| **Email** | contact@techcorp.fr |
-| **Mot de passe** | entreprise26. |
-| **Actif** | 1 |
-| **role_premier** | Entreprise |
-| **num_siret** | 12345678901234 |
-| **nom_entreprise** | TechCorp SAS |
-| **secteur** | Informatique |
-| **adresse** | 12 rue de la Paix |
-| **ville** | Paris |
-| **code_postal** | 75001 |
-| **site_web** | https://techcorp.fr |
-| **nb_stagiere** | 0 |
-
-```sql
-INSERT INTO Utilisateur (nom, prenom, email, mot_de_passe, actif, role_premier, num_siret, nom_entreprise, secteur, adresse, ville, code_postal, site_web, nb_stagiere)
-VALUES ('Dupont', 'Jean', 'contact@techcorp.fr', 'entreprise26.', 1, 'Entreprise', '12345678901234', 'TechCorp SAS', 'Informatique', '12 rue de la Paix', 'Paris', '75001', 'https://techcorp.fr', 0);
-```
-
 ---
 
-#### ⚖️ Jury
+## 1. Identifiants de Connexion
+Tous les comptes utilisent l'extension `@yopmail.com`. Les mots de passe sont en clair pour faciliter vos tests.
 
-| Champ | Valeur |
-|-------|--------|
-| **Nom** | Bernard |
-| **Prénom** | Sophie |
-| **Email** | sophie.bernard@universite.fr |
-| **Mot de passe** | jurys26. |
-| **Actif** | 1 |
-| **role_premier** | Jury |
-| **specialite** | Informatique & IA |
-| **commission** | Commission Ingénierie |
-| **annee_jury** | 2024 |
+| Symbole | Type | Nom / Entreprise | Email | Mot de passe |
+| :--- | :--- | :--- | :--- | :--- |
+| 🏢 | **Entreprise** | EcoVolt | ecovolt@yopmail.com | ecovolt2026! |
+| 🏢 |**Entreprise** | CyberSec | cybersec@yopmail.com | cybersec2026! |
+| 🏢 |**Entreprise** | DataMind | datamind@yopmail.com | datamind2026! |
+| 🏢 |**Entreprise** | BuildIt | buildit@yopmail.com | buildit2026! |
+| 🏢 |**Entreprise** | BioLab | biolab@yopmail.com | biolab2026! |
+| 🏢 |**Entreprise** | FinTechX | fintechx@yopmail.com | fintechx2026! |
+| 🏢 |**Entreprise** | GreenSpace | greenspace@yopmail.com | greenspace2026! |
+| 🏢 |**Entreprise** | CloudOps | cloudops@yopmail.com | cloudops2026! |
+| 🏢 |**Entreprise** | AutoDrive | autodrive@yopmail.com | autodrive2026! |
+| 🏢 |**Entreprise** | MediaFlow | mediaflow@yopmail.com | mediaflow2026! |
+| 🏢 |**Étudiant** | Lucas Lemoine | lucas.lemoine@yopmail.com | lucas2026! |
+| |**Étudiant** | Sarah Petit | sarah.petit@yopmail.com | sarah2026! |
+| |**Étudiant** | Thomas Garnier | thomas.garnier@yopmail.com | thomas2026! |
+| **Étudiant** | Emma Rousseau | emma.rousseau@yopmail.com | emma2026! |
+| **Étudiant** | Hugo Moreau | hugo.moreau@yopmail.com | hugo2026! |
+| **Étudiant** | Chloé Blanc | chloe.blanc@yopmail.com | chloé2026! |
+| **Étudiant** | Nathan Faure | nathan.faure@yopmail.com | nathan2026! |
+| **Étudiant** | Léa Mercier | lea.mercier@yopmail.com | léa2026! |
+| **Étudiant** | Axel Guerin | axel.guerin@yopmail.com | axel2026! |
+| **Étudiant** | Inès Boyer | ines.boyer@yopmail.com | inès2026! |
+| **Étudiant** | Enzo Fontaine | enzo.fontaine@yopmail.com | enzo2026! |
+| **Étudiant** | Clara Robin | clara.robin@yopmail.com | clara2026! |
+| 🧑‍🏫 | **Tuteur** | Marc Lefebvre | m.lefebvre@yopmail.com | marc2026! |
+| 🧑‍🏫 | **Tuteur** | Alice Cordier | a.cordier@yopmail.com | alice2026! |
+| 🧑‍🏫 | **Tuteur** | Julien Masson | j.masson@yopmail.com | julien2026! |
+| 🧑‍🏫 | **Tuteur** | Sophie Vallet | s.vallet@yopmail.com | sophie2026! |
+| 🧑‍🏫 |**Tuteur** | Damien Roux | d.roux@yopmail.com | damien2026! |
+| ⚖️ |**Jury** | Hélène Martin | h.martin@yopmail.com | hélène2026! |
+| ⚖️ | **Jury** | Bruno Legrand | b.legrand@yopmail.com | bruno2026! |
+| ⚖️ |**Jury** | Céline Dumas | c.dumas@yopmail.com | céline2026! |
+| ⚖️ |**Jury** | Victor Hugo | v.hugo@yopmail.com | victor2026! |
+| ⚖️ |**Jury** | Sabine Morel | s.morel@yopmail.com | sabine2026! |
 
-```sql
-INSERT INTO Utilisateur (nom, prenom, email, mot_de_passe, actif, role_premier, specialite, commission, annee_jury)
-VALUES ('Bernard', 'Sophie', 'sophie.bernard@universite.fr', 'jurys26.', 1, 'Jury', 'Informatique & IA', 'Commission Ingénierie', 2024);
-```
+## 2. Détails des Offres de Stage
+Chaque entreprise possède une ou deux offres prêtes à être postulées.
 
----
+- **EcoVolt** : Ingénieur Smart Grid, Analyste Performance
+- **CyberSec** : Pentester Junior, Analyste SOC
+- **DataMind** : Data Scientist, Ingénieur ML Ops
+- **BuildIt** : Conducteur de Travaux, Dessinateur BIM
+- **BioLab** : Assistant Bio-informatique
+- **FinTechX** : Développeur Blockchain
+- **GreenSpace** : Consultant RSE, Auditeur Carbone
+- **CloudOps** : Ingénieur Cloud, Admin Sys Linux
+- **AutoDrive** : Ingénieur Systèmes Embarqués
+- **MediaFlow** : Chef de Projet Digital, UX Designer
 
-#### 🧑‍🏫 Tuteur
+## 3. Spécialités des Tuteurs et Jurys
+- **Tuteurs** : Algorithmique, Structures de données, Réseaux, Statistiques, Web.
+- **Jurys** : Systèmes, Mathématiques, IA, Éthique, Innovation.
 
-| Champ | Valeur |
-|-------|--------|
-| **Nom** | Lefebvre |
-| **Prénom** | Pierre |
-| **Email** | pierre.lefebvre@universite.fr |
-| **Mot de passe** | tuteur26. |
-| **Actif** | 1 |
-| **role_premier** | Tuteur |
-| **specialite** | Mathématiques Appliquées |
-| **departement** | Département Sciences |
-
-```sql
-INSERT INTO Utilisateur (nom, prenom, email, mot_de_passe, actif, role_premier, specialite, departement)
-VALUES ('Lefebvre', 'Pierre', 'pierre.lefebvre@universite.fr', 'tuteur26.', 1, 'Tuteur', 'Mathématiques Appliquées', 'Département Sciences');
-```
-
----
-
-### 📊 Tableau récapitulatif
-
-| Profil | Nom | Prénom | Email | Mdp (clair) | Attributs renseignés |
-|--------|-----|--------|-------|-------------|----------------------|
-| **Etudiant** | DUPONT | Jean | jean.dupont@cy-tech.fr | jeanD26. | `actif`, `role_premier`, `filiere`, `niveau`, `annee_promo` |
-| **Admin** | Martin | Marc | marc.martin@universite.fr | admin26. | `actif`, `role_premier`, `nb_stagiere=0` |
-| **Entreprise** | Dupont | Jean | contact@techcorp.fr | entreprise26. | `actif`, `role_premier`, `num_siret`, `nom_entreprise`, `secteur`, `adresse`, `ville`, `code_postal`, `site_web`, `nb_stagiere` |
-| **Jury** | Bernard | Sophie | sophie.bernard@universite.fr | jurys26. | `actif`, `role_premier`, `specialite`, `commission`, `annee_jury` |
-| **Tuteur** | Lefebvre | Pierre | pierre.lefebvre@universite.fr | tuteur26. | `actif`, `role_premier`, `specialite`, `departement` |
 
 ---
 

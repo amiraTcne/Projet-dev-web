@@ -139,7 +139,7 @@ if (!isset($_SESSION['id']) || $_SESSION['role'] !== 'Etudiant') {
                 <i class="bi bi-chevron-right text-secondary"></i>
             </a>
         </div>
-         <!-- Notifiaction -->
+         <!-- Notification -->
         <div class="col-12 col-sm-6 col-lg-4">
             <a href="notifications_etudiant.php" class="nav text-decoration-none d-flex align-items-center gap-3 p-3 rounded-3 border bg-white shadow-sm"
                style="transition: transform .15s, box-shadow .15s;"
@@ -156,7 +156,7 @@ if (!isset($_SESSION['id']) || $_SESSION['role'] !== 'Etudiant') {
         </div>
         <!-- Candidatures déposées -->
         <div class="col-12 col-sm-6 col-lg-4">
-            <a href="notifications_etudiant.php" class="nav text-decoration-none d-flex align-items-center gap-3 p-3 rounded-3 border bg-white shadow-sm"
+            <a href="candidatures_etudiant.php" class="nav text-decoration-none d-flex align-items-center gap-3 p-3 rounded-3 border bg-white shadow-sm"
                style="transition: transform .15s, box-shadow .15s;"
                onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(27,79,155,.15)'"
                onmouseout="this.style.transform='';this.style.boxShadow=''">

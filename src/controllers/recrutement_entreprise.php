@@ -1,254 +1,273 @@
 <?php
-/**
- * recrutement_entreprise.php
- * ─────────────────────────────────────────────────────────────
- * Gestion des candidatures reçues par l'entreprise.
- *
- * FLUX :
- *  1. Liste des candidatures (statut_candidature = 'en_attente')
- *  2. Clic "Valider" → formulaire de confirmation
- *  3. Confirmation → Stage passe en 'acceptee_entreprise'
- *                  → Notification créée pour l'étudiant
- *                  → Si conflit de stage, message d'erreur
- *  4. Clic "Refuser" → Stage passe en 'refusee_entreprise'
- *                    → Notification créée pour l'étudiant
- * ─────────────────────────────────────────────────────────────
- */
 session_start();
- 
-if (!isset($_SESSION['id']) || $_SESSION['role'] !== 'Entreprise') {
-    header('Location: ../../public/login.php?erreur=4');
-    exit();
+
+if (!isset($_SESSION['id']) || ($_SESSION['role'] ?? '') !== 'Entreprise') {
+    header("Location: ../../public/login.php?erreur=4");
+    exit;
 }
- 
-$id_entreprise = (int)$_SESSION['id'];
-$msg_ok  = '';
-$msg_err = '';
-$confirm_data = null; // données pour l'étape de confirmation
- 
+
+$idEntreprise = (int)$_SESSION['id'];
+$msgOk = '';
+$msgErr = '';
+$confirmData = null;
+
+function h($v)
+{
+    return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
+}
+
+function formatHistoriqueStatut(string $statut): array
+{
+    $map = [
+        'acceptee_entreprise' => ['En attente étudiant', 'badge-orange'],
+        'confirmee_etudiant' => ['Confirmée', 'badge-vert'],
+        'refusee_entreprise' => ['Refusée par vous', 'badge-rouge'],
+        'refusee_etudiant' => ['Refusée par l’étudiant', 'badge-rouge'],
+    ];
+
+    return $map[$statut] ?? [$statut, 'badge-bleu'];
+}
+
 try {
     $conn = mysqli_connect('localhost', 'userpro', 'projetStage26.', 'cyStages');
-    if (!$conn) throw new Exception("Connexion DB échouée.");
-    mysqli_set_charset($conn, 'utf8mb4');
- 
-    /* ═══════════════════════════════════════════════════════════
-       ÉTAPE 2 : Affichage du formulaire de confirmation
-       (POST avec action='demander_confirmation')
-    ═══════════════════════════════════════════════════════════ */
-    if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'demander_confirmation') {
-        $num_stage = (int)($_POST['num_stage'] ?? 0);
- 
-        // Charger les infos du stage/candidature pour l'afficher dans le formulaire
-        $stmt = mysqli_prepare($conn,
-            "SELECT s.num_stage, s.titre,
-                    CONCAT(u.prenom,' ',u.nom) AS nom_etudiant,
-                    u.filiere, u.niveau,
-                    o.duree_semaines, o.date_debut, o.mission
-             FROM Stage s
-             JOIN Utilisateur u ON u.id = s.id_etudiant
-             LEFT JOIN Offre_Stage o ON o.num_offre = s.num_offre
-             WHERE s.num_stage = ? AND s.id_entreprise = ?
-               AND s.statut_candidature = 'en_attente'"
-        );
-        mysqli_stmt_bind_param($stmt, 'ii', $num_stage, $id_entreprise);
-        mysqli_stmt_execute($stmt);
-        $confirm_data = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
-        mysqli_stmt_close($stmt);
- 
-        if (!$confirm_data) {
-            $msg_err = "Candidature introuvable ou déjà traitée.";
-        }
-        // On ne fait pas de redirect : on va afficher le formulaire de confirmation ci-dessous
+    if (!$conn) {
+        throw new Exception("Connexion DB échouée.");
     }
- 
-    /* ═══════════════════════════════════════════════════════════
-       ÉTAPE 3 : Confirmation définitive de validation
-       (POST avec action='confirmer_validation')
-    ═══════════════════════════════════════════════════════════ */
+    mysqli_set_charset($conn, 'utf8mb4');
+
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'demander_confirmation') {
+        $numStage = (int)($_POST['num_stage'] ?? 0);
+
+        $stmt = mysqli_prepare($conn, "
+            SELECT
+                s.num_stage,
+                s.titre,
+                CONCAT(u.prenom, ' ', u.nom) AS nom_etudiant,
+                u.filiere,
+                u.niveau,
+                u.email AS email_etudiant,
+                o.duree_semaines,
+                o.date_debut,
+                o.mission
+            FROM Stage s
+            JOIN Utilisateur u ON u.id = s.id_etudiant
+            LEFT JOIN Offre_Stage o ON o.num_offre = s.num_offre
+            WHERE s.num_stage = ?
+              AND s.id_entreprise = ?
+              AND s.statut_candidature = 'en_attente'
+        ");
+        mysqli_stmt_bind_param($stmt, 'ii', $numStage, $idEntreprise);
+        mysqli_stmt_execute($stmt);
+        $confirmData = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
+        mysqli_stmt_close($stmt);
+
+        if (!$confirmData) {
+            $msgErr = "Candidature introuvable ou déjà traitée.";
+        }
+    }
+
     elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'confirmer_validation') {
-        $num_stage = (int)($_POST['num_stage'] ?? 0);
- 
+        $numStage = (int)($_POST['num_stage'] ?? 0);
+
         mysqli_begin_transaction($conn);
- 
-        // 1. Récupérer les infos de la candidature
-        $stmt = mysqli_prepare($conn,
-            "SELECT s.num_stage, s.id_etudiant, s.num_offre, s.titre,
-                    o.date_debut, o.duree_semaines
-             FROM Stage s
-             LEFT JOIN Offre_Stage o ON o.num_offre = s.num_offre
-             WHERE s.num_stage = ? AND s.id_entreprise = ?
-               AND s.statut_candidature = 'en_attente'"
-        );
-        mysqli_stmt_bind_param($stmt, 'ii', $num_stage, $id_entreprise);
+
+        $stmt = mysqli_prepare($conn, "
+            SELECT
+                s.num_stage,
+                s.id_etudiant,
+                s.num_offre,
+                s.titre,
+                o.date_debut,
+                o.duree_semaines
+            FROM Stage s
+            LEFT JOIN Offre_Stage o ON o.num_offre = s.num_offre
+            WHERE s.num_stage = ?
+              AND s.id_entreprise = ?
+              AND s.statut_candidature = 'en_attente'
+        ");
+        mysqli_stmt_bind_param($stmt, 'ii', $numStage, $idEntreprise);
         mysqli_stmt_execute($stmt);
         $cand = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
         mysqli_stmt_close($stmt);
- 
+
         if (!$cand) {
             mysqli_rollback($conn);
-            $msg_err = "Candidature introuvable ou déjà traitée.";
+            $msgErr = "Candidature introuvable ou déjà traitée.";
         } else {
-            $id_etudiant = $cand['id_etudiant'];
- 
-            // 2. Vérifier que l'étudiant n'a pas déjà un stage actif EN MÊME TEMPS
-            // (statut en_cours ou confirmee_etudiant avec dates qui se chevauchent)
-            $date_debut_offre = $cand['date_debut'];
-            $duree            = (int)$cand['duree_semaines'];
-            $date_fin_offre   = $date_debut_offre
-                                ? date('Y-m-d', strtotime($date_debut_offre . ' +' . $duree . ' weeks'))
-                                : null;
- 
+            $idEtudiant = (int)$cand['id_etudiant'];
+            $dateDebutOffre = $cand['date_debut'] ?? null;
+            $duree = (int)($cand['duree_semaines'] ?? 0);
+            $dateFinOffre = $dateDebutOffre ? date('Y-m-d', strtotime($dateDebutOffre . ' +' . $duree . ' weeks')) : null;
+
             $conflit = false;
-            if ($date_debut_offre) {
-                $sc = mysqli_prepare($conn,
-                    "SELECT COUNT(*) FROM Stage
-                     WHERE id_etudiant = ?
-                       AND num_stage != ?
-                       AND statut IN ('en_cours','en_attente')
-                       AND statut_candidature IN ('confirmee_etudiant','acceptee_entreprise')
-                       AND date_debut IS NOT NULL
-                       AND date_debut <= ?
-                       AND (date_fin IS NULL OR date_fin >= ?)"
-                );
-                mysqli_stmt_bind_param($sc, 'iiss',
-                    $id_etudiant, $num_stage, $date_fin_offre, $date_debut_offre
-                );
+            if ($dateDebutOffre) {
+                $sc = mysqli_prepare($conn, "
+                    SELECT COUNT(*)
+                    FROM Stage
+                    WHERE id_etudiant = ?
+                      AND num_stage != ?
+                      AND statut IN ('en_cours','en_attente')
+                      AND statut_candidature IN ('confirmee_etudiant','acceptee_entreprise')
+                      AND date_debut IS NOT NULL
+                      AND date_debut <= ?
+                      AND (date_fin IS NULL OR date_fin >= ?)
+                ");
+                mysqli_stmt_bind_param($sc, 'iiss', $idEtudiant, $numStage, $dateFinOffre, $dateDebutOffre);
                 mysqli_stmt_execute($sc);
-                mysqli_stmt_bind_result($sc, $nb_conflits);
+                mysqli_stmt_bind_result($sc, $nbConflits);
                 mysqli_stmt_fetch($sc);
                 mysqli_stmt_close($sc);
-                $conflit = $nb_conflits > 0;
+                $conflit = ((int)$nbConflits > 0);
             }
- 
+
             if ($conflit) {
                 mysqli_rollback($conn);
-                $msg_err = "Impossible de valider : cet étudiant a déjà un stage prévu sur cette période.";
+                $msgErr = "Impossible de valider : cet étudiant a déjà un stage prévu sur cette période.";
             } else {
-                // 3. Mettre à jour le statut de la candidature
-                $upd = mysqli_prepare($conn,
-                    "UPDATE Stage SET statut_candidature = 'acceptee_entreprise'
-                     WHERE num_stage = ? AND id_entreprise = ?"
-                );
-                mysqli_stmt_bind_param($upd, 'ii', $num_stage, $id_entreprise);
+                $upd = mysqli_prepare($conn, "
+                    UPDATE Stage
+                    SET statut_candidature = 'acceptee_entreprise'
+                    WHERE num_stage = ? AND id_entreprise = ?
+                ");
+                mysqli_stmt_bind_param($upd, 'ii', $numStage, $idEntreprise);
                 mysqli_stmt_execute($upd);
                 mysqli_stmt_close($upd);
- 
-                // 4. Créer une notification pour l'étudiant
-                $nom_ent = htmlspecialchars($_SESSION['nom_entreprise'] ?? 'L\'entreprise');
-                $titre_notif   = "Candidature acceptée — " . $cand['titre'];
-                $message_notif = "$nom_ent a accepté votre candidature pour le poste \"{$cand['titre']}\". "
-                               . "Rendez-vous dans votre espace pour confirmer ou refuser cette offre.";
-                $lien_notif    = "confirmer_stage_etudiant.php?stage=" . $num_stage;
- 
-                $ins_notif = mysqli_prepare($conn,
-                    "INSERT INTO Notification (id_user, type, titre, message, lien)
-                     VALUES (?, 'candidature_validee', ?, ?, ?)"
-                );
-                mysqli_stmt_bind_param($ins_notif, 'isss',
-                    $id_etudiant, $titre_notif, $message_notif, $lien_notif
-                );
-                mysqli_stmt_execute($ins_notif);
-                mysqli_stmt_close($ins_notif);
- 
+
+                $nomEnt = $_SESSION['nom_entreprise'] ?? 'L’entreprise';
+                $titreNotif = "Candidature acceptée — " . $cand['titre'];
+                $messageNotif = $nomEnt . " a accepté votre candidature pour le poste \"" . $cand['titre'] . "\". Rendez-vous dans votre espace pour confirmer ou refuser cette offre.";
+                $lienNotif = "candidatures_etudiant.php";
+
+                $insNotif = mysqli_prepare($conn, "
+                    INSERT INTO Notification (id_user, type, titre, message, lien)
+                    VALUES (?, 'candidature_validee', ?, ?, ?)
+                ");
+                mysqli_stmt_bind_param($insNotif, 'isss', $idEtudiant, $titreNotif, $messageNotif, $lienNotif);
+                mysqli_stmt_execute($insNotif);
+                mysqli_stmt_close($insNotif);
+
                 mysqli_commit($conn);
-                $msg_ok = "Candidature validée ! L'étudiant a été notifié et doit maintenant confirmer de son côté.";
+                $msgOk = "Candidature validée. L’étudiant a été notifié.";
             }
         }
     }
- 
-    /* ═══════════════════════════════════════════════════════════
-       REFUS D'UNE CANDIDATURE
-    ═══════════════════════════════════════════════════════════ */
+
     elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'refuser') {
-        $num_stage = (int)($_POST['num_stage'] ?? 0);
-        $motif     = trim($_POST['motif'] ?? '');
- 
-        $stmt = mysqli_prepare($conn,
-            "SELECT s.id_etudiant, s.titre FROM Stage s
-             WHERE s.num_stage = ? AND s.id_entreprise = ?
-               AND s.statut_candidature = 'en_attente'"
-        );
-        mysqli_stmt_bind_param($stmt, 'ii', $num_stage, $id_entreprise);
+        $numStage = (int)($_POST['num_stage'] ?? 0);
+        $motif = trim($_POST['motif'] ?? '');
+
+        $stmt = mysqli_prepare($conn, "
+            SELECT s.id_etudiant, s.titre
+            FROM Stage s
+            WHERE s.num_stage = ?
+              AND s.id_entreprise = ?
+              AND s.statut_candidature = 'en_attente'
+        ");
+        mysqli_stmt_bind_param($stmt, 'ii', $numStage, $idEntreprise);
         mysqli_stmt_execute($stmt);
         $cand = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
         mysqli_stmt_close($stmt);
- 
+
         if ($cand) {
-            // Mettre à jour le statut
-            $upd = mysqli_prepare($conn,
-                "UPDATE Stage SET statut_candidature = 'refusee_entreprise', statut = 'annule'
-                 WHERE num_stage = ?"
-            );
-            mysqli_stmt_bind_param($upd, 'i', $num_stage);
+            $upd = mysqli_prepare($conn, "
+                UPDATE Stage
+                SET statut_candidature = 'refusee_entreprise',
+                    statut = 'annule'
+                WHERE num_stage = ?
+            ");
+            mysqli_stmt_bind_param($upd, 'i', $numStage);
             mysqli_stmt_execute($upd);
             mysqli_stmt_close($upd);
- 
-            // Notification refus
-            $nom_ent = $_SESSION['nom_entreprise'] ?? 'L\'entreprise';
-            $titre_notif   = "Candidature refusée — " . $cand['titre'];
-            $message_notif = "$nom_ent n'a pas retenu votre candidature pour le poste \"{$cand['titre']}\"."
-                           . ($motif ? " Motif : $motif" : " Aucun motif précisé.");
- 
-            $ins_notif = mysqli_prepare($conn,
-                "INSERT INTO Notification (id_user, type, titre, message)
-                 VALUES (?, 'candidature_refusee', ?, ?)"
-            );
-            mysqli_stmt_bind_param($ins_notif, 'iss',
-                $cand['id_etudiant'], $titre_notif, $message_notif
-            );
-            mysqli_stmt_execute($ins_notif);
-            mysqli_stmt_close($ins_notif);
- 
-            $msg_ok = "Candidature refusée. L'étudiant a été notifié.";
+
+            $nomEnt = $_SESSION['nom_entreprise'] ?? 'L’entreprise';
+            $titreNotif = "Candidature refusée — " . $cand['titre'];
+            $messageNotif = $nomEnt . " n'a pas retenu votre candidature pour le poste \"" . $cand['titre'] . "\"." . ($motif ? " Motif : " . $motif : " Aucun motif précisé.");
+
+            $insNotif = mysqli_prepare($conn, "
+                INSERT INTO Notification (id_user, type, titre, message)
+                VALUES (?, 'candidature_refusee', ?, ?)
+            ");
+            mysqli_stmt_bind_param($insNotif, 'iss', $cand['id_etudiant'], $titreNotif, $messageNotif);
+            mysqli_stmt_execute($insNotif);
+            mysqli_stmt_close($insNotif);
+
+            $msgOk = "Candidature refusée. L’étudiant a été notifié.";
         } else {
-            $msg_err = "Candidature introuvable.";
+            $msgErr = "Candidature introuvable.";
         }
     }
- 
-    /* ═══════════════════════════════════════════════════════════
-       CHARGEMENT DE LA LISTE DES CANDIDATURES EN ATTENTE
-    ═══════════════════════════════════════════════════════════ */
+
     $candidatures = [];
-    $stmt = mysqli_prepare($conn,
-        "SELECT s.num_stage, s.titre,
-                CONCAT(u.prenom,' ',u.nom) AS nom_etudiant,
-                u.filiere, u.niveau, u.email AS email_etudiant,
-                o.date_debut, o.duree_semaines,
-                s.statut_candidature
-         FROM Stage s
-         JOIN Utilisateur u ON u.id = s.id_etudiant
-         LEFT JOIN Offre_Stage o ON o.num_offre = s.num_offre
-         WHERE s.id_entreprise = ?
-           AND s.statut_candidature = 'en_attente'
-         ORDER BY s.num_stage DESC"
-    );
-    mysqli_stmt_bind_param($stmt, 'i', $id_entreprise);
+    $stmt = mysqli_prepare($conn, "
+        SELECT
+            s.num_stage,
+            s.titre,
+            CONCAT(u.prenom, ' ', u.nom) AS nom_etudiant,
+            u.filiere,
+            u.niveau,
+            u.email AS email_etudiant,
+            o.date_debut,
+            o.duree_semaines,
+            s.statut_candidature
+        FROM Stage s
+        JOIN Utilisateur u ON u.id = s.id_etudiant
+        LEFT JOIN Offre_Stage o ON o.num_offre = s.num_offre
+        WHERE s.id_entreprise = ?
+          AND s.statut_candidature = 'en_attente'
+        ORDER BY s.num_stage DESC
+    ");
+    mysqli_stmt_bind_param($stmt, 'i', $idEntreprise);
     mysqli_stmt_execute($stmt);
     $res = mysqli_stmt_get_result($stmt);
-    while ($row = mysqli_fetch_assoc($res)) $candidatures[] = $row;
+
+    while ($row = mysqli_fetch_assoc($res)) {
+        $row['documents'] = [];
+        $sd = mysqli_prepare($conn, "
+            SELECT id, type_document, nom_fichier, chemin_fichier, date_envoi
+            FROM DocumentCandidature
+            WHERE num_stage = ?
+            ORDER BY date_envoi DESC, id DESC
+        ");
+        mysqli_stmt_bind_param($sd, 'i', $row['num_stage']);
+        mysqli_stmt_execute($sd);
+        $rd = mysqli_stmt_get_result($sd);
+        while ($doc = mysqli_fetch_assoc($rd)) {
+            $row['documents'][] = $doc;
+        }
+        mysqli_stmt_close($sd);
+
+        $candidatures[] = $row;
+    }
     mysqli_stmt_close($stmt);
- 
-    // Historique récent (acceptées / refusées)
+
     $historique = [];
-    $sh = mysqli_prepare($conn,
-        "SELECT s.titre, s.statut_candidature,
-                CONCAT(u.prenom,' ',u.nom) AS nom_etudiant
-         FROM Stage s
-         JOIN Utilisateur u ON u.id = s.id_etudiant
-         WHERE s.id_entreprise = ?
-           AND s.statut_candidature != 'en_attente'
-         ORDER BY s.num_stage DESC LIMIT 10"
-    );
-    mysqli_stmt_bind_param($sh, 'i', $id_entreprise);
+    $sh = mysqli_prepare($conn, "
+        SELECT
+            s.titre,
+            s.statut_candidature,
+            CONCAT(u.prenom, ' ', u.nom) AS nom_etudiant
+        FROM Stage s
+        JOIN Utilisateur u ON u.id = s.id_etudiant
+        WHERE s.id_entreprise = ?
+          AND s.statut_candidature != 'en_attente'
+        ORDER BY s.num_stage DESC
+        LIMIT 12
+    ");
+    mysqli_stmt_bind_param($sh, 'i', $idEntreprise);
     mysqli_stmt_execute($sh);
     $rh = mysqli_stmt_get_result($sh);
-    while ($row = mysqli_fetch_assoc($rh)) $historique[] = $row;
+    while ($row = mysqli_fetch_assoc($rh)) {
+        $historique[] = $row;
+    }
     mysqli_stmt_close($sh);
- 
+
     mysqli_close($conn);
- 
+
 } catch (Exception $e) {
-    $msg_err = "Erreur : " . $e->getMessage();
+    if (isset($conn) && $conn instanceof mysqli) {
+        @mysqli_rollback($conn);
+    }
+    $msgErr = "Erreur : " . $e->getMessage();
 }
 ?>
 <!DOCTYPE html>
@@ -256,510 +275,259 @@ try {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestion des candidatures — CY Stage</title>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+    <title>Gestion des candidatures - CY Stage</title>
+    <link rel="stylesheet" href="../../public/assets/css/styleetudiant.css">
     <style>
-        /* ── Variables (reprises du projet) ── */
-        :root {
-            --bleu:        #1B4F9B;
-            --bleu-clair:  #2563c7;
-            --blanc:       #ffffff;
-            --gris-fond:   #f4f6fb;
-            --gris-texte:  #6b7280;
-            --gris-border: #e5e7eb;
-            --noir:        #111827;
-            --vert:        #16a34a;
-            --rouge:       #dc2626;
-            --orange:      #d97706;
-            --radius:      14px;
-            --shadow:      0 2px 12px rgba(27,79,155,.10);
+        :root{
+            --bleu:#1B4F9B;
+            --bleu-clair:#2563c7;
+            --fond:#f5f7fb;
+            --blanc:#ffffff;
+            --texte:#111827;
+            --muted:#6b7280;
+            --bord:#e5e7eb;
+            --vert:#16a34a;
+            --vert-fond:#ecfdf3;
+            --rouge:#dc2626;
+            --rouge-fond:#fff1f2;
+            --orange:#d97706;
+            --shadow:0 10px 30px rgba(27,79,155,.08);
+            --radius:18px;
         }
- 
-        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
- 
-        body {
-            font-family: 'DM Sans', sans-serif;
-            background: var(--gris-fond);
-            color: var(--noir);
-            min-height: 100vh;
-        }
- 
-        /* ── Layout ── */
-        .page {
-            max-width: 860px;
-            margin: 0 auto;
-            background: var(--blanc);
-            min-height: 100vh;
-            padding: 32px 40px 48px;
-            box-shadow: 0 0 40px rgba(27,79,155,.08);
-        }
- 
-        /* ── Header ── */
-        .header {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            margin-bottom: 36px;
-        }
-        .header a {
-            display: flex; align-items: center; justify-content: center;
-            width: 38px; height: 38px; border-radius: 50%;
-            border: 1px solid var(--gris-border);
-            background: var(--gris-fond);
-            color: var(--bleu); text-decoration: none; flex-shrink: 0;
-            transition: background .2s;
-        }
-        .header a:hover { background: var(--gris-border); }
-        .header a svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
-        .header h1 { font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 800; }
- 
-        /* ── Alertes ── */
-        .alert {
-            padding: 11px 15px; border-radius: 10px;
-            font-size: .85rem; font-weight: 600;
-            margin-bottom: 22px; display: flex; align-items: center; gap: 9px;
-        }
-        .alert-ok  { background: rgba(22,163,74,.09); border: 1px solid var(--vert); color: var(--vert); }
-        .alert-err { background: #fff0f0; border: 1px solid #fca5a5; color: var(--rouge); }
- 
-        /* ── Section titre ── */
-        .section-label {
-            font-size: .68rem; font-weight: 700; letter-spacing: .15em;
-            text-transform: uppercase; color: var(--bleu);
-            margin-bottom: 14px; margin-top: 28px;
-        }
- 
-        /* ── Carte candidature ── */
-        .cand-card {
-            background: var(--blanc);
-            border: 1px solid var(--gris-border);
-            border-radius: var(--radius);
-            padding: 18px 20px;
-            margin-bottom: 14px;
-            box-shadow: var(--shadow);
-            transition: transform .15s, box-shadow .15s;
-        }
-        .cand-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(27,79,155,.12); }
- 
-        .cand-top {
-            display: flex; align-items: flex-start;
-            justify-content: space-between; gap: 12px;
-            margin-bottom: 12px;
-        }
- 
-        .cand-avatar {
-            width: 44px; height: 44px; border-radius: 50%;
-            background: linear-gradient(135deg, var(--bleu), var(--bleu-clair));
-            display: flex; align-items: center; justify-content: center;
-            color: #fff; font-family: 'Syne', sans-serif;
-            font-size: .90rem; font-weight: 800; flex-shrink: 0;
-        }
- 
-        .cand-info { flex: 1; min-width: 0; }
-        .cand-nom  { font-family: 'Syne', sans-serif; font-weight: 700; font-size: .95rem; }
-        .cand-sub  { font-size: .78rem; color: var(--gris-texte); margin-top: 2px; }
-        .cand-titre { font-size: .82rem; color: var(--bleu-clair); font-weight: 600; margin-top: 3px; }
- 
-        .cand-meta {
-            display: flex; gap: 14px; flex-wrap: wrap;
-            font-size: .76rem; color: var(--gris-texte);
-            padding-top: 10px; border-top: 1px solid var(--gris-border);
-            margin-bottom: 14px;
-        }
-        .cand-meta span { display: flex; align-items: center; gap: 4px; }
-        .cand-meta svg  { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
- 
-        /* ── Boutons d'action ── */
-        .cand-actions { display: flex; gap: 9px; flex-wrap: wrap; }
- 
-        .btn-valider {
-            display: inline-flex; align-items: center; gap: 6px;
-            padding: 9px 16px; border: none; border-radius: 8px;
-            background: var(--vert); color: #fff;
-            font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: .84rem;
-            cursor: pointer; transition: opacity .2s, transform .2s;
-        }
-        .btn-valider:hover { opacity: .88; transform: translateY(-1px); }
-        .btn-valider svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
- 
-        .btn-refuser {
-            display: inline-flex; align-items: center; gap: 6px;
-            padding: 9px 16px; border: 1px solid var(--rouge);
-            background: transparent; color: var(--rouge);
-            border-radius: 8px; font-family: 'DM Sans', sans-serif;
-            font-weight: 700; font-size: .84rem; cursor: pointer;
-            transition: background .2s, color .2s;
-        }
-        .btn-refuser:hover { background: var(--rouge); color: #fff; }
-        .btn-refuser svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
- 
-        /* ── Formulaire de confirmation ── */
-        .confirm-overlay {
-            position: fixed; inset: 0;
-            background: rgba(17,24,39,.5);
-            z-index: 200;
-            display: flex; align-items: center; justify-content: center;
-            padding: 20px;
-            animation: fadeIn .2s ease;
-        }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
- 
-        .confirm-box {
-            background: var(--blanc);
-            border-radius: 20px;
-            padding: 30px 28px 28px;
-            width: 100%; max-width: 480px;
-            box-shadow: 0 20px 60px rgba(17,24,39,.25);
-            animation: slideUp .25s ease;
-        }
-        @keyframes slideUp {
-            from { transform: translateY(20px); opacity: 0; }
-            to   { transform: translateY(0);    opacity: 1; }
-        }
- 
-        .confirm-icon {
-            width: 56px; height: 56px; border-radius: 50%;
-            background: rgba(22,163,74,.12);
-            display: flex; align-items: center; justify-content: center;
-            margin: 0 auto 16px;
-            color: var(--vert);
-        }
-        .confirm-icon svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 2.5; stroke-linecap: round; stroke-linejoin: round; }
- 
-        .confirm-titre {
-            font-family: 'Syne', sans-serif; font-size: 1.05rem; font-weight: 800;
-            text-align: center; margin-bottom: 6px;
-        }
-        .confirm-sous {
-            font-size: .82rem; color: var(--gris-texte); text-align: center;
-            margin-bottom: 20px; line-height: 1.55;
-        }
- 
-        .confirm-recap {
-            background: var(--gris-fond);
-            border: 1px solid var(--gris-border);
-            border-radius: 10px; padding: 14px; margin-bottom: 18px;
-        }
-        .recap-ligne {
-            display: flex; gap: 8px; font-size: .82rem;
-            padding: 5px 0; border-bottom: 1px solid var(--gris-border);
-        }
-        .recap-ligne:last-child { border-bottom: none; padding-bottom: 0; }
-        .recap-label { color: var(--gris-texte); width: 90px; flex-shrink: 0; }
-        .recap-val   { font-weight: 700; }
- 
-        .confirm-btns { display: flex; gap: 10px; }
- 
-        .btn-confirm-ok {
-            flex: 1; padding: 11px; border: none; border-radius: 9px;
-            background: var(--vert); color: #fff;
-            font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: .88rem;
-            cursor: pointer; transition: opacity .2s;
-        }
-        .btn-confirm-ok:hover { opacity: .88; }
- 
-        .btn-confirm-cancel {
-            flex: 1; padding: 11px; border: 1px solid var(--gris-border);
-            border-radius: 9px; background: transparent;
-            font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: .88rem;
-            color: var(--gris-texte); cursor: pointer; transition: background .2s;
-        }
-        .btn-confirm-cancel:hover { background: var(--gris-fond); color: var(--noir); }
- 
-        /* ── Modal refus ── */
-        .refus-overlay {
-            position: fixed; inset: 0;
-            background: rgba(17,24,39,.5);
-            z-index: 200;
-            display: flex; align-items: flex-end; justify-content: center;
-            padding: 20px;
-            animation: fadeIn .2s ease;
-        }
-        .refus-box {
-            background: var(--blanc); border-radius: 20px 20px 0 0;
-            padding: 24px 24px 32px; width: 100%; max-width: 480px;
-            box-shadow: 0 -10px 40px rgba(17,24,39,.15);
-            animation: slideUp .25s ease;
-        }
-        .refus-handle {
-            width: 32px; height: 4px; border-radius: 2px;
-            background: var(--gris-border); margin: 0 auto 18px;
-        }
-        .refus-titre {
-            font-family: 'Syne', sans-serif; font-weight: 800; font-size: .97rem;
-            margin-bottom: 14px;
-        }
-        .textarea-motif {
-            width: 100%; padding: 10px 12px;
-            border: 1px solid var(--gris-border); border-radius: 8px;
-            background: var(--gris-fond); font-family: 'DM Sans', sans-serif;
-            font-size: .87rem; color: var(--noir); resize: vertical;
-            min-height: 80px; outline: none; margin-bottom: 14px;
-            transition: border-color .2s;
-        }
-        .textarea-motif:focus { border-color: var(--rouge); background: var(--blanc); }
- 
-        /* ── Historique ── */
-        .hist-ligne {
-            display: flex; align-items: center; gap: 12px;
-            padding: 11px 0; border-bottom: 1px solid var(--gris-border);
-        }
-        .hist-ligne:last-child { border-bottom: none; }
-        .badge {
-            display: inline-block; padding: 3px 10px; border-radius: 20px;
-            font-size: .71rem; font-weight: 700; white-space: nowrap;
-        }
-        .badge-vert   { background: rgba(22,163,74,.12);  color: var(--vert); }
-        .badge-rouge  { background: rgba(220,38,38,.10);  color: var(--rouge); }
-        .badge-orange { background: rgba(217,119,6,.12);  color: var(--orange); }
-        .badge-bleu   { background: rgba(27,79,155,.10);  color: var(--bleu); }
- 
-        /* ── État vide ── */
-        .etat-vide {
-            text-align: center; padding: 44px 20px;
-            color: var(--gris-texte);
-        }
-        .etat-vide svg { width: 48px; height: 48px; opacity: .3; margin-bottom: 12px; }
-        .etat-vide h3  { font-family: 'Syne', sans-serif; font-size: .97rem; margin-bottom: 6px; }
-        .etat-vide p   { font-size: .82rem; }
- 
-        /* ── Responsive ── */
-        @media (max-width: 600px) {
-            .page { padding: 20px 18px; }
-            .cand-top { flex-direction: column; }
+        *{box-sizing:border-box}
+        body{margin:0;background:var(--fond);font-family:'DM Sans',sans-serif;color:var(--texte)}
+        .page{max-width:1120px;margin:0 auto;padding:24px 18px 40px}
+        .entete{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:20px}
+        .retour{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#fff;border:1px solid var(--bord);color:var(--bleu);text-decoration:none;box-shadow:0 2px 10px rgba(27,79,155,.06)}
+        .retour svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+        .titre-zone h1{margin:0;font-size:1.45rem;color:var(--bleu)}
+        .titre-zone p{margin:5px 0 0;color:var(--muted);font-size:.92rem}
+        .alert{border-radius:14px;padding:13px 15px;margin-bottom:16px;font-size:.92rem;font-weight:600;border:1px solid transparent;background:#fff}
+        .alert-ok{background:var(--vert-fond);color:var(--vert);border-color:#b7ebc6}
+        .alert-err{background:var(--rouge-fond);color:var(--rouge);border-color:#fecaca}
+        .section-label{margin:26px 0 12px;font-size:.8rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--bleu)}
+        .count{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 8px;border-radius:999px;background:var(--orange);color:#fff;font-size:.74rem;margin-left:6px}
+        .liste{display:grid;gap:16px}
+        .carte{background:#fff;border:1px solid var(--bord);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px}
+        .top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start}
+        .avatar{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--bleu),var(--bleu-clair));color:#fff;font-weight:800;flex-shrink:0}
+        .identite{display:flex;gap:12px;align-items:flex-start}
+        .nom{margin:0;font-size:1rem}
+        .sub{margin:5px 0 0;color:var(--muted);font-size:.85rem}
+        .poste{margin:4px 0 0;color:var(--bleu-clair);font-size:.86rem;font-weight:700}
+        .meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+        .meta span{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;color:var(--muted);background:#f8fafc;border:1px solid #edf2f7;padding:7px 10px;border-radius:999px}
+        .bloc{margin-top:16px;padding-top:16px;border-top:1px solid var(--bord)}
+        .bloc h3{margin:0 0 10px;font-size:.92rem;color:var(--bleu)}
+        .docs{display:grid;gap:8px}
+        .doc{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--bord);border-radius:12px;background:#fbfdff}
+        .doc small{display:block;color:var(--muted);margin-top:2px}
+        .doc a{text-decoration:none;color:var(--bleu);font-weight:700;font-size:.84rem}
+        .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+        .btn{border:none;border-radius:12px;padding:11px 15px;font-weight:700;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+        .btn-ok{background:var(--bleu);color:#fff}
+        .btn-ko{background:#fff;color:var(--rouge);border:1px solid #fecaca}
+        .btn-ko:hover{background:var(--rouge);color:#fff}
+        .badge{display:inline-flex;align-items:center;padding:6px 10px;border-radius:999px;font-size:.75rem;font-weight:700}
+        .badge-vert{background:#ecfdf3;color:var(--vert)}
+        .badge-orange{background:#fff7ed;color:var(--orange)}
+        .badge-rouge{background:#fff1f2;color:var(--rouge)}
+        .badge-bleu{background:#eff6ff;color:var(--bleu)}
+        .etat-vide{background:#fff;border:1px dashed #cbd5e1;border-radius:20px;padding:40px 18px;text-align:center;color:var(--muted)}
+        .etat-vide h3{margin:0 0 8px;color:var(--bleu)}
+        .historique{background:#fff;border:1px solid var(--bord);border-radius:var(--radius);box-shadow:var(--shadow);padding:14px 16px}
+        .hist-ligne{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--bord)}
+        .hist-ligne:last-child{border-bottom:none}
+        .overlay{position:fixed;inset:0;background:rgba(17,24,39,.48);display:flex;align-items:center;justify-content:center;padding:20px;z-index:1000}
+        .modal{width:100%;max-width:520px;background:#fff;border-radius:22px;padding:24px;box-shadow:0 20px 60px rgba(17,24,39,.25)}
+        .modal h3{margin:0 0 8px;color:var(--bleu)}
+        .modal p{margin:0 0 14px;color:var(--muted);line-height:1.55}
+        .recap{background:#f8fafc;border:1px solid var(--bord);border-radius:14px;padding:14px;margin:16px 0}
+        .recap-ligne{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--bord);font-size:.88rem}
+        .recap-ligne:last-child{border-bottom:none}
+        .recap-ligne strong{width:110px;flex-shrink:0;color:#374151}
+        textarea{width:100%;min-height:100px;border-radius:14px;border:1px solid var(--bord);padding:12px;font:inherit;resize:vertical;background:#fff}
+        @media (max-width:760px){
+            .top,.hist-ligne{flex-direction:column;align-items:flex-start}
+            .actions{width:100%}
+            .actions form{width:100%}
+            .actions .btn{width:100%}
         }
     </style>
 </head>
 <body>
- 
 <div class="page">
- 
-    <!-- En-tête -->
-    <div class="header">
-        <a href="accueil_entreprise.php" aria-label="Retour">
-            <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    <div class="entete">
+        <a href="accueil_entreprise.php" class="retour" aria-label="Retour">
+            <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
         </a>
-        <h1>Gestion des candidatures</h1>
+        <div class="titre-zone" style="flex:1">
+            <h1>Gestion des candidatures</h1>
+            <p>Consulte les documents envoyés, valide ou refuse une candidature, puis suis l’historique des réponses.</p>
+        </div>
+        <div style="width:42px"></div>
     </div>
- 
-    <!-- Messages -->
-    <?php if ($msg_ok) : ?>
-    <div class="alert alert-ok">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0;"><polyline points="20 6 9 17 4 12"/></svg>
-        <?php echo htmlspecialchars($msg_ok); ?>
-    </div>
+
+    <?php if ($msgOk): ?>
+        <div class="alert alert-ok"><?php echo h($msgOk); ?></div>
     <?php endif; ?>
-    <?php if ($msg_err) : ?>
-    <div class="alert alert-err">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex-shrink:0;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-        <?php echo htmlspecialchars($msg_err); ?>
-    </div>
+
+    <?php if ($msgErr): ?>
+        <div class="alert alert-err"><?php echo h($msgErr); ?></div>
     <?php endif; ?>
- 
-    <!-- Liste des candidatures en attente -->
-    <p class="section-label">
+
+    <div class="section-label">
         Candidatures en attente
-        <?php if (!empty($candidatures)) : ?>
-        <span style="background:var(--orange); color:#fff; padding:2px 8px; border-radius:20px; font-size:.68rem; margin-left:6px;">
-            <?php echo count($candidatures); ?>
-        </span>
+        <?php if (!empty($candidatures)): ?>
+            <span class="count"><?php echo count($candidatures); ?></span>
         <?php endif; ?>
-    </p>
- 
-    <?php if (empty($candidatures)) : ?>
-    <div class="etat-vide">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-            <circle cx="9" cy="7" r="4"/>
-            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-        </svg>
-        <h3>Aucune candidature en attente</h3>
-        <p>Les nouvelles candidatures apparaîtront ici.</p>
     </div>
- 
-    <?php else : ?>
- 
-    <?php foreach ($candidatures as $c) :
-        $initiales = strtoupper(
-            mb_substr(explode(' ', $c['nom_etudiant'])[0], 0, 1) .
-            mb_substr(explode(' ', $c['nom_etudiant'])[1] ?? '?', 0, 1)
-        );
-        $date_fmt = $c['date_debut'] ? date('d/m/Y', strtotime($c['date_debut'])) : 'À définir';
-    ?>
-    <div class="cand-card">
-        <div class="cand-top">
-            <div class="cand-avatar"><?php echo $initiales; ?></div>
-            <div class="cand-info">
-                <p class="cand-nom"><?php echo htmlspecialchars($c['nom_etudiant']); ?></p>
-                <p class="cand-sub">
-                    <?php echo htmlspecialchars(implode(' · ', array_filter([$c['filiere'], $c['niveau']]))); ?>
-                </p>
-                <p class="cand-titre"><?php echo htmlspecialchars($c['titre']); ?></p>
-            </div>
+
+    <?php if (empty($candidatures)): ?>
+        <div class="etat-vide">
+            <h3>Aucune candidature en attente</h3>
+            <p>Les nouvelles candidatures apparaîtront ici.</p>
         </div>
- 
-        <div class="cand-meta">
-            <span>
-                <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-                Début : <?php echo $date_fmt; ?>
-            </span>
-            <?php if ($c['duree_semaines']) : ?>
-            <span>
-                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                <?php echo (int)$c['duree_semaines']; ?> semaines
-            </span>
-            <?php endif; ?>
+    <?php else: ?>
+        <div class="liste">
+            <?php foreach ($candidatures as $c): ?>
+                <?php
+                    $noms = explode(' ', trim($c['nom_etudiant'] ?? ''));
+                    $initiales = strtoupper(mb_substr($noms[0] ?? '?', 0, 1) . mb_substr($noms[1] ?? '', 0, 1));
+                    $dateFmt = !empty($c['date_debut']) ? date('d/m/Y', strtotime($c['date_debut'])) : 'Non précisé';
+                ?>
+                <div class="carte">
+                    <div class="top">
+                        <div class="identite">
+                            <div class="avatar"><?php echo h($initiales); ?></div>
+                            <div>
+                                <h2 class="nom"><?php echo h($c['nom_etudiant']); ?></h2>
+                                <p class="sub">
+                                    <?php echo h(implode(' · ', array_filter([$c['filiere'] ?? '', $c['niveau'] ?? '', $c['email_etudiant'] ?? '']))); ?>
+                                </p>
+                                <p class="poste"><?php echo h($c['titre']); ?></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="meta">
+                        <span>Début : <?php echo h($dateFmt); ?></span>
+                        <?php if (!empty($c['duree_semaines'])): ?>
+                            <span>Durée : <?php echo (int)$c['duree_semaines']; ?> semaines</span>
+                        <?php endif; ?>
+                        <span>N° candidature : <?php echo (int)$c['num_stage']; ?></span>
+                    </div>
+
+                    <div class="bloc">
+                        <h3>Documents transmis</h3>
+
+                        <?php if (empty($c['documents'])): ?>
+                            <p style="margin:0;color:var(--muted);font-size:.88rem;">Aucun document n’a encore été déposé par l’étudiant.</p>
+                        <?php else: ?>
+                            <div class="docs">
+                                <?php foreach ($c['documents'] as $doc): ?>
+                                    <div class="doc">
+                                        <div>
+                                            <strong><?php echo h(str_replace('_', ' ', $doc['type_document'])); ?></strong>
+                                            <small><?php echo h($doc['nom_fichier']); ?> · envoyé le <?php echo h(date('d/m/Y H:i', strtotime($doc['date_envoi']))); ?></small>
+                                        </div>
+                                        <a href="<?php echo h($doc['chemin_fichier']); ?>" target="_blank">Ouvrir</a>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+
+                    <div class="actions">
+                        <form method="POST">
+                            <input type="hidden" name="action" value="demander_confirmation">
+                            <input type="hidden" name="num_stage" value="<?php echo (int)$c['num_stage']; ?>">
+                            <button type="submit" class="btn btn-ok">Valider la candidature</button>
+                        </form>
+
+                        <button type="button" class="btn btn-ko" onclick="ouvrirRefus(<?php echo (int)$c['num_stage']; ?>, '<?php echo h($c['nom_etudiant']); ?>')">
+                            Refuser
+                        </button>
+                    </div>
+                </div>
+            <?php endforeach; ?>
         </div>
- 
-        <div class="cand-actions">
-            <!-- Bouton Valider → ouvre la modale de confirmation -->
-            <form method="POST" style="display:inline;">
-                <input type="hidden" name="action"    value="demander_confirmation">
-                <input type="hidden" name="num_stage" value="<?php echo (int)$c['num_stage']; ?>">
-                <button type="submit" class="btn-valider">
-                    <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-                    Valider la candidature
-                </button>
-            </form>
- 
-            <!-- Bouton Refuser → ouvre la modale de refus -->
-            <button class="btn-refuser"
-                    onclick="ouvrirRefus(<?php echo (int)$c['num_stage']; ?>, '<?php echo htmlspecialchars($c['nom_etudiant'], ENT_QUOTES); ?>')">
-                <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                Refuser
-            </button>
-        </div>
-    </div>
-    <?php endforeach; ?>
     <?php endif; ?>
- 
-    <!-- Historique -->
-    <?php if (!empty($historique)) : ?>
-    <p class="section-label" style="margin-top:36px;">Historique récent</p>
-    <div style="background:var(--blanc); border:1px solid var(--gris-border); border-radius:var(--radius); padding:16px; box-shadow:var(--shadow);">
-        <?php foreach ($historique as $h) :
-            $statut_cfg = [
-                'acceptee_entreprise' => ['En attente étudiant', 'badge-orange'],
-                'confirmee_etudiant'  => ['Confirmée',           'badge-vert'],
-                'refusee_entreprise'  => ['Refusée par vous',    'badge-rouge'],
-                'refusee_etudiant'    => ['Refusée par étudiant','badge-rouge'],
-            ];
-            [$lbl, $cls] = $statut_cfg[$h['statut_candidature']] ?? [$h['statut_candidature'], 'badge-bleu'];
-        ?>
-        <div class="hist-ligne">
-            <div style="flex:1; min-width:0;">
-                <p style="font-weight:700; font-size:.86rem;"><?php echo htmlspecialchars($h['nom_etudiant']); ?></p>
-                <p style="font-size:.75rem; color:var(--gris-texte); margin-top:1px;"><?php echo htmlspecialchars($h['titre']); ?></p>
-            </div>
-            <span class="badge <?php echo $cls; ?>"><?php echo $lbl; ?></span>
+
+    <?php if (!empty($historique)): ?>
+        <div class="section-label">Historique récent</div>
+        <div class="historique">
+            <?php foreach ($historique as $histo): ?>
+                <?php [$lbl, $cls] = formatHistoriqueStatut($histo['statut_candidature'] ?? ''); ?>
+                <div class="hist-ligne">
+                    <div>
+                        <div style="font-weight:700"><?php echo h($histo['nom_etudiant']); ?></div>
+                        <div style="font-size:.84rem;color:var(--muted);margin-top:3px"><?php echo h($histo['titre']); ?></div>
+                    </div>
+                    <span class="badge <?php echo h($cls); ?>"><?php echo h($lbl); ?></span>
+                </div>
+            <?php endforeach; ?>
         </div>
-        <?php endforeach; ?>
-    </div>
     <?php endif; ?>
- 
-</div><!-- /.page -->
- 
- 
-<!-- ═══════════════════════════════════════════════════
-     MODALE DE CONFIRMATION DE VALIDATION
-═══════════════════════════════════════════════════ -->
-<?php if ($confirm_data) : ?>
-<div class="confirm-overlay" id="confirm-overlay">
-    <div class="confirm-box">
-        <div class="confirm-icon">
-            <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
-        </div>
-        <p class="confirm-titre">Confirmer la validation</p>
-        <p class="confirm-sous">
-            Vous êtes sur le point d'accepter la candidature de
-            <strong><?php echo htmlspecialchars($confirm_data['nom_etudiant']); ?></strong>.
-            L'étudiant devra confirmer de son côté avant que le stage soit officiellement créé.
-        </p>
- 
-        <!-- Récap -->
-        <div class="confirm-recap">
-            <div class="recap-ligne">
-                <span class="recap-label">Candidat</span>
-                <span class="recap-val"><?php echo htmlspecialchars($confirm_data['nom_etudiant']); ?></span>
-            </div>
-            <div class="recap-ligne">
-                <span class="recap-label">Filière</span>
-                <span class="recap-val"><?php echo htmlspecialchars(implode(' · ', array_filter([$confirm_data['filiere'], $confirm_data['niveau']]))); ?></span>
-            </div>
-            <div class="recap-ligne">
-                <span class="recap-label">Poste</span>
-                <span class="recap-val"><?php echo htmlspecialchars($confirm_data['titre']); ?></span>
-            </div>
-            <div class="recap-ligne">
-                <span class="recap-label">Durée</span>
-                <span class="recap-val"><?php echo $confirm_data['duree_semaines'] ? (int)$confirm_data['duree_semaines'] . ' semaines' : 'À définir'; ?></span>
-            </div>
-            <div class="recap-ligne">
-                <span class="recap-label">Début</span>
-                <span class="recap-val"><?php echo $confirm_data['date_debut'] ? date('d/m/Y', strtotime($confirm_data['date_debut'])) : 'À définir'; ?></span>
-            </div>
-        </div>
- 
-        <div class="confirm-btns">
-            <form method="POST" style="flex:1;">
-                <input type="hidden" name="action"    value="confirmer_validation">
-                <input type="hidden" name="num_stage" value="<?php echo (int)$confirm_data['num_stage']; ?>">
-                <button type="submit" class="btn-confirm-ok" style="width:100%;">
-                    ✓ Confirmer la validation
-                </button>
-            </form>
-            <button type="button" class="btn-confirm-cancel"
-                    onclick="document.getElementById('confirm-overlay').remove()">
-                Annuler
-            </button>
-        </div>
-    </div>
 </div>
+
+<?php if ($confirmData): ?>
+    <div class="overlay" id="overlay-confirm">
+        <div class="modal">
+            <h3>Confirmer la validation</h3>
+            <p>Vous êtes sur le point d’accepter la candidature de <strong><?php echo h($confirmData['nom_etudiant']); ?></strong>. L’étudiant devra ensuite confirmer ou refuser le stage depuis son espace.</p>
+
+            <div class="recap">
+                <div class="recap-ligne"><strong>Candidat</strong><span><?php echo h($confirmData['nom_etudiant']); ?></span></div>
+                <div class="recap-ligne"><strong>Filière</strong><span><?php echo h(implode(' · ', array_filter([$confirmData['filiere'] ?? '', $confirmData['niveau'] ?? '']))); ?></span></div>
+                <div class="recap-ligne"><strong>Poste</strong><span><?php echo h($confirmData['titre']); ?></span></div>
+                <div class="recap-ligne"><strong>Début</strong><span><?php echo !empty($confirmData['date_debut']) ? h(date('d/m/Y', strtotime($confirmData['date_debut']))) : 'Non précisé'; ?></span></div>
+                <div class="recap-ligne"><strong>Durée</strong><span><?php echo !empty($confirmData['duree_semaines']) ? (int)$confirmData['duree_semaines'] . ' semaines' : 'Non précisée'; ?></span></div>
+            </div>
+
+            <div class="actions">
+                <form method="POST" style="flex:1">
+                    <input type="hidden" name="action" value="confirmer_validation">
+                    <input type="hidden" name="num_stage" value="<?php echo (int)$confirmData['num_stage']; ?>">
+                    <button type="submit" class="btn btn-ok" style="width:100%">Confirmer la validation</button>
+                </form>
+                <button type="button" class="btn btn-ko" onclick="document.getElementById('overlay-confirm').remove()">Annuler</button>
+            </div>
+        </div>
+    </div>
 <?php endif; ?>
- 
- 
-<!-- ═══════════════════════════════════════════════════
-     MODALE DE REFUS (bottom sheet)
-═══════════════════════════════════════════════════ -->
-<div id="refus-overlay" class="refus-overlay" style="display:none;">
-    <div class="refus-box">
-        <div class="refus-handle"></div>
-        <p class="refus-titre" id="refus-titre">Refuser la candidature</p>
-        <p style="font-size:.82rem; color:var(--gris-texte); margin-bottom:14px; line-height:1.5;">
-            L'étudiant sera notifié du refus. Vous pouvez indiquer un motif (optionnel).
-        </p>
-        <form method="POST" id="refus-form">
-            <input type="hidden" name="action"    value="refuser">
-            <input type="hidden" name="num_stage" id="refus-stage-id">
-            <textarea class="textarea-motif" name="motif"
-                      placeholder="Motif du refus (optionnel)…"></textarea>
-            <div style="display:flex; gap:10px;">
-                <button type="submit" class="btn-valider" style="background:var(--rouge); flex:1;">
-                    Confirmer le refus
-                </button>
-                <button type="button" onclick="fermerRefus()"
-                        style="flex:1; padding:10px; border:1px solid var(--gris-border); border-radius:8px; background:transparent; font-family:'DM Sans',sans-serif; font-weight:600; font-size:.87rem; cursor:pointer; color:var(--gris-texte);">
-                    Annuler
-                </button>
+
+<div class="overlay" id="overlay-refus" style="display:none;">
+    <div class="modal">
+        <h3 id="titre-refus">Refuser la candidature</h3>
+        <p>L’étudiant sera notifié du refus. Vous pouvez ajouter un motif facultatif.</p>
+
+        <form method="POST">
+            <input type="hidden" name="action" value="refuser">
+            <input type="hidden" name="num_stage" id="refus-num-stage">
+
+            <textarea name="motif" placeholder="Motif du refus (optionnel)"></textarea>
+
+            <div class="actions">
+                <button type="submit" class="btn btn-ko">Confirmer le refus</button>
+                <button type="button" class="btn btn-ok" onclick="fermerRefus()">Annuler</button>
             </div>
         </form>
     </div>
 </div>
- 
+
 <script>
 function ouvrirRefus(numStage, nomEtudiant) {
-    document.getElementById('refus-stage-id').value = numStage;
-    document.getElementById('refus-titre').textContent = 'Refuser — ' + nomEtudiant;
-    document.getElementById('refus-overlay').style.display = 'flex';
+    document.getElementById('refus-num-stage').value = numStage;
+    document.getElementById('titre-refus').textContent = 'Refuser ' + nomEtudiant;
+    document.getElementById('overlay-refus').style.display = 'flex';
 }
 function fermerRefus() {
-    document.getElementById('refus-overlay').style.display = 'none';
+    document.getElementById('overlay-refus').style.display = 'none';
 }
-document.getElementById('refus-overlay').addEventListener('click', function(e) {
+document.getElementById('overlay-refus').addEventListener('click', function(e){
     if (e.target === this) fermerRefus();
 });
 </script>
- 
 </body>
 </html>

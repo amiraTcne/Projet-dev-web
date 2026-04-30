@@ -735,3 +735,19 @@ INSERT INTO Offre_Stage (titre, mission, filiere_ciblee, duree_semaines, date_de
 ('Ingénieur Systèmes Embarqués', 'C++ temps réel', 'Automobile', 12, '2026-05-01', 'ouverte', 15),
 ('Chef de Projet Digital', 'Gestion de campagne', 'Marketing', 12, '2026-05-01', 'ouverte', 16),
 ('UX Designer', 'Design d''interface', 'Marketing', 12, '2026-05-01', 'ouverte', 16);
+
+
+DROP TABLE IF EXISTS DocumentCandidature;
+
+CREATE TABLE DocumentCandidature (
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    num_stage INT UNSIGNED NOT NULL,
+    type_document ENUM('cv','lettre_motivation','convention_stage','supplementaire') NOT NULL,
+    nom_fichier VARCHAR(255) NOT NULL,
+    chemin_fichier VARCHAR(255) NOT NULL,
+    date_envoi DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_doc_stage (num_stage),
+    CONSTRAINT fk_doc_stage
+        FOREIGN KEY (num_stage) REFERENCES Stage(num_stage) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

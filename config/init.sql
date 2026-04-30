@@ -392,16 +392,7 @@ CREATE TABLE `Utilisateur` (
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 ALTER TABLE Utilisateur ADD COLUMN description VARCHAR(1000) DEFAULT NULL;
---
--- Dumping data for table `Utilisateur`
---
 
-LOCK TABLES `Utilisateur` WRITE;
-/*!40000 ALTER TABLE `Utilisateur` DISABLE KEYS */;
-INSERT INTO `Utilisateur` VALUES (1,'DUPONT','Jean','jean.dupont@cy-tech.fr','jeanD26.','2026-04-07 12:52:27',1,'Etudiant',NULL,NULL,'Informatique','ING1',2026,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0,NULL),(2,'Martin','Marc','marc.martin@universite.fr','admin26.','2026-04-12 12:26:19',1,'Admin',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0,NULL),(3,'Dupont','Jean','contact@techcorp.fr','entreprise26.','2026-04-12 12:36:05',1,'Entreprise',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'12345678901234','TechCorp SAS','Informatique','12 rue de la Paix','Paris','75001','https://techcorp.fr',0,'TechCorp est une entreprise spécialisée dans le digital et la création de sites internet. Nous utilisons toutes sortes de langages, que ce soit du front-end & back-end.
-Nous nous engageons à offrir à nos salariés un environnement de travail sain, avec une organisation d’entreprise horizontale. N’hésitez pas à nous rejoindre en postulant aux différentes offres de stage !'),(4,'Bernard','Sophie','sophie.bernard@universite.fr','jurys26.','2026-04-12 12:38:14',1,'Jury',NULL,NULL,NULL,NULL,NULL,'Informatique & IA',NULL,'Commission Ingénierie',2024,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0,NULL),(5,'Lefebvre','Pierre','pierre.lefebvre@universite.fr','tuteur26.','2026-04-12 12:41:03',1,'Tuteur',NULL,NULL,NULL,NULL,NULL,'Mathématiques Appliquées','Département Sciences',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0,NULL),(6,'Dupont','Jade','jade.dupont@etu.cyu.fr','$2y$10$Xml9K1XUxWmpH9KGe1JgKuoPxLlc3qcmUfVA.HTReCptOTeFPij0S','2026-04-12 14:52:10',1,'Etudiant',NULL,NULL,'Informatique','M2',2024,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0,NULL);
-/*!40000 ALTER TABLE `Utilisateur` ENABLE KEYS */;
-UNLOCK TABLES;
 
 
 --
@@ -671,3 +662,76 @@ INSERT INTO Utilisateur (
 ) VALUES (
     'Amira', 'Ta', 'mira.tcne@gmail.com', 'projetStage26.', 1, 'Etudiant', 'Informatique', 'ING1', 2026
 );
+
+-- =============================================================
+-- INSERTION DES 10 ENTREPRISES (Secteurs variés)
+-- =============================================================
+INSERT INTO Utilisateur (nom, prenom, email, mot_de_passe, actif, role_premier, num_siret, nom_entreprise, secteur, nb_stagiere) VALUES 
+('VOLT', 'Eco', 'ecovolt@yopmail.com', 'ecovolt2026!', 1, 'Entreprise', '10000000000001', 'EcoVolt', 'Énergie', 0),
+('SEC', 'Cyber', 'cybersec@yopmail.com', 'cybersec2026!', 1, 'Entreprise', '10000000000002', 'CyberSec', 'Cybersécurité', 0),
+('MIND', 'Data', 'datamind@yopmail.com', 'datamind2026!', 1, 'Entreprise', '10000000000003', 'DataMind', 'IA / Data', 0),
+('IT', 'Build', 'buildit@yopmail.com', 'buildit2026!', 1, 'Entreprise', '10000000000004', 'BuildIt', 'BTP', 0),
+('LAB', 'Bio', 'biolab@yopmail.com', 'biolab2026!', 1, 'Entreprise', '10000000000005', 'BioLab', 'Santé', 0),
+('X', 'FinTech', 'fintechx@yopmail.com', 'fintechx2026!', 1, 'Entreprise', '10000000000006', 'FinTechX', 'Finance', 0),
+('SPACE', 'Green', 'greenspace@yopmail.com', 'greenspace2026!', 1, 'Entreprise', '10000000000007', 'GreenSpace', 'Écologie', 0),
+('OPS', 'Cloud', 'cloudops@yopmail.com', 'cloudops2026!', 1, 'Entreprise', '10000000000008', 'CloudOps', 'Cloud', 0),
+('DRIVE', 'Auto', 'autodrive@yopmail.com', 'autodrive2026!', 1, 'Entreprise', '10000000000009', 'AutoDrive', 'Automobile', 0),
+('FLOW', 'Media', 'mediaflow@yopmail.com', 'mediaflow2026!', 1, 'Entreprise', '10000000000010', 'MediaFlow', 'Marketing', 0);
+
+-- =============================================================
+-- INSERTION DES 12 ÉTUDIANTS (Matières différentes)
+-- =============================================================
+INSERT INTO Utilisateur (nom, prenom, email, mot_de_passe, actif, role_premier, filiere, niveau, annee_promo) VALUES 
+('Lemoine', 'Lucas', 'lucas.lemoine@yopmail.com', 'lucas2026!', 1, 'Etudiant', 'Informatique', 'ING1', 2026),
+('Petit', 'Sarah', 'sarah.petit@yopmail.com', 'sarah2026!', 1, 'Etudiant', 'Mathématiques', 'M1', 2026),
+('Garnier', 'Thomas', 'thomas.garnier@yopmail.com', 'thomas2026!', 1, 'Etudiant', 'Cybersécurité', 'ING2', 2026),
+('Rousseau', 'Emma', 'emma.rousseau@yopmail.com', 'emma2026!', 1, 'Etudiant', 'Génie Civil', 'ING1', 2026),
+('Moreau', 'Hugo', 'hugo.moreau@yopmail.com', 'hugo2026!', 1, 'Etudiant', 'IA & Big Data', 'M2', 2026),
+('Blanc', 'Chloé', 'chloe.blanc@yopmail.com', 'chloé2026!', 1, 'Etudiant', 'Électronique', 'L3', 2026),
+('Faure', 'Nathan', 'nathan.faure@yopmail.com', 'nathan2026!', 1, 'Etudiant', 'Informatique', 'ING3', 2026),
+('Mercier', 'Léa', 'lea.mercier@yopmail.com', 'léa2026!', 1, 'Etudiant', 'Finance', 'M1', 2026),
+('Guerin', 'Axel', 'axel.guerin@yopmail.com', 'axel2026!', 1, 'Etudiant', 'Réseaux', 'ING1', 2026),
+('Boyer', 'Inès', 'ines.boyer@yopmail.com', 'inès2026!', 1, 'Etudiant', 'Bio-informatique', 'M2', 2026),
+('Fontaine', 'Enzo', 'enzo.fontaine@yopmail.com', 'enzo2026!', 1, 'Etudiant', 'Mathématiques', 'L3', 2026),
+('Robin', 'Clara', 'clara.robin@yopmail.com', 'clara2026!', 1, 'Etudiant', 'Management Tech', 'ING2', 2026);
+
+-- =============================================================
+-- INSERTION DES 5 TUTEURS ET 5 JURYS
+-- =============================================================
+-- Tuteurs
+INSERT INTO Utilisateur (nom, prenom, email, mot_de_passe, actif, role_premier, specialite, departement) VALUES 
+('Lefebvre', 'Marc', 'm.lefebvre@yopmail.com', 'marc2026!', 1, 'Tuteur', 'Algorithmique', 'Informatique'),
+('Cordier', 'Alice', 'a.cordier@yopmail.com', 'alice2026!', 1, 'Tuteur', 'Structure des données', 'Informatique'),
+('Masson', 'Julien', 'j.masson@yopmail.com', 'julien2026!', 1, 'Tuteur', 'Réseaux IP', 'Télécoms'),
+('Vallet', 'Sophie', 's.vallet@yopmail.com', 'sophie2026!', 1, 'Tuteur', 'Statistiques', 'Mathématiques'),
+('Roux', 'Damien', 'd.roux@yopmail.com', 'damien2026!', 1, 'Tuteur', 'Développement Web', 'Informatique');
+
+-- Jurys
+INSERT INTO Utilisateur (nom, prenom, email, mot_de_passe, actif, role_premier, specialite, commission, annee_jury) VALUES 
+('Martin', 'Hélène', 'h.martin@yopmail.com', 'hélène2026!', 1, 'Jury', 'Systèmes', 'Commission Systèmes', 2026),
+('Legrand', 'Bruno', 'b.legrand@yopmail.com', 'bruno2026!', 1, 'Jury', 'Mathématiques', 'Commission Mathématiques', 2026),
+('Dumas', 'Céline', 'c.dumas@yopmail.com', 'céline2026!', 1, 'Jury', 'Intelligence Artificielle', 'Commission IA', 2026),
+('Hugo', 'Victor', 'v.hugo@yopmail.com', 'victor2026!', 1, 'Jury', 'Éthique & Tech', 'Commission Éthique', 2026),
+('Morel', 'Sabine', 's.morel@yopmail.com', 'sabine2026!', 1, 'Jury', 'Innovation', 'Commission Innovation', 2026);
+
+-- =============================================================
+-- INSERTION DES OFFRES DE STAGE (1 à 2 par entreprise)
+-- =============================================================
+INSERT INTO Offre_Stage (titre, mission, filiere_ciblee, duree_semaines, date_debut, statut, id_entreprise) VALUES 
+('Ingénieur Smart Grid', 'Optimisation réseau', 'Énergie', 12, '2026-05-01', 'ouverte', 7),
+('Analyste Performance', 'Analyse énergétique', 'Énergie', 12, '2026-05-01', 'ouverte', 7),
+('Pentester Junior', 'Tests d''intrusion', 'Cybersécurité', 12, '2026-05-01', 'ouverte', 8),
+('Analyste SOC', 'Surveillance réseau', 'Cybersécurité', 12, '2026-05-01', 'ouverte', 8),
+('Data Scientist', 'Modèles prédictifs', 'IA / Data', 12, '2026-05-01', 'ouverte', 9),
+('Ingénieur ML Ops', 'Déploiement modèles', 'IA / Data', 12, '2026-05-01', 'ouverte', 9),
+('Conducteur de Travaux', 'Suivi de chantier', 'BTP', 12, '2026-05-01', 'ouverte', 10),
+('Dessinateur BIM', 'Modélisation 3D', 'BTP', 12, '2026-05-01', 'ouverte', 10),
+('Assistant Bio-informatique', 'Analyse génomique', 'Santé', 12, '2026-05-01', 'ouverte', 11),
+('Développeur Blockchain', 'Smart contracts', 'Finance', 12, '2026-05-01', 'ouverte', 12),
+('Consultant RSE', 'Audit environnemental', 'Écologie', 12, '2026-05-01', 'ouverte', 13),
+('Auditeur Carbone', 'Bilan carbone', 'Écologie', 12, '2026-05-01', 'ouverte', 13),
+('Ingénieur Cloud', 'Architecture AWS', 'Cloud', 12, '2026-05-01', 'ouverte', 14),
+('Admin Sys Linux', 'Maintenance serveurs', 'Cloud', 12, '2026-05-01', 'ouverte', 14),
+('Ingénieur Systèmes Embarqués', 'C++ temps réel', 'Automobile', 12, '2026-05-01', 'ouverte', 15),
+('Chef de Projet Digital', 'Gestion de campagne', 'Marketing', 12, '2026-05-01', 'ouverte', 16),
+('UX Designer', 'Design d''interface', 'Marketing', 12, '2026-05-01', 'ouverte', 16);

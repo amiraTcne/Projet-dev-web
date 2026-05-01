@@ -174,51 +174,48 @@ try {
             $msgOk = "La candidature a bien été annulée.";
         }
         if ($action === 'confirmer_stage') {
+            // 1. Récupérer l'état réel actuel
             $stmt = mysqli_prepare($conn, "
+                SELECT statut_candidature, convention_validee
+                FROM Stage
+                WHERE num_stage = ? AND id_etudiant = ?
+            ");
+            mysqli_stmt_bind_param($stmt, "ii", $numStage, $idEtudiant);
+            mysqli_stmt_execute($stmt);
+            $stage = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
+            mysqli_stmt_close($stmt);
+
+            if (!$stage) {
+                throw new Exception("Candidature introuvable.");
+            }
+
+            // 2. Vérifier si l'entreprise a validé la candidature
+            if (($stage['statut_candidature'] ?? '') !== 'acceptee_entreprise') {
+                throw new Exception("Ce stage ne peut pas être confirmé car l'entreprise n'a pas encore validé votre candidature.");
+            }
+
+            // 3. Vérifier si la convention a été validée (règle métier)
+            if ((int)($stage['convention_validee'] ?? 0) !== 1) {
+                throw new Exception("Ce stage ne peut pas être confirmé car la convention de stage n'a pas été validée par l'entreprise.");
+            }
+
+            // 4. Si tout est bon, on confirme
+            $upd = mysqli_prepare($conn, "
                 UPDATE Stage
                 SET statut_candidature = 'confirmee_etudiant',
                     statut = 'en_cours'
                 WHERE num_stage = ?
                 AND id_etudiant = ?
                 AND statut_candidature = 'acceptee_entreprise'
+                AND convention_validee = 1
             ");
-            mysqli_stmt_bind_param($stmt, "ii", $numStage, $idEtudiant);
-            mysqli_stmt_execute($stmt);
-            $ok = mysqli_stmt_affected_rows($stmt) > 0;
-            mysqli_stmt_close($stmt);
-
-            if (!$ok) {
-                throw new Exception("Ce stage ne peut pas être confirmé car l'entreprise ne l'a pas validé.");
+            mysqli_stmt_bind_param($upd, "ii", $numStage, $idEtudiant);
+            mysqli_stmt_execute($upd);
+            
+            if (mysqli_stmt_affected_rows($upd) <= 0) {
+                throw new Exception("Une erreur est survenue lors de la confirmation.");
             }
-
-            $st = mysqli_prepare($conn, "
-                SELECT titre, id_entreprise
-                FROM Stage
-                WHERE num_stage = ?
-            ");
-            mysqli_stmt_bind_param($st, "i", $numStage);
-            mysqli_stmt_execute($st);
-            $stage = mysqli_fetch_assoc(mysqli_stmt_get_result($st));
-            mysqli_stmt_close($st);
-
-            if ($stage) {
-                $titreCand = $stage['titre'] ?? 'une offre';
-                $idEntreprise = (int)($stage['id_entreprise'] ?? 0);
-
-                if ($idEntreprise > 0) {
-                    $titreNotif = "Stage confirmé — " . $titreCand;
-                    $messageNotif = ($_SESSION['prenom'] ?? 'L’étudiant') . " " . ($_SESSION['nom'] ?? '') .
-                        " a confirmé sa prise de stage pour le poste \"" . $titreCand . "\".";
-
-                    $ins = mysqli_prepare($conn, "
-                        INSERT INTO Notification (id_user, type, titre, message)
-                        VALUES (?, 'autre', ?, ?)
-                    ");
-                    mysqli_stmt_bind_param($ins, "iss", $idEntreprise, $titreNotif, $messageNotif);
-                    mysqli_stmt_execute($ins);
-                    mysqli_stmt_close($ins);
-                }
-            }
+            mysqli_stmt_close($upd);
 
             $msgOk = "Le stage a bien été confirmé.";
         }

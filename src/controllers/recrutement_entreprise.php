@@ -47,6 +47,49 @@ try {
         elseif ((int)($data['convention_validee'] ?? 0) !== 1) { $msgErr = "Vous n'avez pas encore validé la convention."; }
         else { $confirmData = $data; }
     }
+    
+        elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'confirmervalidation') {
+            $numStage = (int)($_POST['num_stage'] ?? 0); // Utilise num_stage
+
+            $stmt = mysqli_prepare($conn, "
+                SELECT num_stage, id_etudiant, titre, convention_validee, statut_candidature
+                FROM Stage
+                WHERE num_stage = ? AND id_entreprise = ?
+                LIMIT 1
+            ");
+            mysqli_stmt_bind_param($stmt, 'ii', $numStage, $idEntreprise);
+            mysqli_stmt_execute($stmt);
+            $cand = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
+            mysqli_stmt_close($stmt);
+
+            if (!$cand) {
+                $msgErr = "Candidature introuvable.";
+            } elseif (($cand['statut_candidature'] ?? '') !== 'en_attente') {
+                $msgErr = "Cette candidature a déjà été traitée (Statut actuel : " . $cand['statut_candidature'] . ").";
+            } elseif ((int)($cand['convention_validee'] ?? 0) !== 1) {
+                $msgErr = "Vous devez d'abord valider la convention.";
+            } else {
+                $upd = mysqli_prepare($conn, "
+                    UPDATE Stage
+                    SET statut_candidature = 'acceptee_entreprise'
+                    WHERE num_stage = ?
+                    AND id_entreprise = ?
+                    AND statut_candidature = 'en_attente'
+                    AND convention_validee = 1
+                ");
+                mysqli_stmt_bind_param($upd, 'ii', $numStage, $idEntreprise);
+                mysqli_stmt_execute($upd);
+                $ok = mysqli_stmt_affected_rows($upd) > 0;
+                mysqli_stmt_close($upd);
+
+                if (!$ok) {
+                    $msgErr = "Impossible de valider cette candidature.";
+                } else {
+                    // ... (reste de ton code de notification)
+                    $msgOk = "La candidature a bien été validée.";
+                }
+            }
+        }
     elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'valider_convention') {
         $numStage = (int)($_POST['num_stage'] ?? 0);
         $stmt = mysqli_prepare($conn, "SELECT s.num_stage, s.id_etudiant, s.titre FROM Stage s WHERE s.num_stage = ? AND s.id_entreprise = ?");
@@ -430,7 +473,7 @@ try {
         </div>
         <div class="d-flex gap-2">
             <form method="POST" class="flex-fill">
-                <input type="hidden" name="action" value="confirmer_validation">
+                <input type="hidden" name="action" value="confirmervalidation">
                 <input type="hidden" name="num_stage" value="<?php echo (int)$confirmData['num_stage']; ?>">
                 <button type="submit" class="btn btn-primary w-100 rounded-pill" style="background:var(--bleu); border-color:var(--bleu);">Confirmer</button>
             </form>

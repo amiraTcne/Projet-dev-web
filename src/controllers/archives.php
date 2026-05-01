@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $conn) {
     $annee_academique = trim($_POST['annee_academique'] ?? '');
 
     if ($num_dossier <= 0) {
-        $msg_err = 'Sélectionne un dossier à archiver.';
+        $msg_err = 'Sélectionnez un dossier à archiver.';
     } elseif (empty($annee_academique)) {
         $msg_err = "L'année académique est obligatoire.";
     } else {
@@ -65,8 +65,7 @@ $annee_courante       = date('Y') . '-' . (date('Y') + 1); /* ex: 2025-2026 */
 if ($conn) {
     mysqli_set_charset($conn, 'utf8mb4');
 
-    /* on récupère les dossiers validés qui ne sont pas encore dans la table Archive
-       ce sont les seuls qu'on peut proposer à l'archivage */
+    /* on récupère les dossiers validés qui ne sont pas encore dans la table Archive */
     $q1 = mysqli_query($conn,
         "SELECT d.num_dossier,
                 CONCAT(u.prenom, ' ', u.nom) AS etudiant,
@@ -119,6 +118,8 @@ if ($conn) {
 
     mysqli_close($conn);
 }
+
+function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -126,364 +127,168 @@ if ($conn) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Archives — CY Stage</title>
-    <!-- on réutilise le même CSS que les autres pages admin -->
-    <link rel="stylesheet" href="../../public/assets/css/style_acceuil.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+    
     <style>
-        /* le bandeau bleu en haut de la page */
-        .bandeau-page {
-            background: linear-gradient(135deg, var(--bleu), var(--bleu-clair));
-            border-radius: var(--radius);
-            padding: 20px;
-            color: #fff;
-            margin-bottom: 24px;
+        :root { --bleu: #1B4F9B; --bleu-clair: #2563c7; }
+        body { font-family: 'DM Sans', sans-serif; background: #f4f6fb; }
+        .navbar-cy { background: linear-gradient(135deg, #1B4F9B, #2563c7); }
+        .card-cy {
+            border: 1px solid rgba(171,186,205,.4); border-radius: 18px;
+            box-shadow: 0 4px 18px rgba(27,79,155,.06); background: #fff; padding: 1.5rem;
         }
-        .bandeau-page h2 {
-            font-family: 'Syne', sans-serif;
-            font-size: 1.1rem;
-            font-weight: 800;
-            margin-bottom: 4px;
+        
+        .stat-card {
+            background: #fff; border: 1px solid #e5e7eb; border-radius: 14px;
+            padding: 1.5rem; text-align: center; box-shadow: 0 4px 12px rgba(27,79,155,.05);
         }
-        .bandeau-page p { font-size: .82rem; opacity: .85; }
+        .stat-card .display-4 { font-family: 'Syne', sans-serif; font-weight: 800; color: var(--bleu); }
 
-        /* les deux boîtes de stats côte à côte */
-        .stats-grille {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-            margin-bottom: 24px;
+        .archive-item {
+            background: #fff; border: 1px solid #e5e7eb; border-radius: 14px;
+            padding: 1.2rem; margin-bottom: 0.8rem; box-shadow: 0 2px 8px rgba(0,0,0,.03);
+            transition: transform 0.2s;
         }
-        .stat-carte {
-            background: var(--blanc);
-            border: 1px solid var(--gris-border);
-            border-radius: var(--radius);
-            padding: 16px;
-            text-align: center;
-            box-shadow: var(--shadow);
-        }
-        .stat-nombre {
-            font-family: 'Syne', sans-serif;
-            font-size: 2rem;
-            font-weight: 800;
-            color: var(--bleu);
-            line-height: 1;
-        }
-        .stat-label { font-size: .73rem; color: var(--gris-texte); margin-top: 5px; line-height: 1.3; }
-
-        /* le petit titre de section en majuscules */
-        .section-titre {
-            font-family: 'Syne', sans-serif;
-            font-size: .75rem;
-            font-weight: 700;
-            letter-spacing: .14em;
-            text-transform: uppercase;
-            color: var(--bleu);
-            margin-bottom: 12px;
-        }
-
-        /* la carte blanche qui contient le formulaire d'archivage */
-        .form-card {
-            background: var(--blanc);
-            border: 1px solid var(--gris-border);
-            border-radius: var(--radius);
-            padding: 18px;
-            box-shadow: var(--shadow);
-            margin-bottom: 24px;
-        }
-
-        /* les labels des champs du formulaire */
-        .field-label {
-            font-size: .75rem;
-            font-weight: 600;
-            color: var(--gris-texte);
-            margin-bottom: 5px;
-            display: block;
-        }
-
-        /* les champs de saisie et la liste déroulante */
-        .field-select,
-        .field-input {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid var(--gris-border);
-            border-radius: 8px;
-            background: var(--gris-fond);
-            font-family: 'DM Sans', sans-serif;
-            font-size: .87rem;
-            color: var(--noir);
-            outline: none;
-            margin-bottom: 14px;
-            transition: border-color .2s;
-        }
-        .field-select:focus,
-        .field-input:focus { border-color: var(--bleu); background: var(--blanc); }
-        .field-input::placeholder { color: var(--gris-texte); opacity: .6; }
-
-        /* le bouton pour valider l'archivage */
-        .btn-archiver {
-            width: 100%;
-            padding: 11px;
-            border: none;
-            border-radius: 8px;
-            background: var(--bleu);
-            color: #fff;
-            font-family: 'DM Sans', sans-serif;
-            font-weight: 700;
-            font-size: .88rem;
-            cursor: pointer;
-            transition: opacity .2s, transform .2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 7px;
-        }
-        .btn-archiver:hover { opacity: .88; transform: translateY(-1px); }
-        .btn-archiver svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-
-        /* chaque ligne d'archive dans la liste */
-        .archive-ligne {
-            background: var(--blanc);
-            border: 1px solid var(--gris-border);
-            border-radius: var(--radius);
-            padding: 14px 16px;
-            margin-bottom: 10px;
-            box-shadow: var(--shadow);
-            transition: transform .15s;
-        }
-        .archive-ligne:hover { transform: translateY(-1px); }
-
-        .archive-top {
-            display: flex;
-            align-items: flex-start;
-            justify-content: space-between;
-            gap: 10px;
-            margin-bottom: 8px;
-        }
-
-        /* le nom de l'étudiant et le titre du stage */
-        .archive-nom   { font-family: 'Syne', sans-serif; font-weight: 700; font-size: .92rem; }
-        .archive-stage { font-size: .78rem; color: var(--bleu-clair); font-weight: 600; margin-top: 2px; }
-
-        /* le badge avec l'année académique */
-        .badge-annee {
-            display: inline-block;
-            padding: 3px 10px;
-            border-radius: 20px;
-            background: rgba(27, 79, 155, .10);
-            color: var(--bleu);
-            font-size: .70rem;
-            font-weight: 700;
-            white-space: nowrap;
-            flex-shrink: 0;
-        }
-
-        /* les petites infos en bas de chaque ligne (filière, date, admin) */
-        .archive-meta {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            font-size: .74rem;
-            color: var(--gris-texte);
-        }
-        .archive-meta span { display: flex; align-items: center; gap: 4px; }
-        .archive-meta svg  { width: 11px; height: 11px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
-
-        /* le motif affiché en italique si l'admin en a renseigné un */
-        .archive-motif {
-            font-size: .76rem;
-            color: var(--gris-texte);
-            font-style: italic;
-            margin-top: 6px;
-            padding-top: 6px;
-            border-top: 1px solid var(--gris-border);
-        }
-
-        /* quand il n'y a rien à afficher */
-        .etat-vide {
-            text-align: center;
-            padding: 36px 20px;
-            color: var(--gris-texte);
-        }
-        .etat-vide svg { width: 44px; height: 44px; opacity: .3; margin-bottom: 10px; }
-        .etat-vide p   { font-size: .84rem; }
-
-        /* les messages de retour après soumission du formulaire */
-        .msg-ok  { background: rgba(22,163,74,.09); border: 1px solid #16a34a; border-radius: 8px; padding: 9px 13px; font-size: .83rem; color: #16a34a; font-weight: 600; margin-bottom: 16px; }
-        .msg-err { background: #fff0f0; border: 1px solid #fca5a5; border-radius: 8px; padding: 9px 13px; font-size: .83rem; color: #dc2626; margin-bottom: 16px; }
-
-        /* le bouton retour en bas de page */
-        .btn-retour {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            color: var(--gris-texte);
-            text-decoration: none;
-            font-size: .88rem;
-            font-weight: 500;
-            padding: 9px 20px;
-            border: 1px solid var(--gris-border);
-            border-radius: 8px;
-            transition: background .15s, color .15s;
-        }
-        .btn-retour:hover { background: var(--gris-fond); color: var(--noir); }
+        .archive-item:hover { transform: translateY(-2px); border-color: var(--bleu-clair); }
+        
+        .section-title { font-family: 'Syne', sans-serif; font-size: 1.1rem; color: var(--bleu); font-weight: 700; margin-bottom: 1rem; border-bottom: 2px solid var(--bleu); display: inline-block; padding-bottom: 0.3rem;}
     </style>
 </head>
 <body>
 
-<div class="page">
+<nav class="navbar navbar-expand-lg navbar-cy shadow-sm mb-4">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand" href="accueil_admin.php"><img src="../../public/assets/img/logo.png" alt="CY Stage" height="36"></a>
+        <div class="ms-auto d-flex align-items-center">
+            <span class="fw-bold text-white me-3 d-none d-sm-inline"><i class="bi bi-shield-lock-fill me-2"></i> <?php echo h($_SESSION['prenom'] . ' ' . $_SESSION['nom']); ?></span>
+            <a href="deconnexion.php" class="btn btn-outline-light btn-sm rounded-pill px-3"><i class="bi bi-box-arrow-right d-sm-none"></i><span class="d-none d-sm-inline">Déconnexion</span></a>
+        </div>
+    </div>
+</nav>
 
-    <!-- le logo en haut à droite comme sur les autres pages admin -->
-    <div class="logo-wrapper">
-        <img src="../../public/assets/img/logo.png" alt="CY Stage">
+<div class="container mb-5" style="max-width:900px;">
+    
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <a href="accueil_admin.php" class="btn btn-outline-secondary btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width:38px;height:38px;"><i class="bi bi-chevron-left"></i></a>
+        <div class="flex-grow-1">
+            <h1 class="h4 mb-0 fw-bold" style="color:var(--bleu); font-family:'Syne',sans-serif;">Archives des Stages</h1>
+            <p class="text-muted mb-0" style="font-size:.85rem;">Archivage des dossiers validés · Année <?php echo h($annee_courante); ?></p>
+        </div>
     </div>
 
-    <!-- le bandeau bleu avec le titre et l'année courante -->
-    <div class="bandeau-page">
-        <h2>📦 Archives</h2>
-        <p>Archivage des dossiers de stage validés · Année <?php echo htmlspecialchars($annee_courante); ?></p>
-    </div>
-
-    <!-- les messages de retour après soumission du formulaire -->
+    <!-- Alertes -->
     <?php if ($msg_ok) : ?>
-    <div class="msg-ok">✓ <?php echo htmlspecialchars($msg_ok); ?></div>
+        <div class="alert alert-success rounded-4 d-flex align-items-center gap-2 mb-4"><i class="bi bi-check-circle-fill"></i> <strong><?php echo h($msg_ok); ?></strong></div>
     <?php endif; ?>
     <?php if ($msg_err) : ?>
-    <div class="msg-err"><?php echo htmlspecialchars($msg_err); ?></div>
+        <div class="alert alert-danger rounded-4 d-flex align-items-center gap-2 mb-4"><i class="bi bi-exclamation-triangle-fill"></i> <strong><?php echo h($msg_err); ?></strong></div>
     <?php endif; ?>
 
-    <!-- les deux stats : total archivé et archivé cette année -->
-    <div class="stats-grille">
-        <div class="stat-carte">
-            <p class="stat-nombre"><?php echo $nb_total; ?></p>
-            <p class="stat-label">Dossier<?php echo $nb_total > 1 ? 's' : ''; ?> archivé<?php echo $nb_total > 1 ? 's' : ''; ?> au total</p>
-        </div>
-        <div class="stat-carte">
-            <p class="stat-nombre"><?php echo $nb_annee; ?></p>
-            <p class="stat-label">Cette année académique</p>
-        </div>
-    </div>
-
-    <!-- le formulaire pour archiver un nouveau dossier
-         seuls les dossiers validés et pas encore archivés apparaissent dans la liste -->
-    <p class="section-titre">Archiver un dossier</p>
-
-    <div class="form-card">
-        <?php if (empty($dossiers_disponibles)) : ?>
-        <!-- quand tous les dossiers validés sont déjà archivés -->
-        <p style="font-size:.84rem; color:var(--gris-texte); text-align:center; padding:10px 0;">
-            Aucun dossier validé en attente d'archivage.
-        </p>
-        <?php else : ?>
-        <form method="POST" action="archives.php">
-
-            <!-- on choisit le dossier dans une liste déroulante -->
-            <label class="field-label" for="num_dossier">Dossier à archiver</label>
-            <select class="field-select" name="num_dossier" id="num_dossier" required>
-                <option value="">— Sélectionner un dossier —</option>
-                <?php foreach ($dossiers_disponibles as $d) : ?>
-                <option value="<?php echo (int)$d['num_dossier']; ?>">
-                    <?php echo htmlspecialchars(
-                        $d['etudiant'] . ' · ' .
-                        $d['titre_stage'] . ' @ ' .
-                        $d['nom_entreprise']
-                    ); ?>
-                </option>
-                <?php endforeach; ?>
-            </select>
-
-            <!-- l'année académique est pré-remplie avec l'année en cours -->
-            <label class="field-label" for="annee_academique">Année académique</label>
-            <input class="field-input" type="text" name="annee_academique" id="annee_academique"
-                   placeholder="ex : 2025-2026"
-                   value="<?php echo htmlspecialchars($annee_courante); ?>"
-                   pattern="\d{4}-\d{4}"
-                   title="Format attendu : 2025-2026"
-                   required>
-
-            <!-- le motif est optionnel, l'admin peut laisser vide -->
-            <label class="field-label" for="motif">Motif (optionnel)</label>
-            <input class="field-input" type="text" name="motif" id="motif"
-                   placeholder="Ex : Fin de stage validé par le jury">
-
-            <button type="submit" class="btn-archiver">
-                <svg viewBox="0 0 24 24"><path d="M21 8v13H3V8"/><rect x="1" y="3" width="22" height="5" rx="1"/><path d="M10 12h4"/></svg>
-                Archiver ce dossier
-            </button>
-
-        </form>
-        <?php endif; ?>
-    </div>
-
-    <!-- la liste de toutes les archives déjà créées -->
-    <p class="section-titre">Archives existantes (<?php echo $nb_total; ?>)</p>
-
-    <?php if (empty($archives)) : ?>
-    <!-- quand il n'y a encore aucune archive -->
-    <div class="etat-vide">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 8v13H3V8"/><rect x="1" y="3" width="22" height="5" rx="1"/><path d="M10 12h4"/>
-        </svg>
-        <p>Aucune archive pour le moment.</p>
-    </div>
-
-    <?php else : ?>
-
-    <?php foreach ($archives as $a) : ?>
-    <div class="archive-ligne">
-
-        <!-- le nom de l'étudiant, le titre du stage et le badge de l'année -->
-        <div class="archive-top">
-            <div>
-                <p class="archive-nom"><?php echo htmlspecialchars($a['etudiant']); ?></p>
-                <p class="archive-stage">
-                    <?php echo htmlspecialchars($a['titre_stage']); ?> · <?php echo htmlspecialchars($a['nom_entreprise']); ?>
-                </p>
+    <!-- Statistiques -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-6">
+            <div class="stat-card">
+                <div class="display-4 mb-1"><?php echo $nb_total; ?></div>
+                <div class="text-muted fw-bold text-uppercase" style="font-size:.8rem; letter-spacing:1px;">Dossier(s) archivé(s) au total</div>
             </div>
-            <span class="badge-annee"><?php echo htmlspecialchars($a['annee_academique']); ?></span>
         </div>
-
-        <!-- la filière, la date d'archivage et l'admin qui a archivé -->
-        <div class="archive-meta">
-
-            <?php if ($a['filiere']) : ?>
-            <span>
-                <svg viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
-                <?php echo htmlspecialchars($a['filiere']); ?>
-            </span>
-            <?php endif; ?>
-
-            <span>
-                <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-                Archivé le <?php echo date('d/m/Y', strtotime($a['date_archivage'])); ?>
-            </span>
-
-            <span>
-                <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                Par <?php echo htmlspecialchars($a['admin_nom']); ?>
-            </span>
-
+        <div class="col-md-6">
+            <div class="stat-card">
+                <div class="display-4 mb-1 text-primary"><?php echo $nb_annee; ?></div>
+                <div class="text-muted fw-bold text-uppercase" style="font-size:.8rem; letter-spacing:1px;">Cette année académique</div>
+            </div>
         </div>
-
-        <!-- on affiche le motif seulement si l'admin en a renseigné un -->
-        <?php if (!empty($a['motif'])) : ?>
-        <p class="archive-motif">"<?php echo htmlspecialchars($a['motif']); ?>"</p>
-        <?php endif; ?>
-
-    </div>
-    <?php endforeach; ?>
-
-    <?php endif; ?>
-
-    <!-- le lien pour revenir au menu admin -->
-    <div class="deconnexion">
-        <a href="accueil_admin.php" class="btn-retour">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;">
-                <polyline points="15 18 9 12 15 6"/>
-            </svg>
-            Retour au menu
-        </a>
     </div>
 
+    <div class="row g-4">
+        
+        <!-- Formulaire d'archivage -->
+        <div class="col-lg-5">
+            <h2 class="section-title">Archiver un dossier</h2>
+            <div class="card-cy mt-2">
+                <?php if (empty($dossiers_disponibles)) : ?>
+                    <div class="text-center p-4">
+                        <i class="bi bi-archive text-muted opacity-50 mb-3 d-block" style="font-size: 2.5rem;"></i>
+                        <p class="text-muted mb-0 fw-semibold">Aucun dossier validé en attente d'archivage.</p>
+                    </div>
+                <?php else : ?>
+                    <form method="POST" action="archives.php">
+                        <div class="mb-3">
+                            <label for="num_dossier" class="form-label fw-bold text-dark">Dossier à archiver</label>
+                            <select class="form-select bg-light" name="num_dossier" id="num_dossier" required>
+                                <option value="">— Sélectionner un dossier —</option>
+                                <?php foreach ($dossiers_disponibles as $d) : ?>
+                                    <option value="<?php echo (int)$d['num_dossier']; ?>">
+                                        <?php echo h($d['etudiant'] . ' · ' . $d['titre_stage']); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="annee_academique" class="form-label fw-bold text-dark">Année académique</label>
+                            <input type="text" class="form-control bg-light" name="annee_academique" id="annee_academique" value="<?php echo h($annee_courante); ?>" pattern="\d{4}-\d{4}" title="Format attendu : 2025-2026" required>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="motif" class="form-label fw-bold text-dark">Motif <span class="text-muted fw-normal">(optionnel)</span></label>
+                            <input type="text" class="form-control bg-light" name="motif" id="motif" placeholder="Ex : Fin de stage validé par le jury">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 rounded-pill fw-bold shadow-sm" style="background:var(--bleu); border:none;">
+                            <i class="bi bi-archive-fill me-1"></i> Archiver le dossier
+                        </button>
+                    </form>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <!-- Liste des archives existantes -->
+        <div class="col-lg-7">
+            <h2 class="section-title">Archives existantes</h2>
+            <div class="mt-2">
+                <?php if (empty($archives)) : ?>
+                    <div class="text-center p-5 bg-white rounded-4 border" style="border-style: dashed !important;">
+                        <i class="bi bi-folder-x text-muted opacity-50 mb-3 d-block" style="font-size: 3rem;"></i>
+                        <p class="text-muted mb-0">Aucune archive pour le moment.</p>
+                    </div>
+                <?php else : ?>
+                    <div class="d-flex flex-column">
+                        <?php foreach ($archives as $a) : ?>
+                            <div class="archive-item">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <div>
+                                        <h6 class="fw-bold mb-1" style="font-family:'Syne',sans-serif; color:#111827;"><?php echo h($a['etudiant']); ?></h6>
+                                        <p class="text-primary fw-semibold mb-0" style="font-size:.8rem;"><?php echo h($a['titre_stage']); ?> · <span class="text-muted"><?php echo h($a['nom_entreprise']); ?></span></p>
+                                    </div>
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill"><?php echo h($a['annee_academique']); ?></span>
+                                </div>
+                                
+                                <div class="d-flex flex-wrap gap-3 text-muted mt-3" style="font-size:.75rem;">
+                                    <?php if ($a['filiere']) : ?>
+                                        <span><i class="bi bi-mortarboard-fill"></i> <?php echo h($a['filiere']); ?></span>
+                                    <?php endif; ?>
+                                    <span><i class="bi bi-calendar-event"></i> Archivé le <?php echo date('d/m/Y', strtotime($a['date_archivage'])); ?></span>
+                                    <span><i class="bi bi-person-fill-lock"></i> Par <?php echo h($a['admin_nom']); ?></span>
+                                </div>
+
+                                <?php if (!empty($a['motif'])) : ?>
+                                    <div class="mt-2 pt-2 border-top text-secondary fst-italic" style="font-size:.75rem;">
+                                        "<?php echo h($a['motif']); ?>"
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+
+    </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

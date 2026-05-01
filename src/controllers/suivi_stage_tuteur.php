@@ -1,6 +1,7 @@
 <?php
 session_start();
 
+// Vérification Tuteur[cite: 17]
 if (!isset($_SESSION['id']) || $_SESSION['role'] !== 'Tuteur') {
     header('Location: ../../public/login.php?erreur=4');
     exit();
@@ -8,7 +9,7 @@ if (!isset($_SESSION['id']) || $_SESSION['role'] !== 'Tuteur') {
 
 $conn     = mysqli_connect('localhost', 'userpro', 'projetStage26.', 'cyStages');
 $stages   = [];
-$stage    = null; /* le stage sélectionné */
+$stage    = null; 
 $remarques = [];
 $msg_ok   = '';
 $msg_err  = '';
@@ -29,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         );
         mysqli_stmt_bind_param($upd, 'isii', $avancement, $statut, $num_stage, $_SESSION['id']);
         if (mysqli_stmt_execute($upd)) {
-            $msg_ok = 'Avancement mis à jour !';
+            $msg_ok = 'Avancement mis à jour avec succès !';
             $id_stage_sel = $num_stage;
         }
         mysqli_stmt_close($upd);
@@ -79,16 +80,18 @@ if ($conn) {
             mysqli_stmt_close($sr);
         }
     }
-
     mysqli_close($conn);
 }
 
+// Couleurs Bootstrap pour les statuts[cite: 17]
 $statuts_labels = [
-    'en_attente' => ['En attente', 'badge-orange'],
-    'en_cours'   => ['En cours',   'badge-bleu'],
-    'termine'    => ['Terminé',    'badge-vert'],
-    'annule'     => ['Annulé',     'badge-rouge'],
+    'en_attente' => ['En attente', 'bg-warning text-dark'],
+    'en_cours'   => ['En cours',   'bg-primary text-white'],
+    'termine'    => ['Terminé',    'bg-success text-white'],
+    'annule'     => ['Annulé',     'bg-danger text-white'],
 ];
+
+function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -96,179 +99,219 @@ $statuts_labels = [
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Suivi de Stage — CY Stage</title>
-    <link rel="stylesheet" href="../../public/assets/css/style_etudiant.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+    
     <style>
+        :root {
+            --bleu: #1B4F9B;
+            --bleu-clair: #2563c7;
+        }
+        body { font-family: 'DM Sans', sans-serif; background: #f4f6fb; }
+        .navbar-cy { background: linear-gradient(135deg, #1B4F9B, #2563c7); }
+
+        .card-cy {
+            border: 1px solid rgba(171,186,205,.4);
+            border-radius: 18px;
+            box-shadow: 0 4px 18px rgba(27,79,155,.06);
+            background: #fff;
+            padding: 1.5rem;
+        }
+
         .stage-item {
-            background: var(--blanc); border: 1px solid var(--gris-border);
-            border-radius: var(--radius); padding: 13px 14px;
-            display: flex; align-items: center; gap: 12px;
-            cursor: pointer; text-decoration: none; color: var(--noir);
-            transition: transform .15s, box-shadow .15s;
+            display: flex; align-items: center; gap: 15px;
+            padding: 15px; border: 1px solid #e5e7eb;
+            border-radius: 14px; background: #fff;
+            text-decoration: none; color: inherit;
+            transition: all 0.2s ease; margin-bottom: 10px;
         }
         .stage-item:hover, .stage-item.actif {
-            border-color: var(--bleu); box-shadow: var(--shadow);
-            transform: translateY(-1px);
+            border-color: var(--bleu-clair); box-shadow: 0 4px 12px rgba(27,79,155,.08);
+            transform: translateY(-2px);
         }
-        .stage-item.actif { background: rgba(27,79,155,.04); }
+        .stage-item.actif { background: #f0f4fa; border-color: var(--bleu); }
+
         .stage-avatar {
-            width: 40px; height: 40px; border-radius: 50%;
+            width: 45px; height: 45px; border-radius: 50%;
             background: linear-gradient(135deg, var(--bleu), var(--bleu-clair));
             display: flex; align-items: center; justify-content: center;
             color: #fff; font-family: 'Syne', sans-serif;
-            font-size: .87rem; font-weight: 800; flex-shrink: 0;
+            font-size: 1rem; font-weight: 800; flex-shrink: 0;
         }
-        .barre-prog-fond {
-            height: 7px; border-radius: 4px; background: var(--gris-border); overflow: hidden; margin-top: 6px;
+
+        .section-title {
+            font-family: 'Syne', sans-serif; font-size: 0.95rem; text-transform: uppercase;
+            letter-spacing: 1px; color: var(--bleu); margin-bottom: 1rem; margin-top: 1.5rem;
         }
-        .barre-prog-valeur { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--bleu), var(--bleu-clair)); transition: width .5s ease; }
-        .select-field { width:100%; padding:10px 12px; border:1px solid var(--gris-border); border-radius:8px; background:var(--gris-fond); font-family:'DM Sans',sans-serif; font-size:.87rem; color:var(--noir); outline:none; appearance:none; cursor:pointer; }
-        .select-field:focus { border-color:var(--bleu); }
-        input[type=range] { width:100%; accent-color: var(--bleu); cursor:pointer; }
+        
+        /* Personnalisation de la progress bar */
+        .progress { height: 8px; border-radius: 10px; background-color: #e5e7eb; }
+        .progress-bar { background: linear-gradient(90deg, var(--bleu), var(--bleu-clair)); }
     </style>
 </head>
 <body>
-<div class="page anim">
 
-    <header class="entete">
-        <a href="accueil_tuteur.php" class="btn-retour" aria-label="Retour">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="15 18 9 12 15 6"/>
-            </svg>
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-cy shadow-sm mb-4">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand" href="accueil_tuteur.php">
+            <img src="../../public/assets/img/logo.png" alt="CY Stage" height="36">
         </a>
-        <span class="entete-titre">Suivi de Stage</span>
-        <div style="width:36px;"></div>
-    </header>
-
-    <div class="contenu">
-
-        <?php if ($msg_ok) : ?>
-        <div style="background:rgba(22,163,74,.09); border:1px solid var(--vert); border-radius:8px; padding:9px 13px; font-size:.83rem; color:var(--vert); font-weight:600;">
-            ✓ <?php echo htmlspecialchars($msg_ok); ?>
+        <div class="ms-auto d-flex align-items-center">
+            <span class="fw-bold text-white me-3 d-none d-sm-inline">
+                <i class="bi bi-person-workspace me-2"></i> <?php echo h($_SESSION['prenom'] . ' ' . $_SESSION['nom']); ?>
+            </span>
+            <a href="deconnexion.php" class="btn btn-outline-light btn-sm rounded-pill px-3">
+                <i class="bi bi-box-arrow-right d-sm-none"></i> <span class="d-none d-sm-inline">Déconnexion</span>
+            </a>
         </div>
-        <?php endif; ?>
+    </div>
+</nav>
 
-        <?php if (empty($stages)) : ?>
-        <div class="etat-vide">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-            </svg>
-            <h3>Aucun stage à suivre</h3>
-            <p>Vous n'avez pas encore d'étudiant affecté.</p>
-        </div>
+<div class="container mb-5" style="max-width:900px;">
 
-        <?php else : ?>
-
-        <!-- Liste des étudiants suivis -->
-        <p class="label-section">Étudiants suivis (<?php echo count($stages); ?>)</p>
-        <?php foreach ($stages as $s) :
-            $initiales_etu = strtoupper(mb_substr(explode(' ', $s['nom_etudiant'])[0], 0, 1) . mb_substr(explode(' ', $s['nom_etudiant'])[1] ?? '?', 0, 1));
-            [$st_label, $st_class] = $statuts_labels[$s['statut']] ?? [$s['statut'], 'badge-gris'];
-        ?>
-        <a href="suivi_stage_tuteur.php?stage=<?php echo (int)$s['num_stage']; ?>"
-           class="stage-item <?php echo $id_stage_sel === $s['num_stage'] ? 'actif' : ''; ?>">
-            <div class="stage-avatar"><?php echo $initiales_etu; ?></div>
-            <div style="flex:1; min-width:0;">
-                <p style="font-weight:700; font-size:.87rem; margin-bottom:2px;">
-                    <?php echo htmlspecialchars($s['nom_etudiant']); ?>
-                </p>
-                <p style="font-size:.74rem; color:var(--gris-texte); margin-bottom:4px;">
-                    <?php echo htmlspecialchars($s['titre']); ?>
-                </p>
-                <div class="barre-prog-fond">
-                    <div class="barre-prog-valeur" style="width:<?php echo (int)$s['avancement']; ?>%"></div>
-                </div>
-            </div>
-            <span class="badge <?php echo $st_class; ?>"><?php echo $st_label; ?></span>
+    <!-- En-tête -->
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <a href="accueil_tuteur.php" class="btn btn-outline-secondary btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width:38px;height:38px;">
+            <i class="bi bi-chevron-left"></i>
         </a>
-        <?php endforeach; ?>
+        <div>
+            <h1 class="h4 mb-0 fw-bold" style="color:var(--bleu); font-family:'Syne',sans-serif;">Suivi de Stage</h1>
+            <p class="text-muted mb-0" style="font-size:.85rem;">Suivez l'avancement des étudiants sous votre tutorat</p>
+        </div>
+    </div>
 
-        <?php if ($stage) : ?>
+    <!-- Alertes[cite: 17] -->
+    <?php if ($msg_ok) : ?>
+        <div class="alert alert-success rounded-4 d-flex align-items-center gap-2 mb-4 shadow-sm" role="alert">
+            <i class="bi bi-check-circle-fill"></i> <strong><?php echo h($msg_ok); ?></strong>
+        </div>
+    <?php endif; ?>
 
-        <!-- Détail du stage sélectionné -->
-        <p class="label-section" style="margin-top:6px;">Détail — <?php echo htmlspecialchars($stage['nom_etudiant']); ?></p>
+    <div class="row g-4">
+        
+        <!-- Colonne de gauche : Liste des étudiants[cite: 17] -->
+        <div class="col-lg-5">
+            <div class="card-cy h-100">
+                <h5 class="fw-bold mb-4" style="color:var(--bleu); font-family:'Syne',sans-serif;">
+                    <i class="bi bi-people me-2"></i> Étudiants assignés <span class="badge bg-secondary rounded-pill ms-2"><?php echo count($stages); ?></span>
+                </h5>
 
-        <div class="carte">
-            <div style="display:flex; flex-direction:column; gap:7px; font-size:.84rem;">
-                <div style="display:flex; gap:8px;">
-                    <span style="color:var(--gris-texte); width:80px; flex-shrink:0;">Stage</span>
-                    <span style="font-weight:700;"><?php echo htmlspecialchars($stage['titre']); ?></span>
-                </div>
-                <div style="display:flex; gap:8px;">
-                    <span style="color:var(--gris-texte); width:80px; flex-shrink:0;">Entreprise</span>
-                    <span style="font-weight:700;"><?php echo htmlspecialchars($stage['nom_entreprise']); ?><?php if ($stage['ville']) echo ' · ' . htmlspecialchars($stage['ville']); ?></span>
-                </div>
-                <?php if ($stage['date_debut']) : ?>
-                <div style="display:flex; gap:8px;">
-                    <span style="color:var(--gris-texte); width:80px; flex-shrink:0;">Début</span>
-                    <span style="font-weight:700;"><?php echo date('d/m/Y', strtotime($stage['date_debut'])); ?></span>
-                </div>
+                <?php if (empty($stages)) : ?>
+                    <div class="text-center p-4 bg-light rounded-4 border border-dashed">
+                        <i class="bi bi-inbox text-muted opacity-50 mb-3 d-block" style="font-size: 2.5rem;"></i>
+                        <p class="text-muted mb-0 fw-semibold">Aucun étudiant à suivre pour le moment.</p>
+                    </div>
+                <?php else : ?>
+                    <div class="d-flex flex-column">
+                        <?php foreach ($stages as $s) :
+                            $noms = explode(' ', $s['nom_etudiant']);
+                            $initiales_etu = strtoupper(mb_substr($noms[0], 0, 1) . mb_substr($noms[1] ?? '?', 0, 1));
+                            $st_data = $statuts_labels[$s['statut']] ?? [$s['statut'], 'bg-secondary text-white'];
+                        ?>
+                            <a href="suivi_stage_tuteur.php?stage=<?php echo (int)$s['num_stage']; ?>" class="stage-item <?php echo $id_stage_sel === $s['num_stage'] ? 'actif' : ''; ?>">
+                                <div class="stage-avatar"><?php echo h($initiales_etu); ?></div>
+                                <div class="flex-grow-1">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <h6 class="fw-bold mb-0 text-dark"><?php echo h($s['nom_etudiant']); ?></h6>
+                                        <span class="badge rounded-pill <?php echo $st_data[1]; ?>" style="font-size:.65rem;"><?php echo $st_data[0]; ?></span>
+                                    </div>
+                                    <p class="text-muted mb-2 text-truncate" style="font-size:.75rem; max-width: 200px;"><?php echo h($s['titre']); ?></p>
+                                    <div class="progress">
+                                        <div class="progress-bar" role="progressbar" style="width: <?php echo (int)$s['avancement']; ?>%;" aria-valuenow="<?php echo (int)$s['avancement']; ?>" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                </div>
+                            </a>
+                        <?php endforeach; ?>
+                    </div>
                 <?php endif; ?>
-                <?php if ($stage['date_fin']) : ?>
-                <div style="display:flex; gap:8px;">
-                    <span style="color:var(--gris-texte); width:80px; flex-shrink:0;">Fin</span>
-                    <span style="font-weight:700;"><?php echo date('d/m/Y', strtotime($stage['date_fin'])); ?></span>
-                </div>
-                <?php endif; ?>
-                <div style="display:flex; gap:8px;">
-                    <span style="color:var(--gris-texte); width:80px; flex-shrink:0;">Filière</span>
-                    <span style="font-weight:700;"><?php echo htmlspecialchars($stage['filiere'] . ' ' . $stage['niveau']); ?></span>
-                </div>
             </div>
         </div>
 
-        <!-- Formulaire de mise à jour de l'avancement -->
-        <p class="label-section">Mettre à jour l'avancement</p>
-        <div class="carte">
-            <form method="POST" action="suivi_stage_tuteur.php?stage=<?php echo $stage['num_stage']; ?>">
-                <input type="hidden" name="action" value="avancement">
-                <input type="hidden" name="num_stage" value="<?php echo $stage['num_stage']; ?>">
-
-                <label style="font-size:.80rem; font-weight:600; color:var(--gris-texte); display:block; margin-bottom:4px;">
-                    Avancement : <span id="val-av"><?php echo (int)$stage['avancement']; ?></span>%
-                </label>
-                <input type="range" name="avancement" min="0" max="100" step="5"
-                       value="<?php echo (int)$stage['avancement']; ?>"
-                       oninput="document.getElementById('val-av').textContent = this.value">
-
-                <label style="font-size:.80rem; font-weight:600; color:var(--gris-texte); display:block; margin:12px 0 4px;">Statut</label>
-                <select name="statut" class="select-field">
-                    <?php foreach ($statuts_labels as $key => [$label, $class]) : ?>
-                    <option value="<?php echo $key; ?>" <?php echo $stage['statut'] === $key ? 'selected' : ''; ?>>
-                        <?php echo $label; ?>
-                    </option>
-                    <?php endforeach; ?>
-                </select>
-
-                <button type="submit" class="btn" style="margin-top:12px;">Enregistrer</button>
-            </form>
-        </div>
-
-        <!-- Échanges récents -->
-        <?php if (!empty($remarques)) : ?>
-        <p class="label-section">Échanges récents</p>
-        <div class="carte">
-            <?php foreach ($remarques as $rem) : ?>
-            <div style="padding:9px 0; border-bottom:1px solid var(--gris-border);">
-                <div style="display:flex; justify-content:space-between; margin-bottom:3px;">
-                    <span style="font-weight:700; font-size:.83rem;">
-                        <?php echo htmlspecialchars($rem['prenom'] . ' ' . $rem['nom']); ?>
-                    </span>
-                    <span style="font-size:.72rem; color:var(--gris-texte);">
-                        <?php echo date('d/m/Y', strtotime($rem['date_creation'])); ?>
-                    </span>
+        <!-- Colonne de droite : Détails du stage sélectionné[cite: 17] -->
+        <div class="col-lg-7">
+            <?php if (!$stage) : ?>
+                <div class="card-cy h-100 d-flex flex-column align-items-center justify-content-center text-center p-5 bg-light" style="border-style: dashed;">
+                    <i class="bi bi-hand-index-thumb text-muted opacity-50 mb-3" style="font-size: 3rem;"></i>
+                    <h5 class="fw-bold text-muted" style="font-family:'Syne',sans-serif;">Sélectionnez un étudiant</h5>
+                    <p class="text-muted mb-0 small">Cliquez sur un étudiant dans la liste pour voir et modifier les détails de son stage.</p>
                 </div>
-                <p style="font-size:.82rem; color:var(--gris-texte); line-height:1.5;">
-                    <?php echo nl2br(htmlspecialchars($rem['contenu'])); ?>
-                </p>
-            </div>
-            <?php endforeach; ?>
+            <?php else : ?>
+                <div class="card-cy">
+                    <h4 class="fw-bold border-bottom pb-3" style="font-family:'Syne',sans-serif; color:#111827;">
+                        <i class="bi bi-person-lines-fill text-muted me-2"></i> <?php echo h($stage['nom_etudiant']); ?>
+                    </h4>
+
+                    <!-- Détails du stage -->
+                    <div class="bg-light rounded-4 p-3 my-4 border">
+                        <div class="row g-3" style="font-size: .85rem;">
+                            <div class="col-12 d-flex"><strong class="text-muted" style="width:100px;">Stage :</strong> <span class="fw-bold"><?php echo h($stage['titre']); ?></span></div>
+                            <div class="col-12 d-flex"><strong class="text-muted" style="width:100px;">Entreprise :</strong> <span class="fw-bold"><?php echo h($stage['nom_entreprise']); ?><?php if ($stage['ville']) echo ' · ' . h($stage['ville']); ?></span></div>
+                            <div class="col-12 d-flex"><strong class="text-muted" style="width:100px;">Filière :</strong> <span class="fw-bold"><?php echo h($stage['filiere'] . ' ' . $stage['niveau']); ?></span></div>
+                            <?php if ($stage['date_debut']) : ?>
+                                <div class="col-6 d-flex"><strong class="text-muted" style="width:100px;">Début :</strong> <span class="fw-bold"><?php echo date('d/m/Y', strtotime($stage['date_debut'])); ?></span></div>
+                            <?php endif; ?>
+                            <?php if ($stage['date_fin']) : ?>
+                                <div class="col-6 d-flex"><strong class="text-muted" style="width:100px;">Fin :</strong> <span class="fw-bold"><?php echo date('d/m/Y', strtotime($stage['date_fin'])); ?></span></div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+
+                    <!-- Formulaire de mise à jour[cite: 17] -->
+                    <div class="section-title mt-0"><i class="bi bi-sliders"></i> Mettre à jour l'avancement</div>
+                    <form method="POST" action="suivi_stage_tuteur.php?stage=<?php echo $stage['num_stage']; ?>" class="bg-white border rounded-4 p-4 mb-4">
+                        <input type="hidden" name="action" value="avancement">
+                        <input type="hidden" name="num_stage" value="<?php echo $stage['num_stage']; ?>">
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-dark d-flex justify-content-between">
+                                Progression de l'étudiant 
+                                <span class="badge bg-primary rounded-pill"><span id="val-av"><?php echo (int)$stage['avancement']; ?></span>%</span>
+                            </label>
+                            <input type="range" class="form-range" name="avancement" min="0" max="100" step="5" value="<?php echo (int)$stage['avancement']; ?>" oninput="document.getElementById('val-av').textContent = this.value">
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold text-dark">Statut actuel du stage</label>
+                            <select name="statut" class="form-select rounded-3">
+                                <?php foreach ($statuts_labels as $key => $data) : ?>
+                                    <option value="<?php echo $key; ?>" <?php echo $stage['statut'] === $key ? 'selected' : ''; ?>>
+                                        <?php echo $data[0]; ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary rounded-pill fw-bold px-4" style="background:var(--bleu); border:none;">
+                            <i class="bi bi-save me-1"></i> Enregistrer les modifications
+                        </button>
+                    </form>
+
+                    <!-- Échanges récents[cite: 17] -->
+                    <?php if (!empty($remarques)) : ?>
+                        <div class="section-title"><i class="bi bi-chat-text"></i> Historique des échanges</div>
+                        <div class="d-flex flex-column gap-3">
+                            <?php foreach ($remarques as $rem) : ?>
+                                <div class="p-3 bg-light rounded-4 border">
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="fw-bold text-dark" style="font-size:.85rem;"><i class="bi bi-person-circle me-1"></i> <?php echo h($rem['prenom'] . ' ' . $rem['nom']); ?></span>
+                                        <span class="text-muted" style="font-size:.7rem;"><i class="bi bi-clock me-1"></i> <?php echo date('d/m/Y', strtotime($rem['date_creation'])); ?></span>
+                                    </div>
+                                    <p class="mb-0 text-secondary" style="font-size:.85rem; line-height:1.5;">
+                                        <?php echo nl2br(h($rem['contenu'])); ?>
+                                    </p>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
+
+                </div>
+            <?php endif; ?>
         </div>
-        <?php endif; ?>
-
-        <?php endif; ?>
-        <?php endif; ?>
-
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

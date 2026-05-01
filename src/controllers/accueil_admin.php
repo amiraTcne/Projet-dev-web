@@ -11,6 +11,8 @@ if (!isset($_SESSION['id']) || $_SESSION['role'] !== 'Admin') {
 /* on récupère le nom de l'admin, avec des valeurs par défaut si la session est vide */
 $prenom = $_SESSION['prenom'] ?? 'Admin';
 $nom    = $_SESSION['nom']    ?? '';
+
+function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -18,64 +20,137 @@ $nom    = $_SESSION['nom']    ?? '';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Espace Administrateur — CY Stage</title>
-    <link rel="stylesheet" href="../../public/assets/css/style-admin.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bleu: #1B4F9B;
+            --bleu-clair: #2563c7;
+        }
+        body { font-family: 'DM Sans', sans-serif; background: #f4f6fb; }
+
+        /* Navbar */
+        .navbar-cy { background: linear-gradient(135deg, #1B4F9B, #2563c7); }
+
+        /* Dashboard Cards */
+        .dashboard-card {
+            display: flex; align-items: center; gap: 1rem;
+            padding: 1.5rem; border: 1px solid rgba(171,186,205,.4);
+            border-radius: 18px; background: #fff;
+            text-decoration: none; color: inherit;
+            transition: all 0.25s ease-in-out;
+            box-shadow: 0 4px 18px rgba(27,79,155,.04);
+            height: 100%;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(27,79,155,.12);
+            border-color: var(--bleu-clair);
+            color: inherit;
+        }
+        .dashboard-card .icon-box {
+            width: 56px; height: 56px; border-radius: 14px;
+            background: #eef2ff; color: var(--bleu);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; flex-shrink: 0;
+            transition: background 0.25s, color 0.25s;
+        }
+        .dashboard-card:hover .icon-box {
+            background: var(--bleu); color: #fff;
+        }
+        .dashboard-card i.bi-chevron-right {
+            transition: transform 0.2s ease;
+        }
+        .dashboard-card:hover i.bi-chevron-right {
+            transform: translateX(4px); color: var(--bleu) !important;
+        }
+    </style>
 </head>
 <body>
-<div class="page anim">
 
-    <!-- le logo en haut à droite -->
-    <div class="logo-wrapper">
-        <img src="../../public/assets/img/logo.png" alt="CY Stage">
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-cy shadow-sm mb-5">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand" href="#">
+            <img src="../../public/assets/img/logo.png" alt="CY Stage" height="36">
+        </a>
+        <div class="ms-auto d-flex align-items-center">
+            <span class="fw-bold text-white me-3 d-none d-sm-inline">
+                <i class="bi bi-shield-lock-fill me-2"></i>
+                <?php echo h($prenom . ' ' . $nom); ?> (Admin)
+            </span>
+            <a href="deconnexion.php" class="btn btn-outline-light btn-sm rounded-pill px-3">
+                <i class="bi bi-box-arrow-right d-sm-none"></i>
+                <span class="d-none d-sm-inline">Déconnexion</span>
+            </a>
+        </div>
+    </div>
+</nav>
+
+<div class="container mb-5" style="max-width:950px;">
+
+    <!-- En-tête -->
+    <div class="text-center text-md-start mb-5">
+        <h1 class="fw-bold mb-2" style="color:var(--bleu); font-family:'Syne',sans-serif; font-size: 2.2rem;">
+            Espace Administrateur
+        </h1>
+        <p class="text-muted" style="font-size:.95rem;">
+            Gestion globale de la plateforme, des utilisateurs et des stages.
+        </p>
     </div>
 
-    <!-- le bandeau bleu avec le nom de l'admin connecté -->
-    <div class="nom-entreprise">
-        <?php echo htmlspecialchars($prenom . ' ' . $nom); ?>
+    <!-- Grille de navigation[cite: 25] -->
+    <div class="row g-4">
+
+        <div class="col-12 col-md-6">
+            <a href="gestion_espaces.php" class="dashboard-card">
+                <div class="icon-box"><i class="bi bi-people-fill"></i></div>
+                <div class="flex-grow-1">
+                    <h5 class="fw-bold mb-1" style="font-family:'Syne',sans-serif; color:#111827; font-size:1.1rem;">Gestion Utilisateurs</h5>
+                    <p class="text-muted mb-0" style="font-size:.8rem;">Étudiants, Tuteurs, Entreprises, Jurys</p>
+                </div>
+                <i class="bi bi-chevron-right text-muted fs-5"></i>
+            </a>
+        </div>
+
+        <div class="col-12 col-md-6">
+            <a href="gestion_stages.php" class="dashboard-card">
+                <div class="icon-box"><i class="bi bi-briefcase-fill"></i></div>
+                <div class="flex-grow-1">
+                    <h5 class="fw-bold mb-1" style="font-family:'Syne',sans-serif; color:#111827; font-size:1.1rem;">Gestion des stages</h5>
+                    <p class="text-muted mb-0" style="font-size:.8rem;">Offres, candidatures et domaines</p>
+                </div>
+                <i class="bi bi-chevron-right text-muted fs-5"></i>
+            </a>
+        </div>
+
+        <div class="col-12 col-md-6">
+            <a href="archives.php" class="dashboard-card">
+                <div class="icon-box"><i class="bi bi-archive-fill"></i></div>
+                <div class="flex-grow-1">
+                    <h5 class="fw-bold mb-1" style="font-family:'Syne',sans-serif; color:#111827; font-size:1.1rem;">Archives</h5>
+                    <p class="text-muted mb-0" style="font-size:.8rem;">Historique des dossiers de stage validés</p>
+                </div>
+                <i class="bi bi-chevron-right text-muted fs-5"></i>
+            </a>
+        </div>
+
+        <div class="col-12 col-md-6">
+            <a href="notifications.php" class="dashboard-card">
+                <div class="icon-box"><i class="bi bi-bell-fill"></i></div>
+                <div class="flex-grow-1">
+                    <h5 class="fw-bold mb-1" style="font-family:'Syne',sans-serif; color:#111827; font-size:1.1rem;">Notifications</h5>
+                    <p class="text-muted mb-0" style="font-size:.8rem;">Gestion des alertes de la plateforme</p>
+                </div>
+                <i class="bi bi-chevron-right text-muted fs-5"></i>
+            </a>
+        </div>
+
     </div>
-
-    <h3 class="options-title">Gestion de la plateforme</h3>
-
-    <!-- les 4 cartes vers les sections de l'interface admin -->
-    <div class="nav-grid">
-
-        <a href="gestion_espaces.php" class="nav">
-            <span class="icon">
-                <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            </span>
-            <h4>Gestion Utilisateurs</h4>
-            <span class="arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>
-        </a>
-
-        <a href="gestion_stages.php" class="nav">
-            <span class="icon">
-                <svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>
-            </span>
-            <h4>Gestion des stages</h4>
-            <span class="arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>
-        </a>
-
-        <a href="archives.php" class="nav">
-            <span class="icon">
-                <svg viewBox="0 0 24 24"><path d="M21 8v13H3V8"/><rect x="1" y="3" width="22" height="5" rx="1"/><path d="M10 12h4"/></svg>
-            </span>
-            <h4>Archives</h4>
-            <span class="arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>
-        </a>
-
-        <a href="notifications.php" class="nav">
-            <span class="icon">
-                <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-            </span>
-            <h4>Notifications</h4>
-            <span class="arrow"><svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg></span>
-        </a>
-
-    </div>
-
-    <div class="deconnexion">
-        <a href="deconnexion.php">Se déconnecter</a>
-    </div>
-
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

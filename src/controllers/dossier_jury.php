@@ -156,13 +156,13 @@ if (!$dossier) {
 
 /* Helpers d'affichage */
 $statuts_labels = [
-    'incomplet' => ['Incomplet', '#dc2626', 'rgba(220,38,38,.10)'],
-    'en_cours'  => ['En cours',  '#d97706', 'rgba(217,119,6,.12)'],
-    'soumis'    => ['Soumis',    '#1B4F9B', 'rgba(27,79,155,.12)'],
-    'valide'    => ['Validé ✓',  '#16a34a', 'rgba(22,163,74,.12)'],
-    'rejete'    => ['Refusé',    '#dc2626', 'rgba(220,38,38,.10)'],
+    'incomplet' => ['Incomplet', 'bg-danger text-white'],
+    'en_cours'  => ['En cours',  'bg-warning text-dark'],
+    'soumis'    => ['Soumis',    'bg-primary text-white'],
+    'valide'    => ['Validé ✓',  'bg-success text-white'],
+    'rejete'    => ['Refusé',    'bg-danger text-white'],
 ];
-[$st_label, $st_color, $st_bg] = $statuts_labels[$dossier['statut_dossier']] ?? [$dossier['statut_dossier'], '#6b7280', 'rgba(107,114,128,.1)'];
+$st_data = $statuts_labels[$dossier['statut_dossier']] ?? [$dossier['statut_dossier'], 'bg-secondary text-white'];
 
 $initiales = strtoupper(
     mb_substr($dossier['etudiant_prenom'] ?? '?', 0, 1) .
@@ -177,6 +177,8 @@ $docs = [
 ];
 
 $techs = array_filter(array_map('trim', explode(',', $dossier['competences'] ?? '')));
+
+function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -184,269 +186,195 @@ $techs = array_filter(array_map('trim', explode(',', $dossier['competences'] ?? 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dossier étudiant — CY Stage</title>
-    <link rel="stylesheet" href="../../public/assets/css/style_etudiant.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+    
     <style>
-        /* Réutilise style_etudiant.css (même charte mobile-first) */
-        .info-ligne {
-            display: flex; align-items: center; gap: 12px;
-            padding: 10px 0;
-            border-bottom: 1px solid var(--gris-border);
+        :root { --bleu: #1B4F9B; --bleu-clair: #2563c7; }
+        body { font-family: 'DM Sans', sans-serif; background: #f4f6fb; }
+        .navbar-cy { background: linear-gradient(135deg, #1B4F9B, #2563c7); }
+        .card-cy {
+            border: 1px solid rgba(171,186,205,.4); border-radius: 18px;
+            box-shadow: 0 4px 18px rgba(27,79,155,.06); background: #fff; padding: 1.5rem;
         }
-        .info-ligne:last-child { border-bottom: none; padding-bottom: 0; }
-        .info-ligne:first-child { padding-top: 0; }
-        .info-icone {
-            width: 34px; height: 34px; border-radius: 8px;
-            background: var(--gris-fond);
-            display: flex; align-items: center; justify-content: center;
-            color: var(--bleu); flex-shrink: 0;
-        }
-        .info-icone svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-        .info-label  { font-size: .70rem; color: var(--gris-texte); font-weight: 500; margin-bottom: 1px; }
-        .info-valeur { font-size: .87rem; font-weight: 700; }
 
-        /* Avatar étudiant */
         .avatar-lg {
-            width: 64px; height: 64px; border-radius: 50%;
+            width: 70px; height: 70px; border-radius: 50%;
             background: linear-gradient(135deg, var(--bleu), var(--bleu-clair));
-            color: #fff; font-family: 'Syne', sans-serif;
-            font-size: 1.4rem; font-weight: 800;
+            color: #fff; font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 800;
             display: flex; align-items: center; justify-content: center;
-            margin: 0 auto 10px;
-            box-shadow: 0 4px 16px rgba(27,79,155,.22);
+            margin: 0 auto 10px; box-shadow: 0 4px 16px rgba(27,79,155,.2);
         }
-
-        /* Documents */
-        .doc-ligne { display: flex; align-items: center; gap: 11px; padding: 11px 0; border-bottom: 1px solid var(--gris-border); }
-        .doc-ligne:last-child { border-bottom: none; padding-bottom: 0; }
-        .doc-ligne:first-child { padding-top: 0; }
-        .doc-icone { width: 36px; height: 36px; border-radius: 8px; background: var(--gris-fond); display: flex; align-items: center; justify-content: center; color: var(--bleu); flex-shrink: 0; }
-        .doc-icone svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-        .doc-nom    { font-weight: 600; font-size: .85rem; }
-        .doc-statut { font-size: .73rem; font-weight: 600; margin-top: 1px; }
-        .doc-statut.ok  { color: var(--vert); }
-        .doc-statut.non { color: var(--rouge); }
-        .doc-lien { margin-left: auto; font-size: .74rem; color: var(--bleu-clair); font-weight: 600; text-decoration: none; }
-        .doc-lien:hover { text-decoration: underline; }
-
-        /* Formulaire note */
-        .note-input {
-            width: 100%; padding: 10px 13px;
-            border: 1px solid var(--gris-border); border-radius: 8px;
-            background: var(--gris-fond); font-family: 'DM Sans', sans-serif;
-            font-size: .90rem; color: var(--noir); outline: none;
-            transition: border-color .2s, box-shadow .2s;
-        }
-        .note-input:focus { border-color: var(--bleu); box-shadow: 0 0 0 3px rgba(27,79,155,.08); background: var(--blanc); }
-
-        .form-label { font-size: .78rem; font-weight: 600; color: var(--gris-texte); margin-bottom: 5px; display: block; }
-
-        .checkbox-row { display: flex; align-items: center; gap: 10px; }
-        .checkbox-row input[type="checkbox"] { width: 17px; height: 17px; accent-color: var(--vert); cursor: pointer; }
-        .checkbox-row label { font-size: .87rem; font-weight: 600; cursor: pointer; }
-
-        /* Pastille statut */
-        .pastille {
-            display: inline-block; padding: 3px 10px;
-            border-radius: 20px; font-size: .72rem; font-weight: 700;
+        
+        .icon-box {
+            width: 38px; height: 38px; border-radius: 10px; background: #eef2ff;
+            color: var(--bleu); display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem; flex-shrink: 0;
         }
     </style>
 </head>
 <body>
-<div class="page anim">
 
-    <!-- En-tête avec retour -->
-    <header class="entete">
-        <a href="accueil_jury.php" class="btn-retour" aria-label="Retour">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="15 18 9 12 15 6"/>
-            </svg>
-        </a>
-        <span class="entete-titre">Dossier étudiant</span>
-        <div style="width:36px;"></div>
-    </header>
-
-    <div class="contenu">
-
-        <!-- Messages de retour -->
-        <?php if ($msg_ok) : ?>
-        <div style="background:rgba(22,163,74,.09); border:1px solid var(--vert); border-radius:8px; padding:9px 13px; font-size:.83rem; color:var(--vert); font-weight:600;">
-            ✓ <?php echo htmlspecialchars($msg_ok); ?>
+<nav class="navbar navbar-expand-lg navbar-cy shadow-sm mb-4">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand" href="accueil_jury.php"><img src="../../public/assets/img/logo.png" alt="CY Stage" height="36"></a>
+        <div class="ms-auto d-flex align-items-center">
+            <span class="fw-bold text-white me-3 d-none d-sm-inline"><i class="bi bi-person-badge-fill me-2"></i> <?php echo h($_SESSION['prenom'] . ' ' . $_SESSION['nom']); ?></span>
+            <a href="deconnexion.php" class="btn btn-outline-light btn-sm rounded-pill px-3"><i class="bi bi-box-arrow-right d-sm-none"></i><span class="d-none d-sm-inline">Déconnexion</span></a>
         </div>
-        <?php endif; ?>
-        <?php if ($msg_err) : ?>
-        <div style="background:#fff0f0; border:1px solid #fca5a5; border-radius:8px; padding:9px 13px; font-size:.83rem; color:var(--rouge);">
-            <?php echo htmlspecialchars($msg_err); ?>
-        </div>
-        <?php endif; ?>
+    </div>
+</nav>
 
-        <!-- ── Identité étudiant ── -->
-        <div class="carte" style="text-align:center; padding:20px 16px;">
-            <div class="avatar-lg"><?php echo htmlspecialchars($initiales); ?></div>
-            <h2 style="font-family:'Syne',sans-serif; font-size:1.05rem; font-weight:800; margin-bottom:5px;">
-                <?php echo htmlspecialchars($dossier['etudiant_prenom'] . ' ' . $dossier['etudiant_nom']); ?>
-            </h2>
-            <p style="font-size:.78rem; color:var(--gris-texte); margin-bottom:8px;">
-                <?php echo htmlspecialchars($dossier['etudiant_email']); ?>
-            </p>
-            <span class="pastille" style="color:<?php echo $st_color; ?>; background:<?php echo $st_bg; ?>;">
-                Dossier : <?php echo $st_label; ?>
-            </span>
+<div class="container mb-5" style="max-width:900px;">
+    
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <a href="accueil_jury.php" class="btn btn-outline-secondary btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width:38px;height:38px;"><i class="bi bi-chevron-left"></i></a>
+        <div>
+            <h1 class="h4 mb-0 fw-bold" style="color:var(--bleu); font-family:'Syne',sans-serif;">Dossier étudiant</h1>
+            <p class="text-muted mb-0" style="font-size:.85rem;">Examen et évaluation du rapport de stage</p>
         </div>
+    </div>
 
-        <!-- ── Infos académiques ── -->
-        <p class="label-section">Profil académique</p>
-        <div class="carte">
-            <div class="info-ligne">
-                <div class="info-icone"><svg viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div>
-                <div><p class="info-label">Filière</p><p class="info-valeur"><?php echo htmlspecialchars($dossier['filiere'] ?? '—'); ?></p></div>
-            </div>
-            <div class="info-ligne">
-                <div class="info-icone"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></div>
-                <div><p class="info-label">Niveau · Promotion</p><p class="info-valeur"><?php echo htmlspecialchars(($dossier['niveau'] ?? '—') . ' · ' . ($dossier['annee_promo'] ?? '—')); ?></p></div>
-            </div>
-        </div>
+    <!-- Alertes -->
+    <?php if ($msg_ok) : ?>
+        <div class="alert alert-success rounded-4 d-flex align-items-center gap-2 mb-4 shadow-sm"><i class="bi bi-check-circle-fill"></i> <strong><?php echo h($msg_ok); ?></strong></div>
+    <?php endif; ?>
+    <?php if ($msg_err) : ?>
+        <div class="alert alert-danger rounded-4 d-flex align-items-center gap-2 mb-4 shadow-sm"><i class="bi bi-exclamation-triangle-fill"></i> <strong><?php echo h($msg_err); ?></strong></div>
+    <?php endif; ?>
 
-        <!-- ── Offre de stage ── -->
-        <?php if ($dossier['titre_offre'] || $dossier['titre_stage']) : ?>
-        <p class="label-section">Stage</p>
-        <div class="carte">
-            <div class="info-ligne">
-                <div class="info-icone"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg></div>
-                <div>
-                    <p class="info-label">Poste</p>
-                    <p class="info-valeur"><?php echo htmlspecialchars($dossier['titre_offre'] ?? $dossier['titre_stage']); ?></p>
-                </div>
+    <div class="row g-4">
+        
+        <!-- Colonne Informations -->
+        <div class="col-lg-7">
+            
+            <!-- Identité -->
+            <div class="card-cy text-center mb-4">
+                <div class="avatar-lg"><?php echo h($initiales); ?></div>
+                <h3 class="fw-bold mb-1" style="font-family:'Syne',sans-serif; color:#111827;"><?php echo h($dossier['etudiant_prenom'] . ' ' . $dossier['etudiant_nom']); ?></h3>
+                <p class="text-muted mb-3" style="font-size:.85rem;"><?php echo h($dossier['etudiant_email']); ?></p>
+                <span class="badge rounded-pill <?php echo $st_data[1]; ?> fs-6">Dossier : <?php echo $st_data[0]; ?></span>
             </div>
-            <?php if ($dossier['nom_entreprise']) : ?>
-            <div class="info-ligne">
-                <div class="info-icone"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
-                <div>
-                    <p class="info-label">Entreprise<?php echo $dossier['ville'] ? ' · Ville' : ''; ?></p>
-                    <p class="info-valeur">
-                        <?php echo htmlspecialchars($dossier['nom_entreprise']); ?>
-                        <?php if ($dossier['ville']) : ?> — <?php echo htmlspecialchars($dossier['ville']); ?><?php endif; ?>
-                    </p>
-                </div>
-            </div>
-            <?php endif; ?>
-            <?php if ($dossier['date_debut'] || $dossier['date_fin']) : ?>
-            <div class="info-ligne">
-                <div class="info-icone"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
-                <div>
-                    <p class="info-label">Période</p>
-                    <p class="info-valeur">
-                        <?php
-                        $debut = $dossier['date_debut'] ? date('d/m/Y', strtotime($dossier['date_debut'])) : '—';
-                        $fin   = $dossier['date_fin']   ? date('d/m/Y', strtotime($dossier['date_fin']))   : '—';
-                        echo htmlspecialchars($debut . ' → ' . $fin);
-                        ?>
-                        <?php if ($dossier['duree_stage'] ?? $dossier['duree_offre']) : ?>
-                        <span style="font-weight:400; color:var(--gris-texte); font-size:.78rem;">
-                            (<?php echo (int)($dossier['duree_stage'] ?? $dossier['duree_offre']); ?> sem.)
-                        </span>
+
+            <!-- Profil & Stage -->
+            <h6 class="fw-bold text-muted text-uppercase mb-3 ps-2" style="font-size:.85rem; letter-spacing:1px;">Profil académique & Stage</h6>
+            <div class="card-cy p-0 overflow-hidden mb-4">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex align-items-center gap-3 p-3">
+                        <div class="icon-box"><i class="bi bi-mortarboard"></i></div>
+                        <div>
+                            <p class="text-muted mb-0 fw-semibold" style="font-size:.75rem;">Filière · Niveau · Promotion</p>
+                            <p class="fw-bold mb-0 text-dark"><?php echo h(($dossier['filiere'] ?? '—') . ' · ' . ($dossier['niveau'] ?? '—') . ' · ' . ($dossier['annee_promo'] ?? '—')); ?></p>
+                        </div>
+                    </li>
+                    <li class="list-group-item d-flex align-items-center gap-3 p-3">
+                        <div class="icon-box"><i class="bi bi-briefcase"></i></div>
+                        <div>
+                            <p class="text-muted mb-0 fw-semibold" style="font-size:.75rem;">Poste</p>
+                            <p class="fw-bold mb-0 text-dark"><?php echo h($dossier['titre_offre'] ?? $dossier['titre_stage']); ?></p>
+                        </div>
+                    </li>
+                    <?php if ($dossier['nom_entreprise']) : ?>
+                    <li class="list-group-item d-flex align-items-center gap-3 p-3">
+                        <div class="icon-box"><i class="bi bi-building"></i></div>
+                        <div>
+                            <p class="text-muted mb-0 fw-semibold" style="font-size:.75rem;">Entreprise<?php echo $dossier['ville'] ? ' · Ville' : ''; ?></p>
+                            <p class="fw-bold mb-0 text-dark"><?php echo h($dossier['nom_entreprise']); ?><?php if ($dossier['ville']) : ?> — <?php echo h($dossier['ville']); ?><?php endif; ?></p>
+                        </div>
+                    </li>
+                    <?php endif; ?>
+                    <?php if ($dossier['date_debut'] || $dossier['date_fin']) : ?>
+                    <li class="list-group-item d-flex align-items-center gap-3 p-3">
+                        <div class="icon-box"><i class="bi bi-calendar-event"></i></div>
+                        <div>
+                            <p class="text-muted mb-0 fw-semibold" style="font-size:.75rem;">Période</p>
+                            <p class="fw-bold mb-0 text-dark">
+                                <?php echo h(($dossier['date_debut'] ? date('d/m/Y', strtotime($dossier['date_debut'])) : '—') . ' → ' . ($dossier['date_fin'] ? date('d/m/Y', strtotime($dossier['date_fin'])) : '—')); ?>
+                                <?php if ($dossier['duree_stage'] ?? $dossier['duree_offre']) : ?><span class="text-muted fw-normal ms-1">(<?php echo (int)($dossier['duree_stage'] ?? $dossier['duree_offre']); ?> sem.)</span><?php endif; ?>
+                            </p>
+                        </div>
+                    </li>
+                    <?php endif; ?>
+                </ul>
+                <?php if ($dossier['mission_offre'] || !empty($techs)) : ?>
+                    <div class="p-4 bg-light border-top">
+                        <?php if ($dossier['mission_offre']) : ?>
+                            <h6 class="fw-bold text-dark mb-2" style="font-size:.85rem;">Mission</h6>
+                            <p class="text-muted mb-3" style="font-size:.85rem; line-height: 1.5;"><?php echo nl2br(h($dossier['mission_offre'])); ?></p>
                         <?php endif; ?>
-                    </p>
-                </div>
+                        <?php if (!empty($techs)) : ?>
+                            <h6 class="fw-bold text-dark mb-2" style="font-size:.85rem;">Compétences clés</h6>
+                            <div class="d-flex flex-wrap gap-2">
+                                <?php foreach ($techs as $t) : ?><span class="badge bg-white text-dark border rounded-pill"><?php echo h($t); ?></span><?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
             </div>
-            <?php endif; ?>
-            <?php if ($dossier['mission_offre']) : ?>
-            <div class="info-ligne" style="flex-direction:column; align-items:flex-start;">
-                <p class="info-label" style="margin-bottom:4px;">Mission</p>
-                <p style="font-size:.83rem; color:var(--gris-texte); line-height:1.6;">
-                    <?php echo nl2br(htmlspecialchars($dossier['mission_offre'])); ?>
-                </p>
-            </div>
-            <?php endif; ?>
-            <?php if (!empty($techs)) : ?>
-            <div class="info-ligne" style="flex-direction:column; align-items:flex-start;">
-                <p class="info-label" style="margin-bottom:6px;">Compétences</p>
-                <div style="display:flex; flex-wrap:wrap; gap:5px;">
-                    <?php foreach ($techs as $t) : ?>
-                    <span class="tag"><?php echo htmlspecialchars($t); ?></span>
+
+        </div>
+
+        <!-- Colonne Évaluation & Docs -->
+        <div class="col-lg-5">
+            
+            <!-- Documents -->
+            <h6 class="fw-bold text-muted text-uppercase mb-3 ps-2" style="font-size:.85rem; letter-spacing:1px;">Documents déposés</h6>
+            <div class="card-cy mb-4">
+                <div class="d-flex flex-column gap-3">
+                    <?php foreach ($docs as $label => $url) : $depose = !empty($url); ?>
+                        <div class="d-flex align-items-center justify-content-between p-2 border rounded-3 <?php echo $depose ? 'bg-white' : 'bg-light opacity-75'; ?>">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi <?php echo $depose ? 'bi-file-earmark-pdf-fill text-danger' : 'bi-file-earmark-x text-muted'; ?> fs-4"></i>
+                                <div>
+                                    <h6 class="mb-0 fw-bold text-dark" style="font-size:.85rem;"><?php echo h($label); ?></h6>
+                                    <span class="badge <?php echo $depose ? 'bg-success-subtle text-success' : 'bg-secondary-subtle text-secondary'; ?> rounded-pill" style="font-size:.7rem;"><?php echo $depose ? '✓ Déposé' : 'Non déposé'; ?></span>
+                                </div>
+                            </div>
+                            <?php if ($depose) : ?>
+                                <a href="/<?php echo h($url); ?>" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill fw-bold">Voir</a>
+                            <?php else : ?>
+                                <button class="btn btn-sm btn-light border text-muted rounded-pill" disabled><i class="bi bi-dash"></i></button>
+                            <?php endif; ?>
+                        </div>
                     <?php endforeach; ?>
                 </div>
             </div>
-            <?php endif; ?>
-        </div>
-        <?php endif; ?>
 
-        <!-- ── Documents déposés ── -->
-        <p class="label-section">Documents</p>
-        <div class="carte">
-            <?php foreach ($docs as $label => $url) :
-                $depose = !empty($url);
-            ?>
-            <div class="doc-ligne">
-                <div class="doc-icone">
-                    <svg viewBox="0 0 24 24"><path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8l6 6v12a2 2 0 0 1-2 2z"/><path d="M14 2v6h6"/></svg>
-                </div>
-                <div style="flex:1; min-width:0;">
-                    <p class="doc-nom"><?php echo $label; ?></p>
-                    <p class="doc-statut <?php echo $depose ? 'ok' : 'non'; ?>">
-                        <?php echo $depose ? '✓ Déposé' : '— Non déposé'; ?>
-                    </p>
-                </div>
-                <?php if ($depose) : ?>
-                <a href="<?php echo htmlspecialchars($url); ?>" target="_blank" class="doc-lien">
-                    Voir ↗
-                </a>
-                <?php endif; ?>
-            </div>
-            <?php endforeach; ?>
-        </div>
-
-        <!-- ── Formulaire d'évaluation ── -->
-        <p class="label-section">
-            <?php echo $eval ? 'Mon évaluation (modifier)' : 'Évaluer ce dossier'; ?>
-        </p>
-        <div class="carte">
-            <form method="POST" action="dossier_jury.php?id=<?php echo $num_dossier; ?>">
-
-                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
-                    <div>
-                        <label class="form-label" for="note">Note /20 *</label>
-                        <input class="note-input" type="number" id="note" name="note"
-                               min="0" max="20" step="0.5" required
-                               value="<?php echo $eval ? htmlspecialchars($eval['note']) : ''; ?>"
-                               placeholder="Ex : 14.5">
+            <!-- Formulaire -->
+            <h6 class="fw-bold text-muted text-uppercase mb-3 ps-2" style="font-size:.85rem; letter-spacing:1px;"><?php echo $eval ? 'Modifier mon évaluation' : 'Évaluer ce dossier'; ?></h6>
+            <div class="card-cy">
+                <form method="POST" action="dossier_jury.php?id=<?php echo $num_dossier; ?>">
+                    
+                    <div class="mb-3">
+                        <label for="note" class="form-label fw-bold text-dark">Note globale /20 <span class="text-danger">*</span></label>
+                        <input type="number" class="form-control form-control-lg bg-light fw-bold text-primary" id="note" name="note" min="0" max="20" step="0.5" required value="<?php echo $eval ? h($eval['note']) : ''; ?>" placeholder="Ex : 14.5">
                     </div>
+
                     <?php if ($eval) : ?>
-                    <div style="display:flex; flex-direction:column; justify-content:flex-end;">
-                        <p class="form-label">Dernière évaluation</p>
-                        <p style="font-size:.80rem; color:var(--gris-texte);">
-                            <?php echo date('d/m/Y', strtotime($eval['date_eval'])); ?>
-                        </p>
-                    </div>
+                        <p class="text-muted fst-italic mb-3" style="font-size:.75rem;"><i class="bi bi-clock-history me-1"></i> Dernière évaluation : <?php echo date('d/m/Y', strtotime($eval['date_eval'])); ?></p>
                     <?php endif; ?>
-                </div>
 
-                <div style="margin-bottom:12px;">
-                    <label class="form-label" for="appreciation">Appréciation</label>
-                    <textarea class="textarea" id="appreciation" name="appreciation" rows="4"
-                              placeholder="Commentaires sur le dossier, le rapport, la soutenance…"><?php echo htmlspecialchars($eval['appreciation'] ?? ''); ?></textarea>
-                </div>
+                    <div class="mb-3">
+                        <label for="appreciation" class="form-label fw-bold text-dark">Appréciation / Commentaires</label>
+                        <textarea class="form-control bg-light" id="appreciation" name="appreciation" rows="4" placeholder="Commentaires sur le dossier, la soutenance..."><?php echo h($eval['appreciation'] ?? ''); ?></textarea>
+                    </div>
 
-                <div class="checkbox-row" style="margin-bottom:16px;">
-                    <input type="checkbox" id="valide" name="valide" value="1"
-                           <?php echo ($eval && $eval['valide']) ? 'checked' : ''; ?>>
-                    <label for="valide">Valider ce stage</label>
-                </div>
+                    <div class="form-check form-switch mb-4">
+                        <input class="form-check-input" type="checkbox" role="switch" id="valide" name="valide" value="1" <?php echo ($eval && $eval['valide']) ? 'checked' : ''; ?>>
+                        <label class="form-check-label fw-bold text-dark ms-2" for="valide">Valider ce stage</label>
+                    </div>
 
-                <button type="submit" class="btn">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="20 6 9 17 4 12"/>
-                    </svg>
-                    <?php echo $eval ? 'Mettre à jour l\'évaluation' : 'Enregistrer l\'évaluation'; ?>
-                </button>
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill fw-bold shadow-sm" style="background:var(--bleu); border:none;">
+                        <i class="bi bi-check2-circle me-1"></i> <?php echo $eval ? 'Mettre à jour' : 'Enregistrer l\'évaluation'; ?>
+                    </button>
+                </form>
+            </div>
 
-            </form>
         </div>
-
     </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
-
-
-
-

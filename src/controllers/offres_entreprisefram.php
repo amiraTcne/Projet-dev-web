@@ -46,7 +46,6 @@ if ($stmtEntreprise) {
     mysqli_stmt_close($stmtEntreprise);
 }
 
-
 if (isset($_GET['message']) && $_GET['message'] === 'offre_supprimee') {
     $message = "L'offre a bien été supprimée.";
 }
@@ -118,191 +117,163 @@ if ($stmtOffres) {
 
     mysqli_stmt_close($stmtOffres);
 }
+
+// Fonction utilitaire
+function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
 ?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Offres de stage - CY Tech</title>
-
+    <title>Offres de stage — CY Stage</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Montserrat+Alternates:wght@600;700&display=swap" rel="stylesheet">
-
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --gris-ardoise: #676D6B;
-            --bleu-royal: #255FAA;
-            --bleu-horizon: #5686D9;
-            --brume-acier: #ABBACD;
-            --fond-page: #F4F7FB;
+            --bleu: #1B4F9B;
+            --bleu-clair: #2563c7;
+            --bs-primary: #1B4F9B;
+            --bs-primary-rgb: 27,79,155;
         }
+        body { font-family: 'DM Sans', sans-serif; background: #f4f6fb; }
 
-        body {
-            font-family: 'Montserrat', sans-serif;
-            background: linear-gradient(180deg, #f8fbff 0%, #eef3f9 100%);
-            color: #2d3436;
-        }
+        /* Navbar */
+        .navbar-cy { background: linear-gradient(135deg, #1B4F9B, #2563c7); }
 
-        .page-title {
-            font-family: 'Montserrat Alternates', sans-serif;
-            color: var(--bleu-royal);
-            font-size: 2rem;
-            font-weight: 700;
-        }
-
-        .text-cy {
-            color: var(--bleu-royal);
-        }
-
+        /* Cards */
         .card-cy {
-            border: 1px solid rgba(171, 186, 205, 0.45);
-            border-radius: 1.3rem;
-            box-shadow: 0 12px 32px rgba(37, 95, 170, 0.10);
-            background-color: #ffffff;
+            border: 1px solid rgba(171,186,205,.4);
+            border-radius: 18px;
+            box-shadow: 0 4px 18px rgba(27,79,155,.08);
+            background: #fff;
         }
 
+        /* Cartes d'offres (liste) */
         .offer-card {
-            display: block;
-            text-decoration: none;
-            color: inherit;
-            background: linear-gradient(180deg, #f6f9fe 0%, #edf3fb 100%);
-            border: 1px solid rgba(86, 134, 217, 0.22);
-            border-radius: 1rem;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            display: block; text-decoration: none; color: inherit;
+            padding: 20px; border: 1px solid #e5e7eb;
+            border-radius: 12px; background: #fbfdff;
+            transition: all 0.2s ease-in-out;
         }
-
         .offer-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 12px 24px rgba(37, 95, 170, 0.12);
-            color: inherit;
+            background: #f0f4fa; border-color: var(--bleu-clair);
+            transform: translateY(-3px); color: inherit;
+            box-shadow: 0 4px 12px rgba(27,79,155,.08);
         }
 
-        .badge-cy {
-            background-color: var(--bleu-royal);
-            color: white;
-            font-weight: 600;
-            border-radius: 999px;
-            padding: 0.45rem 0.8rem;
-            text-transform: capitalize;
+        .badge-statut {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 5px 10px; border-radius: 999px;
+            background: #eef2ff; color: var(--bleu);
+            border: 1px solid #c7d2fe; font-size: .76rem; font-weight: 700; text-transform: capitalize;
         }
 
-        .btn-cy {
-            background: linear-gradient(135deg, var(--bleu-royal), var(--bleu-horizon));
-            color: white;
-            border: none;
-            font-weight: 700;
-            border-radius: 0.8rem;
-            padding: 0.7rem 1.3rem;
+        .form-control, .form-select {
+            border-radius: 10px;
+            padding: 10px 14px;
+            border: 1px solid #d1d5db;
         }
-
-        .btn-cy:hover {
-            color: white;
-            opacity: 0.95;
+        .form-control:focus, .form-select:focus {
+            border-color: var(--bleu-clair);
+            box-shadow: 0 0 0 0.25rem rgba(37, 99, 199, 0.15);
         }
-
         .form-label {
-            color: var(--bleu-royal);
-            font-weight: 700;
-        }
-
-        .form-control {
-            border-radius: 0.8rem;
-            border: 1px solid rgba(171, 186, 205, 0.8);
-            padding: 0.75rem 0.9rem;
-        }
-
-        .form-control:focus {
-            border-color: var(--bleu-horizon);
-            box-shadow: 0 0 0 0.2rem rgba(86, 134, 217, 0.15);
-        }
-
-        .muted-cy {
-            color: var(--gris-ardoise);
-        }
-
-        .back-link {
-            text-decoration: none;
-            color: var(--bleu-royal);
             font-weight: 600;
-        }
-
-        .back-link:hover {
-            text-decoration: underline;
+            color: #374151;
+            font-size: .9rem;
         }
     </style>
 </head>
 <body>
 
-<div class="container py-4 py-md-5">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+<!-- Navbar -->
+<nav class="navbar navbar-cy shadow-sm mb-4">
+    <div class="container-fluid px-4 d-flex align-items-center justify-content-between">
+        <a class="navbar-brand" href="accueil_entreprise.php">
+            <img src="../../public/assets/img/logo.png" alt="CY Stage" height="36">
+        </a>
+        <span class="fw-bold text-white">
+            <i class="bi bi-building me-2"></i>
+            <?php echo h($nomEntreprise); ?>
+        </span>
+        <a href="deconnexion.php" class="btn btn-outline-light btn-sm">
+            <i class="bi bi-box-arrow-right me-1"></i> Déconnexion
+        </a>
+    </div>
+</nav>
+
+<div class="container mb-5" style="max-width:1100px;">
+
+    <!-- En-tête page -->
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <a href="accueil_entreprise.php" class="btn btn-outline-secondary btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width:38px;height:38px;">
+            <i class="bi bi-chevron-left"></i>
+        </a>
         <div>
-            <a href="accueil_entreprise.php" class="back-link d-inline-block mb-2">← Retour au tableau de bord</a>
-            <h1 class="page-title mb-1">Offres de stage</h1>
-            <p class="muted-cy mb-0">
-                Entreprise connectée :
-                <strong><?php echo htmlspecialchars($nomEntreprise); ?></strong>
-            </p>
+            <h1 class="h4 mb-0 fw-bold" style="color:var(--bleu); font-family:'Syne',sans-serif;">Offres de stage</h1>
+            <p class="text-muted mb-0" style="font-size:.85rem;">Gérez vos offres existantes et publiez-en de nouvelles</p>
         </div>
-        <div class="muted-cy fw-semibold">CY Tech • Espace entreprise</div>
     </div>
 
-    <?php if (!empty($message)) : ?>
-        <div class="alert alert-success rounded-4"><?php echo htmlspecialchars($message); ?></div>
+    <!-- Alertes -->
+    <?php if ($message): ?>
+        <div class="alert alert-success rounded-4 d-flex align-items-center gap-2 mb-4" role="alert">
+            <i class="bi bi-check-circle-fill"></i> <?php echo h($message); ?>
+        </div>
     <?php endif; ?>
-
-    <?php if (!empty($erreur)) : ?>
-        <div class="alert alert-danger rounded-4"><?php echo htmlspecialchars($erreur); ?></div>
+    <?php if ($erreur): ?>
+        <div class="alert alert-danger rounded-4 d-flex align-items-center gap-2 mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i> <?php echo h($erreur); ?>
+        </div>
     <?php endif; ?>
 
     <div class="row g-4">
+        <!-- Colonne de gauche : Liste des offres -->
         <div class="col-lg-7">
-            <div class="card card-cy p-4 h-100">
-                <h2 class="h3 text-cy fw-bold mb-4">Offres déposées</h2>
+            <div class="card-cy p-4 h-100">
+                <h5 class="fw-bold mb-4" style="color:var(--bleu); font-family:'Syne',sans-serif;">
+                    <i class="bi bi-list-ul me-2"></i> Offres publiées
+                </h5>
 
-                <?php if (empty($offres)) : ?>
-                    <div class="border rounded-4 p-4 bg-light muted-cy">
-                        Vous n'avez encore publié aucune offre de stage.
+                <?php if (empty($offres)): ?>
+                    <div class="p-5 text-center bg-light rounded-4 border border-dashed">
+                        <i class="bi bi-file-earmark-x fs-1 text-muted opacity-50 mb-3 d-block"></i>
+                        <p class="text-muted mb-0 fw-semibold">Vous n'avez publié aucune offre pour le moment.</p>
                     </div>
-                <?php else : ?>
+                <?php else: ?>
                     <div class="d-flex flex-column gap-3">
-                        <?php foreach ($offres as $offre) : ?>
-                            <a href="detail_offre_entreprise.php?id=<?php echo (int) $offre['num_offre']; ?>" class="offer-card p-3 p-md-4">
-                                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-2 mb-2">
-                                    <h3 class="h5 fw-bold text-cy mb-0">
-                                        <?php echo htmlspecialchars($offre['titre']); ?>
-                                    </h3>
-                                    <span class="badge-cy">
-                                        <?php echo htmlspecialchars($offre['statut']); ?>
+                        <?php foreach ($offres as $offre): ?>
+                            <a href="detail_offre_entreprise.php?id=<?php echo (int) $offre['num_offre']; ?>" class="offer-card">
+                                <div class="d-flex justify-content-between align-items-start mb-2 gap-2">
+                                    <h6 class="fw-bold mb-0" style="font-family:'Syne',sans-serif; color:var(--bleu); font-size:1.1rem;">
+                                        <?php echo h($offre['titre']); ?>
+                                    </h6>
+                                    <span class="badge-statut">
+                                        <?php echo h($offre['statut']); ?>
                                     </span>
                                 </div>
-
-                                <p class="muted-cy mb-2">
-                                    <?php echo nl2br(htmlspecialchars($offre['mission'])); ?>
+                                
+                                <p class="text-muted mb-3" style="font-size: .88rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                                    <?php echo h($offre['mission']); ?>
                                 </p>
 
-                                <?php if (!empty($offre['competences'])) : ?>
-                                    <p class="mb-1">
-                                        <strong>Compétences :</strong>
-                                        <?php echo htmlspecialchars($offre['competences']); ?>
-                                    </p>
-                                <?php endif; ?>
-
-                                <?php if (!empty($offre['filiere_ciblee'])) : ?>
-                                    <p class="mb-1">
-                                        <strong>Profil recherché :</strong>
-                                        <?php echo htmlspecialchars($offre['filiere_ciblee']); ?>
-                                    </p>
-                                <?php endif; ?>
-
-                                <p class="mb-0 fw-semibold" style="color:#5686D9;">
-                                    Durée : <?php echo htmlspecialchars($offre['duree_semaines']); ?> semaine(s)
-                                    <?php if (!empty($offre['date_debut'])) : ?>
-                                        | Début : <?php echo htmlspecialchars($offre['date_debut']); ?>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <span class="badge rounded-pill bg-light text-dark border fw-medium" style="font-size:.76rem;">
+                                        <i class="bi bi-clock me-1"></i> <?php echo h($offre['duree_semaines']); ?> semaines
+                                    </span>
+                                    <?php if (!empty($offre['date_debut'])): ?>
+                                    <span class="badge rounded-pill bg-light text-dark border fw-medium" style="font-size:.76rem;">
+                                        <i class="bi bi-calendar-event me-1"></i> Début : <?php echo date('d/m/Y', strtotime($offre['date_debut'])); ?>
+                                    </span>
                                     <?php endif; ?>
-                                </p>
+                                    <?php if (!empty($offre['filiere_ciblee'])): ?>
+                                    <span class="badge rounded-pill bg-light text-dark border fw-medium" style="font-size:.76rem;">
+                                        <i class="bi bi-mortarboard me-1"></i> <?php echo h($offre['filiere_ciblee']); ?>
+                                    </span>
+                                    <?php endif; ?>
+                                </div>
                             </a>
                         <?php endforeach; ?>
                     </div>
@@ -310,51 +281,57 @@ if ($stmtOffres) {
             </div>
         </div>
 
+        <!-- Colonne de droite : Formulaire d'ajout -->
         <div class="col-lg-5">
-            <div class="card card-cy p-4">
-                <h2 class="h3 text-cy fw-bold mb-4">Ajouter une offre de stage</h2>
+            <div class="card-cy p-4">
+                <h5 class="fw-bold mb-4" style="color:var(--bleu); font-family:'Syne',sans-serif;">
+                    <i class="bi bi-plus-circle me-2"></i> Ajouter une offre
+                </h5>
 
                 <form method="POST" action="">
                     <div class="mb-3">
-                        <label for="titre" class="form-label">Titre</label>
-                        <input type="text" id="titre" name="titre" class="form-control" placeholder="Ajouter titre" required>
+                        <label for="titre" class="form-label">Titre du stage <span class="text-danger">*</span></label>
+                        <input type="text" id="titre" name="titre" class="form-control" placeholder="Ex: Développeur Web Fullstack" required>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="duree" class="form-label">Durée (semaines) <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="number" id="duree" name="duree" class="form-control" placeholder="Ex: 12" min="1" required>
+                                <span class="input-group-text bg-light text-muted"><i class="bi bi-clock"></i></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="date_debut" class="form-label">Date de début</label>
+                            <input type="date" id="date_debut" name="date_debut" class="form-control">
+                        </div>
                     </div>
 
                     <div class="mb-3">
-                        <label for="duree" class="form-label">Durée (en semaines)</label>
-                        <input type="number" id="duree" name="duree" class="form-control" placeholder="Ajouter durée" min="1" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="date_debut" class="form-label">Date</label>
-                        <input type="date" id="date_debut" name="date_debut" class="form-control">
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="description" class="form-label">Description</label>
-                        <textarea id="description" name="description" class="form-control" rows="4" placeholder="Ajouter description" required></textarea>
+                        <label for="description" class="form-label">Mission / Description <span class="text-danger">*</span></label>
+                        <textarea id="description" name="description" class="form-control" rows="4" placeholder="Décrivez les missions confiées au stagiaire..." required></textarea>
                     </div>
 
                     <div class="mb-3">
                         <label for="profil" class="form-label">Profil recherché</label>
-                        <textarea id="profil" name="profil" class="form-control" rows="3" placeholder="Ajouter profil"></textarea>
+                        <textarea id="profil" name="profil" class="form-control" rows="2" placeholder="Ex: Étudiant en Master 1 Informatique..."></textarea>
                     </div>
 
                     <div class="mb-4">
-                        <label for="competences" class="form-label">Compétences recherchées</label>
-                        <input type="text" id="competences" name="competences" class="form-control" placeholder="Ajouter compétence">
+                        <label for="competences" class="form-label">Compétences clés</label>
+                        <input type="text" id="competences" name="competences" class="form-control" placeholder="Ex: PHP, JavaScript, Gestion de projet...">
                     </div>
 
-                    <div class="text-end">
-                        <button type="submit" name="ajouter_offre" class="btn btn-cy">
-                            Publier
-                        </button>
-                    </div>
+                    <button type="submit" name="ajouter_offre" class="btn btn-primary w-100 rounded-pill fw-bold" style="background:var(--bleu); border-color:var(--bleu); padding: 10px;">
+                        <i class="bi bi-send me-1"></i> Publier l'offre
+                    </button>
                 </form>
             </div>
         </div>
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

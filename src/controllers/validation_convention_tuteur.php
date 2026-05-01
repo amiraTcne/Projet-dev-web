@@ -48,7 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $conn) {
             );
             mysqli_stmt_bind_param($upd, 'si', $nouveau_statut, $num_dossier);
             if (mysqli_stmt_execute($upd)) {
-                $msg_ok = $action === 'valider' ? 'Convention validée ✓' : 'Convention refusée.';
+                $msg_ok = $action === 'valider' ? 'Convention validée avec succès ✓' : 'Convention refusée.';
             }
             mysqli_stmt_close($upd);
         } else {
@@ -84,13 +84,16 @@ if ($conn) {
     mysqli_close($conn);
 }
 
+// Couleurs Bootstrap pour les statuts
 $statuts_labels = [
-    'incomplet' => ['Incomplet', 'badge-rouge'],
-    'en_cours'  => ['En cours',  'badge-orange'],
-    'soumis'    => ['Soumis',    'badge-bleu'],
-    'valide'    => ['Validé ✓',  'badge-vert'],
-    'rejete'    => ['Refusé',    'badge-rouge'],
+    'incomplet' => ['Incomplet', 'bg-danger text-white'],
+    'en_cours'  => ['En cours',  'bg-warning text-dark'],
+    'soumis'    => ['Soumis',    'bg-primary text-white'],
+    'valide'    => ['Validé ✓',  'bg-success text-white'],
+    'rejete'    => ['Refusé',    'bg-danger text-white'],
 ];
+
+function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -98,165 +101,102 @@ $statuts_labels = [
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Valider Conventions — CY Stage</title>
-    <link rel="stylesheet" href="../../public/assets/css/style_etudiant.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+    
     <style>
-        .convention-card {
-            background: var(--blanc); border: 1px solid var(--gris-border);
-            border-radius: var(--radius); padding: 15px;
-            box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 11px;
+        :root { --bleu: #1B4F9B; --bleu-clair: #2563c7; }
+        body { font-family: 'DM Sans', sans-serif; background: #f4f6fb; }
+        .navbar-cy { background: linear-gradient(135deg, #1B4F9B, #2563c7); }
+        .card-cy {
+            border: 1px solid rgba(171,186,205,.4); border-radius: 18px;
+            box-shadow: 0 4px 18px rgba(27,79,155,.06); background: #fff; padding: 1.5rem;
         }
-        .row-info { display: flex; gap: 8px; align-items: center; font-size: .84rem; }
-        .row-label { color: var(--gris-texte); font-weight: 500; width: 88px; flex-shrink: 0; }
-        .btn-valider {
-            flex: 1; padding: 10px; border: none; border-radius: 8px;
-            background: var(--vert); color: #fff; font-family: 'DM Sans', sans-serif;
-            font-weight: 700; font-size: .87rem; cursor: pointer; display: flex;
-            align-items: center; justify-content: center; gap: 6px; transition: opacity .2s;
-        }
-        .btn-valider:hover { opacity: .85; }
-        .btn-refuser {
-            flex: 1; padding: 10px; border: 1px solid var(--gris-border); border-radius: 8px;
-            background: var(--blanc); color: var(--rouge); font-family: 'DM Sans', sans-serif;
-            font-weight: 700; font-size: .87rem; cursor: pointer; display: flex;
-            align-items: center; justify-content: center; gap: 6px; transition: all .2s;
-        }
-        .btn-refuser:hover { border-color: var(--rouge); background: rgba(220,38,38,.04); }
-        .btn-dl-small {
-            display: inline-flex; align-items: center; gap: 5px;
-            padding: 5px 11px; border: 1px solid var(--bleu);
-            background: var(--blanc); color: var(--bleu);
-            border-radius: 20px; font-size: .72rem; font-weight: 700;
-            cursor: pointer; text-decoration: none; font-family: 'DM Sans', sans-serif;
-            transition: all .2s;
-        }
-        .btn-dl-small:hover { background: var(--bleu); color: #fff; }
     </style>
 </head>
 <body>
-<div class="page anim">
 
-    <header class="entete">
-        <a href="accueil_tuteur.php" class="btn-retour" aria-label="Retour">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="15 18 9 12 15 6"/>
-            </svg>
-        </a>
-        <span class="entete-titre">Valider conventions</span>
-        <div style="width:36px;"></div>
-    </header>
-
-    <div class="contenu">
-
-        <?php if ($msg_ok) : ?>
-        <div style="background:rgba(22,163,74,.09); border:1px solid var(--vert); border-radius:8px; padding:9px 13px; font-size:.83rem; color:var(--vert); font-weight:600;">
-            ✓ <?php echo htmlspecialchars($msg_ok); ?>
+<nav class="navbar navbar-expand-lg navbar-cy shadow-sm mb-4">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand" href="accueil_tuteur.php"><img src="../../public/assets/img/logo.png" alt="CY Stage" height="36"></a>
+        <div class="ms-auto d-flex align-items-center">
+            <span class="fw-bold text-white me-3 d-none d-sm-inline"><i class="bi bi-person-workspace me-2"></i> <?php echo h($_SESSION['prenom'] . ' ' . $_SESSION['nom']); ?></span>
+            <a href="deconnexion.php" class="btn btn-outline-light btn-sm rounded-pill px-3"><i class="bi bi-box-arrow-right d-sm-none"></i><span class="d-none d-sm-inline">Déconnexion</span></a>
         </div>
-        <?php endif; ?>
-        <?php if ($msg_err) : ?>
-        <div style="background:#fff0f0; border:1px solid #fca5a5; border-radius:8px; padding:9px 13px; font-size:.83rem; color:var(--rouge);">
-            <?php echo htmlspecialchars($msg_err); ?>
+    </div>
+</nav>
+
+<div class="container mb-5" style="max-width:900px;">
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <a href="accueil_tuteur.php" class="btn btn-outline-secondary btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width:38px;height:38px;"><i class="bi bi-chevron-left"></i></a>
+        <div>
+            <h1 class="h4 mb-0 fw-bold" style="color:var(--bleu); font-family:'Syne',sans-serif;">Valider les Conventions</h1>
+            <p class="text-muted mb-0" style="font-size:.85rem;">Examinez et approuvez les conventions de vos étudiants</p>
         </div>
-        <?php endif; ?>
+    </div>
 
-        <?php if (empty($dossiers)) : ?>
-        <div class="etat-vide">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M9 11l3 3L22 4"/>
-                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
-            </svg>
-            <h3>Aucune convention à valider</h3>
-            <p>Vous n'avez pas encore d'étudiants avec un dossier actif.</p>
+    <!-- Alertes[cite: 18] -->
+    <?php if ($msg_ok) : ?>
+        <div class="alert alert-success rounded-4 d-flex align-items-center gap-2 mb-4"><i class="bi bi-check-circle-fill"></i> <strong><?php echo h($msg_ok); ?></strong></div>
+    <?php endif; ?>
+    <?php if ($msg_err) : ?>
+        <div class="alert alert-danger rounded-4 d-flex align-items-center gap-2 mb-4"><i class="bi bi-exclamation-triangle-fill"></i> <strong><?php echo h($msg_err); ?></strong></div>
+    <?php endif; ?>
+
+    <?php if (empty($dossiers)) : ?>
+        <div class="text-center p-5 bg-white rounded-4 border" style="border-style: dashed !important;">
+            <i class="bi bi-file-earmark-check text-muted opacity-50 mb-3 d-block" style="font-size: 3rem;"></i>
+            <h5 class="fw-bold mb-2" style="color:var(--bleu); font-family:'Syne',sans-serif;">Aucune convention en attente</h5>
+            <p class="text-muted mb-0">Vous n'avez pas encore d'étudiants avec un dossier actif.</p>
         </div>
+    <?php else : ?>
+        <div class="mb-3 text-muted fw-bold" style="font-size:.9rem;"><?php echo count($dossiers); ?> dossier(s) trouvé(s)</div>
+        <div class="row g-4">
+            <?php foreach ($dossiers as $d) : 
+                $st_data = $statuts_labels[$d['statut']] ?? [$d['statut'], 'bg-secondary text-white'];
+            ?>
+            <div class="col-12">
+                <div class="card-cy">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                        <h5 class="fw-bold mb-0" style="font-family:'Syne',sans-serif; color:#111827;"><i class="bi bi-person-badge text-muted me-2"></i><?php echo h($d['nom_etudiant']); ?></h5>
+                        <span class="badge rounded-pill <?php echo $st_data[1]; ?>"><?php echo $st_data[0]; ?></span>
+                    </div>
+                    
+                    <div class="row mb-4" style="font-size: .85rem;">
+                        <div class="col-md-6 mb-2"><strong class="text-muted d-block">Stage</strong> <span class="fw-bold"><?php echo h($d['titre_stage']); ?></span></div>
+                        <div class="col-md-6 mb-2"><strong class="text-muted d-block">Entreprise</strong> <span class="fw-bold"><?php echo h($d['nom_entreprise']); ?></span></div>
+                        <div class="col-md-6 mb-2"><strong class="text-muted d-block">Période</strong> <span class="fw-bold"><?php echo $d['date_debut'] ? date('d/m/Y', strtotime($d['date_debut'])) : '—'; ?> au <?php echo $d['date_fin'] ? date('d/m/Y', strtotime($d['date_fin'])) : '—'; ?></span></div>
+                        <div class="col-md-6 mb-2">
+                            <strong class="text-muted d-block">Convention PDF</strong>
+                            <?php if (!empty($d['convention_url'])) : ?>
+                                <a href="/<?php echo h($d['convention_url']); ?>" target="_blank" class="btn btn-sm btn-outline-primary rounded-pill mt-1"><i class="bi bi-download me-1"></i> Télécharger le document</a>
+                            <?php else : ?>
+                                <span class="text-danger fw-bold"><i class="bi bi-x-circle me-1"></i> Non déposée</span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
 
-        <?php else : ?>
-
-        <p style="font-size:.79rem; color:var(--gris-texte); font-weight:600;">
-            <?php echo count($dossiers); ?> dossier<?php echo count($dossiers) > 1 ? 's' : ''; ?>
-        </p>
-
-        <?php foreach ($dossiers as $d) :
-            [$st_label, $st_class] = $statuts_labels[$d['statut']] ?? [$d['statut'], 'badge-gris'];
-        ?>
-
-        <div class="convention-card">
-
-            <!-- Nom de l'étudiant + statut -->
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <p style="font-family:'Syne',sans-serif; font-weight:700; font-size:.94rem;">
-                    <?php echo htmlspecialchars($d['nom_etudiant']); ?>
-                </p>
-                <span class="badge <?php echo $st_class; ?>"><?php echo $st_label; ?></span>
-            </div>
-
-            <!-- Infos du stage -->
-            <div style="display:flex; flex-direction:column; gap:5px;">
-                <div class="row-info">
-                    <span class="row-label">Nom</span>
-                    <span style="font-weight:700;"><?php echo htmlspecialchars($d['titre_stage']); ?></span>
-                </div>
-                <div class="row-info">
-                    <span class="row-label">Date début</span>
-                    <span style="font-weight:700;"><?php echo $d['date_debut'] ? date('d/m/Y', strtotime($d['date_debut'])) : '—'; ?></span>
-                </div>
-                <div class="row-info">
-                    <span class="row-label">Date fin</span>
-                    <span style="font-weight:700;"><?php echo $d['date_fin'] ? date('d/m/Y', strtotime($d['date_fin'])) : '—'; ?></span>
-                </div>
-                <div class="row-info">
-                    <span class="row-label">Entreprise</span>
-                    <span style="font-weight:700;"><?php echo htmlspecialchars($d['nom_entreprise']); ?></span>
-                </div>
-                <div class="row-info">
-                    <span class="row-label">Convention</span>
-                    <?php if (!empty($d['convention_url'])) : ?>
-                    <a href="/<?php echo htmlspecialchars($d['convention_url']); ?>" download class="btn-dl-small">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px;">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                            <polyline points="7 10 12 15 17 10"/>
-                            <line x1="12" y1="15" x2="12" y2="3"/>
-                        </svg>
-                        Télécharger
-                    </a>
+                    <?php if ($d['deja_valide'] == 0) : ?>
+                        <form method="POST" action="validation_convention_tuteur.php" class="bg-light p-3 rounded-4 border">
+                            <input type="hidden" name="num_dossier" value="<?php echo (int)$d['num_dossier']; ?>">
+                            <label class="form-label fw-bold text-dark" style="font-size: .85rem;">Commentaire <span class="text-muted fw-normal">(optionnel)</span></label>
+                            <textarea class="form-control rounded-3 mb-3" name="commentaire" rows="2" placeholder="Ajoutez une remarque justifiant votre décision..."></textarea>
+                            <div class="d-flex gap-2">
+                                <button type="submit" name="action_val" value="valider" class="btn btn-success rounded-pill fw-bold px-4 flex-grow-1"><i class="bi bi-check-lg me-1"></i> Valider la convention</button>
+                                <button type="submit" name="action_val" value="refuser" class="btn btn-outline-danger rounded-pill fw-bold px-4 flex-grow-1"><i class="bi bi-x-lg me-1"></i> Refuser</button>
+                            </div>
+                        </form>
                     <?php else : ?>
-                    <span style="font-size:.78rem; color:var(--rouge); font-weight:600;">Non déposée</span>
+                        <div class="alert alert-success m-0 rounded-3 py-2 d-inline-block"><i class="bi bi-check2-all me-1"></i> Vous avez déjà statué sur ce dossier.</div>
                     <?php endif; ?>
                 </div>
             </div>
-
-            <!-- Commentaire -->
-            <?php if ($d['deja_valide'] == 0) : ?>
-            <form method="POST" action="validation_convention_tuteur.php">
-                <input type="hidden" name="num_dossier" value="<?php echo (int)$d['num_dossier']; ?>">
-                <textarea class="textarea" name="commentaire" rows="2" placeholder="Commentaire optionnel…" style="margin-bottom:9px;"></textarea>
-
-                <!-- Boutons Valider / Refuser -->
-                <div style="display:flex; gap:9px;">
-                    <button type="submit" name="action_val" value="valider" class="btn-valider">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;">
-                            <polyline points="20 6 9 17 4 12"/>
-                        </svg>
-                    </button>
-                    <button type="submit" name="action_val" value="refuser" class="btn-refuser">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;">
-                            <line x1="18" y1="6" x2="6" y2="18"/>
-                            <line x1="6" y1="6" x2="18" y2="18"/>
-                        </svg>
-                    </button>
-                </div>
-            </form>
-
-            <?php else : ?>
-            <div style="font-size:.80rem; color:var(--vert); font-weight:600;">
-                ✓ Vous avez déjà validé ce dossier
-            </div>
-            <?php endif; ?>
-
+            <?php endforeach; ?>
         </div>
-
-        <?php endforeach; ?>
-        <?php endif; ?>
-
-    </div>
+    <?php endif; ?>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -20,7 +20,7 @@ function formatStatutCandidature(string $statut): array
     $map = [
         'en_attente' => ['En attente', 'badge-orange'],
         'acceptee_entreprise' => ['Acceptée par l’entreprise', 'badge-vert'],
-        'confirmee_etudiant' => ['Stage confirmé', 'badge-bleu'],
+        'confirmee_etudiant' => ['Stage confirmé', 'badge-vert'],
         'refusee_entreprise' => ['Refusée par l’entreprise', 'badge-rouge'],
         'refusee_etudiant' => ['Annulée par l’étudiant', 'badge-rouge'],
     ];

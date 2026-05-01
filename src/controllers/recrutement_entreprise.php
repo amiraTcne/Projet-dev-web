@@ -152,6 +152,55 @@ try {
         }
     }
 
+    elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'valider_convention') {
+        $numStage = (int)($_POST['num_stage'] ?? 0);
+
+        $stmt = mysqli_prepare($conn, "
+            SELECT s.num_stage, s.id_etudiant, s.titre
+            FROM Stage s
+            WHERE s.num_stage = ? AND s.id_entreprise = ?
+        ");
+        mysqli_stmt_bind_param($stmt, 'ii', $numStage, $idEntreprise);
+        mysqli_stmt_execute($stmt);
+        $cand = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
+        mysqli_stmt_close($stmt);
+
+        if (!$cand) {
+            $msgErr = "Candidature introuvable.";
+        } else {
+            $sd = mysqli_prepare($conn, "
+                SELECT id
+                FROM DocumentCandidature
+                WHERE num_stage = ? AND type_document = 'convention_stage'
+                ORDER BY date_envoi DESC, id DESC
+                LIMIT 1
+            ");
+            mysqli_stmt_bind_param($sd, 'i', $numStage);
+            mysqli_stmt_execute($sd);
+            $doc = mysqli_fetch_assoc(mysqli_stmt_get_result($sd));
+            mysqli_stmt_close($sd);
+
+            if (!$doc) {
+                $msgErr = "Aucune convention n'a été envoyée par l'étudiant.";
+            } else {
+                $nomEnt = $_SESSION['nom_entreprise'] ?? 'L’entreprise';
+                $titreNotif = "Convention validée — " . $cand['titre'];
+                $messageNotif = $nomEnt . " a validé la convention que vous avez envoyée pour le poste \"" . $cand['titre'] . "\".";
+                $lienNotif = "candidatures_etudiant.php";
+
+                $insNotif = mysqli_prepare($conn, "
+                    INSERT INTO Notification (id_user, type, titre, message, lien)
+                    VALUES (?, 'autre', ?, ?, ?)
+                ");
+                mysqli_stmt_bind_param($insNotif, 'isss', $cand['id_etudiant'], $titreNotif, $messageNotif, $lienNotif);
+                mysqli_stmt_execute($insNotif);
+                mysqli_stmt_close($insNotif);
+
+                $msgOk = "La convention a bien été validée. L’étudiant a été notifié.";
+            }
+        }
+    }
+
     elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'refuser') {
         $numStage = (int)($_POST['num_stage'] ?? 0);
         $motif = trim($_POST['motif'] ?? '');
@@ -444,8 +493,16 @@ try {
                             <button type="submit" class="btn btn-ok">Valider la candidature</button>
                         </form>
 
+                        <form method="POST" style="display:inline-block;">
+                            <input type="hidden" name="action" value="valider_convention">
+                            <input type="hidden" name="num_stage" value="<?= (int)$c['num_stage'] ?>">
+                            <button type="submit" class="btn btn-secondary">
+                                Valider la convention
+                            </button>
+                        </form>
+
                         <button type="button" class="btn btn-ko" onclick="ouvrirRefus(<?php echo (int)$c['num_stage']; ?>, '<?php echo h($c['nom_etudiant']); ?>')">
-                            Refuser
+                            Refuser la candidature
                         </button>
                     </div>
                 </div>

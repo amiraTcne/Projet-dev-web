@@ -225,7 +225,7 @@ try {
         $sd = mysqli_prepare($conn, "
             SELECT id, type_document, nom_fichier, chemin_fichier, date_envoi
             FROM DocumentCandidature
-            WHERE numstage = ?
+            WHERE num_stage = ?
             ORDER BY date_envoi DESC, id DESC
         ");
         mysqli_stmt_bind_param($sd, 'i', $row['num_stage']);

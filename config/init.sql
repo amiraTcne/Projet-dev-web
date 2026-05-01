@@ -270,7 +270,7 @@ CREATE TABLE `Remarque` (
 
 LOCK TABLES `Remarque` WRITE;
 /*!40000 ALTER TABLE `Remarque` DISABLE KEYS */;
-INSERT INTO `Remarque` VALUES (1,'Bonjour Jean, n\'oublie pas de remplir ton rapport de mi-stage avant la fin du mois.','2026-04-23 08:47:24',1,5),(2,'Bonjour M. Lefebvre, bien noté ! Je dépose le rapport cette semaine.','2026-04-23 08:47:24',1,1),(3,'[AVANCEMENT SEMAINE] Finalisation du module d\'authentification et début de l\'intégration de l\'API REST.','2026-04-23 08:47:24',1,1);
+INSERT INTO `Remarque` VALUES (1,'Bonjour Jean, noublie pas de remplir ton rapport de mi-stage avant la fin du mois.','2026-04-23 08:47:24',1,5),(2,'Bonjour M. Lefebvre, bien noté ! Je dépose le rapport cette semaine.','2026-04-23 08:47:24',1,1),(3,'[AVANCEMENT SEMAINE] Finalisation du module d authentification et début de l\'intégration de l\'API REST.','2026-04-23 08:47:24',1,1);
 /*!40000 ALTER TABLE `Remarque` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -387,21 +387,13 @@ CREATE TABLE `Utilisateur` (
   UNIQUE KEY `email` (`email`),
   UNIQUE KEY `num_siret` (`num_siret`),
   KEY `idx_user_role` (`role_premier`),
-  KEY `idx_user_siret` (`num_siret`),
-  `description` varchar(1000) DEFAULT NULL
-) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  KEY `idx_user_siret` (`num_siret`)
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `Utilisateur`
---
+ALTER TABLE Utilisateur ADD COLUMN description VARCHAR(1000) DEFAULT NULL;
 
-LOCK TABLES `Utilisateur` WRITE;
-/*!40000 ALTER TABLE `Utilisateur` DISABLE KEYS */;
-INSERT INTO `Utilisateur` VALUES (1,'DUPONT','Jean','jean.dupont@cy-tech.fr','jeanD26.','2026-04-07 12:52:27',1,'Etudiant',NULL,NULL,'Informatique','ING1',2026,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0,NULL),(2,'Martin','Marc','marc.martin@universite.fr','admin26.','2026-04-12 12:26:19',1,'Admin',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0,NULL),(3,'Dupont','Jean','contact@techcorp.fr','entreprise26.','2026-04-12 12:36:05',1,'Entreprise',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,'12345678901234','TechCorp SAS','Informatique','12 rue de la Paix','Paris','75001','https://techcorp.fr',0,'TechCorp est une entreprise spécialisée dans le digital et la création de sites internet. Nous utilisons toutes sortes de langages, que ce soit du front-end & back-end.
-Nous nous engageons à offrir à nos salariés un environnement de travail sain, avec une organisation d’entreprise horizontale. N’hésitez pas à nous rejoindre en postulant aux différentes offres de stage !'),(4,'Bernard','Sophie','sophie.bernard@universite.fr','jurys26.','2026-04-12 12:38:14',1,'Jury',NULL,NULL,NULL,NULL,NULL,'Informatique & IA',NULL,'Commission Ingénierie',2024,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0,NULL),(5,'Lefebvre','Pierre','pierre.lefebvre@universite.fr','tuteur26.','2026-04-12 12:41:03',1,'Tuteur',NULL,NULL,NULL,NULL,NULL,'Mathématiques Appliquées','Département Sciences',NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0,NULL),(6,'Dupont','Jade','jade.dupont@etu.cyu.fr','$2y$10$Xml9K1XUxWmpH9KGe1JgKuoPxLlc3qcmUfVA.HTReCptOTeFPij0S','2026-04-12 14:52:10',1,'Etudiant',NULL,NULL,'Informatique','M2',2024,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,0,NULL);
-/*!40000 ALTER TABLE `Utilisateur` ENABLE KEYS */;
-UNLOCK TABLES;
+
 
 --
 -- Table structure for table `Validation_Convention`
@@ -600,3 +592,165 @@ VALUES (
     'ouverte',
     3
 );
+
+
+-- Table des notifications pour les étudiants (et autres rôles)
+CREATE TABLE IF NOT EXISTS `Notification` (
+  `id_notif`    INT UNSIGNED    NOT NULL AUTO_INCREMENT,
+  `id_user`     INT UNSIGNED    NOT NULL COMMENT 'Destinataire',
+  `type`        ENUM(
+                  'candidature_validee',
+                  'candidature_refusee',
+                  'stage_cree',
+                  'remarque',
+                  'autre'
+                ) NOT NULL DEFAULT 'autre',
+  `titre`       VARCHAR(200)    NOT NULL,
+  `message`     TEXT            NOT NULL,
+  `lien`        VARCHAR(300)    DEFAULT NULL COMMENT 'URL optionnelle vers la page concernée',
+  `lu`          TINYINT(1)      NOT NULL DEFAULT 0,
+  `date_creation` DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id_notif`),
+  KEY `idx_notif_user` (`id_user`),
+  KEY `idx_notif_lu`   (`lu`),
+  CONSTRAINT `fk_notif_user`
+    FOREIGN KEY (`id_user`) REFERENCES `Utilisateur` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+ 
+-- Colonne pour tracker l'état côté étudiant sur le Stage
+-- ('en_attente' = candidature soumise, 'acceptee_entreprise' = entreprise a validé,
+--  'confirmee_etudiant' = étudiant a confirmé → stage réel créé,
+--  'refusee_entreprise', 'refusee_etudiant')
+ALTER TABLE `Stage`
+  ADD COLUMN `statut_candidature` 
+    ENUM(
+      'en_attente',
+      'acceptee_entreprise',
+      'confirmee_etudiant',
+      'refusee_entreprise',
+      'refusee_etudiant'
+    ) NOT NULL DEFAULT 'en_attente' 
+    AFTER `statut`;
+
+-- 1. Mise à jour du stage
+UPDATE Stage 
+SET statut = 'en_cours', 
+    statut_candidature = 'confirmee_etudiant' 
+WHERE num_stage = 5 AND id_etudiant = 1;
+
+-- 2. Création du dossier
+INSERT INTO Dossier_Stage (statut, num_stage, id_etudiant, date_creation)
+VALUES ('incomplet', 5, 1, NOW());
+
+
+CREATE TABLE IF NOT EXISTS Double_Authentification (
+    id_2fa INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    id_user INT UNSIGNED NOT NULL,
+    code_verification CHAR(4) NOT NULL,
+    date_creation DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    date_expiration DATETIME NOT NULL,
+    utilise TINYINT(1) NOT NULL DEFAULT 0,
+    PRIMARY KEY (id_2fa),
+    KEY idx_2fa_user (id_user),
+    CONSTRAINT fk_2fa_user
+        FOREIGN KEY (id_user) REFERENCES Utilisateur(id)
+        ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO Utilisateur (
+    nom, prenom, email, mot_de_passe, actif, role_premier, filiere, niveau, annee_promo
+) VALUES (
+    'Amira', 'Ta', 'mira.tcne@gmail.com', 'projetStage26.', 1, 'Etudiant', 'Informatique', 'ING1', 2026
+);
+
+-- =============================================================
+-- INSERTION DES 10 ENTREPRISES (Secteurs variés)
+-- =============================================================
+INSERT INTO Utilisateur (nom, prenom, email, mot_de_passe, actif, role_premier, num_siret, nom_entreprise, secteur, nb_stagiere) VALUES 
+('VOLT', 'Eco', 'ecovolt@yopmail.com', 'ecovolt2026!', 1, 'Entreprise', '10000000000001', 'EcoVolt', 'Énergie', 0),
+('SEC', 'Cyber', 'cybersec@yopmail.com', 'cybersec2026!', 1, 'Entreprise', '10000000000002', 'CyberSec', 'Cybersécurité', 0),
+('MIND', 'Data', 'datamind@yopmail.com', 'datamind2026!', 1, 'Entreprise', '10000000000003', 'DataMind', 'IA / Data', 0),
+('IT', 'Build', 'buildit@yopmail.com', 'buildit2026!', 1, 'Entreprise', '10000000000004', 'BuildIt', 'BTP', 0),
+('LAB', 'Bio', 'biolab@yopmail.com', 'biolab2026!', 1, 'Entreprise', '10000000000005', 'BioLab', 'Santé', 0),
+('X', 'FinTech', 'fintechx@yopmail.com', 'fintechx2026!', 1, 'Entreprise', '10000000000006', 'FinTechX', 'Finance', 0),
+('SPACE', 'Green', 'greenspace@yopmail.com', 'greenspace2026!', 1, 'Entreprise', '10000000000007', 'GreenSpace', 'Écologie', 0),
+('OPS', 'Cloud', 'cloudops@yopmail.com', 'cloudops2026!', 1, 'Entreprise', '10000000000008', 'CloudOps', 'Cloud', 0),
+('DRIVE', 'Auto', 'autodrive@yopmail.com', 'autodrive2026!', 1, 'Entreprise', '10000000000009', 'AutoDrive', 'Automobile', 0),
+('FLOW', 'Media', 'mediaflow@yopmail.com', 'mediaflow2026!', 1, 'Entreprise', '10000000000010', 'MediaFlow', 'Marketing', 0);
+
+-- =============================================================
+-- INSERTION DES 12 ÉTUDIANTS (Matières différentes)
+-- =============================================================
+INSERT INTO Utilisateur (nom, prenom, email, mot_de_passe, actif, role_premier, filiere, niveau, annee_promo) VALUES 
+('Lemoine', 'Lucas', 'lucas.lemoine@yopmail.com', 'lucas2026!', 1, 'Etudiant', 'Informatique', 'ING1', 2026),
+('Petit', 'Sarah', 'sarah.petit@yopmail.com', 'sarah2026!', 1, 'Etudiant', 'Mathématiques', 'M1', 2026),
+('Garnier', 'Thomas', 'thomas.garnier@yopmail.com', 'thomas2026!', 1, 'Etudiant', 'Cybersécurité', 'ING2', 2026),
+('Rousseau', 'Emma', 'emma.rousseau@yopmail.com', 'emma2026!', 1, 'Etudiant', 'Génie Civil', 'ING1', 2026),
+('Moreau', 'Hugo', 'hugo.moreau@yopmail.com', 'hugo2026!', 1, 'Etudiant', 'IA & Big Data', 'M2', 2026),
+('Blanc', 'Chloé', 'chloe.blanc@yopmail.com', 'chloé2026!', 1, 'Etudiant', 'Électronique', 'L3', 2026),
+('Faure', 'Nathan', 'nathan.faure@yopmail.com', 'nathan2026!', 1, 'Etudiant', 'Informatique', 'ING3', 2026),
+('Mercier', 'Léa', 'lea.mercier@yopmail.com', 'léa2026!', 1, 'Etudiant', 'Finance', 'M1', 2026),
+('Guerin', 'Axel', 'axel.guerin@yopmail.com', 'axel2026!', 1, 'Etudiant', 'Réseaux', 'ING1', 2026),
+('Boyer', 'Inès', 'ines.boyer@yopmail.com', 'inès2026!', 1, 'Etudiant', 'Bio-informatique', 'M2', 2026),
+('Fontaine', 'Enzo', 'enzo.fontaine@yopmail.com', 'enzo2026!', 1, 'Etudiant', 'Mathématiques', 'L3', 2026),
+('Robin', 'Clara', 'clara.robin@yopmail.com', 'clara2026!', 1, 'Etudiant', 'Management Tech', 'ING2', 2026);
+
+-- =============================================================
+-- INSERTION DES 5 TUTEURS ET 5 JURYS
+-- =============================================================
+-- Tuteurs
+INSERT INTO Utilisateur (nom, prenom, email, mot_de_passe, actif, role_premier, specialite, departement) VALUES 
+('Lefebvre', 'Marc', 'm.lefebvre@yopmail.com', 'marc2026!', 1, 'Tuteur', 'Algorithmique', 'Informatique'),
+('Cordier', 'Alice', 'a.cordier@yopmail.com', 'alice2026!', 1, 'Tuteur', 'Structure des données', 'Informatique'),
+('Masson', 'Julien', 'j.masson@yopmail.com', 'julien2026!', 1, 'Tuteur', 'Réseaux IP', 'Télécoms'),
+('Vallet', 'Sophie', 's.vallet@yopmail.com', 'sophie2026!', 1, 'Tuteur', 'Statistiques', 'Mathématiques'),
+('Roux', 'Damien', 'd.roux@yopmail.com', 'damien2026!', 1, 'Tuteur', 'Développement Web', 'Informatique');
+
+-- Jurys
+INSERT INTO Utilisateur (nom, prenom, email, mot_de_passe, actif, role_premier, specialite, commission, annee_jury) VALUES 
+('Martin', 'Hélène', 'h.martin@yopmail.com', 'hélène2026!', 1, 'Jury', 'Systèmes', 'Commission Systèmes', 2026),
+('Legrand', 'Bruno', 'b.legrand@yopmail.com', 'bruno2026!', 1, 'Jury', 'Mathématiques', 'Commission Mathématiques', 2026),
+('Dumas', 'Céline', 'c.dumas@yopmail.com', 'céline2026!', 1, 'Jury', 'Intelligence Artificielle', 'Commission IA', 2026),
+('Hugo', 'Victor', 'v.hugo@yopmail.com', 'victor2026!', 1, 'Jury', 'Éthique & Tech', 'Commission Éthique', 2026),
+('Morel', 'Sabine', 's.morel@yopmail.com', 'sabine2026!', 1, 'Jury', 'Innovation', 'Commission Innovation', 2026);
+
+-- =============================================================
+-- INSERTION DES OFFRES DE STAGE (1 à 2 par entreprise)
+-- =============================================================
+INSERT INTO Offre_Stage (titre, mission, filiere_ciblee, duree_semaines, date_debut, statut, id_entreprise) VALUES 
+('Ingénieur Smart Grid', 'Optimisation réseau', 'Énergie', 12, '2026-05-01', 'ouverte', 7),
+('Analyste Performance', 'Analyse énergétique', 'Énergie', 12, '2026-05-01', 'ouverte', 7),
+('Pentester Junior', 'Tests d''intrusion', 'Cybersécurité', 12, '2026-05-01', 'ouverte', 8),
+('Analyste SOC', 'Surveillance réseau', 'Cybersécurité', 12, '2026-05-01', 'ouverte', 8),
+('Data Scientist', 'Modèles prédictifs', 'IA / Data', 12, '2026-05-01', 'ouverte', 9),
+('Ingénieur ML Ops', 'Déploiement modèles', 'IA / Data', 12, '2026-05-01', 'ouverte', 9),
+('Conducteur de Travaux', 'Suivi de chantier', 'BTP', 12, '2026-05-01', 'ouverte', 10),
+('Dessinateur BIM', 'Modélisation 3D', 'BTP', 12, '2026-05-01', 'ouverte', 10),
+('Assistant Bio-informatique', 'Analyse génomique', 'Santé', 12, '2026-05-01', 'ouverte', 11),
+('Développeur Blockchain', 'Smart contracts', 'Finance', 12, '2026-05-01', 'ouverte', 12),
+('Consultant RSE', 'Audit environnemental', 'Écologie', 12, '2026-05-01', 'ouverte', 13),
+('Auditeur Carbone', 'Bilan carbone', 'Écologie', 12, '2026-05-01', 'ouverte', 13),
+('Ingénieur Cloud', 'Architecture AWS', 'Cloud', 12, '2026-05-01', 'ouverte', 14),
+('Admin Sys Linux', 'Maintenance serveurs', 'Cloud', 12, '2026-05-01', 'ouverte', 14),
+('Ingénieur Systèmes Embarqués', 'C++ temps réel', 'Automobile', 12, '2026-05-01', 'ouverte', 15),
+('Chef de Projet Digital', 'Gestion de campagne', 'Marketing', 12, '2026-05-01', 'ouverte', 16),
+('UX Designer', 'Design d''interface', 'Marketing', 12, '2026-05-01', 'ouverte', 16);
+
+
+DROP TABLE IF EXISTS DocumentCandidature;
+
+CREATE TABLE DocumentCandidature (
+    id INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    num_stage INT UNSIGNED NOT NULL,
+    type_document ENUM('cv','lettre_motivation','convention_stage','supplementaire') NOT NULL,
+    nom_fichier VARCHAR(255) NOT NULL,
+    chemin_fichier VARCHAR(255) NOT NULL,
+    date_envoi DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY idx_doc_stage (num_stage),
+    CONSTRAINT fk_doc_stage
+        FOREIGN KEY (num_stage) REFERENCES Stage(num_stage) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+ALTER TABLE Stage
+ADD COLUMN convention_validee TINYINT(1) NOT NULL DEFAULT 0;

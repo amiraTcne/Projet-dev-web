@@ -280,8 +280,8 @@ if ($conn) {
         <?php endforeach; ?>
         <?php endif; ?>
 
-    </div><
-</div><
+    </div>
+</div>
 
 <!-- le "toast" est la invisible (car -cache)
  mais par la site il va nous permettre d'afficher les messages de confirmation ou d'erreur,

@@ -92,6 +92,23 @@ $nom_entreprise = isset($_SESSION['nom_entreprise']) ? $_SESSION['nom_entreprise
             </a>
         </div>
 
+        <div class="col-12 col-sm-6">
+            <a href="recrutement_entreprise.php" 
+               class="d-flex align-items-center gap-3 p-3 rounded-3 border bg-white shadow-sm text-decoration-none"
+               style="transition:.15s"
+               onmouseover="this.style.borderColor='#1B4F9B';this.style.transform='translateY(-2px)'"
+               onmouseout="this.style.borderColor='';this.style.transform=''">
+                <div class="icon rounded-3 p-2" style="background:#f0f7ff;">
+                    <i class="bi bi-file-earmark-text-fill fs-4" style="color:#1B4F9B;"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <div class="fw-semibold text-dark">Gestion candiatures</div>
+                    <div class="text-muted" style="font-size:.8rem;">Suivi des candiatures déposées</div>
+                </div>
+                <i class="bi bi-chevron-right text-secondary"></i>
+            </a>
+        </div>
+
     </div><div class="mt-5 p-4 rounded-4 bg-light text-center border-dashed">
         <p class="text-muted mb-0 small">
             Besoin d'aide pour recruter ? Contactez le support CY Stage.

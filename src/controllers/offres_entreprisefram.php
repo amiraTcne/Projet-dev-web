@@ -27,8 +27,8 @@ $offres = [];
 $nomEntreprise = 'Entreprise';
 
 // Récupération du nom de l'entreprise connectée
-$sqlEntreprise = "SELECT nom_entreprise 
-                  FROM Utilisateur 
+$sqlEntreprise = "SELECT nom_entreprise
+                  FROM Utilisateur
                   WHERE id = ? AND role_premier = 'Entreprise'";
 
 $stmtEntreprise = mysqli_prepare($connect, $sqlEntreprise);
@@ -44,6 +44,11 @@ if ($stmtEntreprise) {
     }
 
     mysqli_stmt_close($stmtEntreprise);
+}
+
+
+if (isset($_GET['message']) && $_GET['message'] === 'offre_supprimee') {
+    $message = "L'offre a bien été supprimée.";
 }
 
 // Ajout d'une offre
@@ -95,7 +100,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajouter_offre'])) {
     }
 }
 
-// Récupération des offres de l'entreprise connectée
 $sqlOffres = "SELECT num_offre, titre, mission, competences, filiere_ciblee, duree_semaines, date_debut, date_publication, statut
               FROM Offre_Stage
               WHERE id_entreprise = ?
@@ -161,6 +165,9 @@ if ($stmtOffres) {
         }
 
         .offer-card {
+            display: block;
+            text-decoration: none;
+            color: inherit;
             background: linear-gradient(180deg, #f6f9fe 0%, #edf3fb 100%);
             border: 1px solid rgba(86, 134, 217, 0.22);
             border-radius: 1rem;
@@ -170,6 +177,7 @@ if ($stmtOffres) {
         .offer-card:hover {
             transform: translateY(-3px);
             box-shadow: 0 12px 24px rgba(37, 95, 170, 0.12);
+            color: inherit;
         }
 
         .badge-cy {
@@ -261,7 +269,7 @@ if ($stmtOffres) {
                 <?php else : ?>
                     <div class="d-flex flex-column gap-3">
                         <?php foreach ($offres as $offre) : ?>
-                            <div class="offer-card p-3 p-md-4">
+                            <a href="detail_offre_entreprise.php?id=<?php echo (int) $offre['num_offre']; ?>" class="offer-card p-3 p-md-4">
                                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-2 mb-2">
                                     <h3 class="h5 fw-bold text-cy mb-0">
                                         <?php echo htmlspecialchars($offre['titre']); ?>
@@ -295,7 +303,7 @@ if ($stmtOffres) {
                                         | Début : <?php echo htmlspecialchars($offre['date_debut']); ?>
                                     <?php endif; ?>
                                 </p>
-                            </div>
+                            </a>
                         <?php endforeach; ?>
                     </div>
                 <?php endif; ?>

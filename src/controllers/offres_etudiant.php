@@ -343,7 +343,6 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
                 if (data.success) {
                     this.classList.toggle('actif');
                     
-                    // Switch d'icône Bootstrap
                     if (action === 'add') {
                         icon.classList.remove('bi-heart');
                         icon.classList.add('bi-heart-fill');

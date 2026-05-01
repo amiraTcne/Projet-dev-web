@@ -1,9 +1,7 @@
 <?php 
 session_start(); 
-// On récupère le nom de l'entreprise, avec une valeur par défaut par sécurité[cite: 5]
 $nom_entreprise = isset($_SESSION['nom_entreprise']) ? $_SESSION['nom_entreprise'] : 'Entreprise';
 
-// Fonction utilitaire pour sécuriser l'affichage HTML
 function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
 ?>
 <!DOCTYPE html>

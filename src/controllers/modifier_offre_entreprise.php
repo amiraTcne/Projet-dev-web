@@ -1,6 +1,7 @@
 <?php
 session_start();
 
+// Sécurité : Rôle Entreprise[cite: 22]
 if (!isset($_SESSION['id']) || !isset($_SESSION['role']) || $_SESSION['role'] !== 'Entreprise') {
     header('Location: ../../public/login.php');
     exit();
@@ -27,7 +28,7 @@ $message = '';
 $offre = null;
 $nomEntreprise = 'Entreprise';
 
-// Nom entreprise connectée
+// Nom entreprise connectée[cite: 22]
 $sqlEntreprise = "SELECT nom_entreprise
                   FROM Utilisateur
                   WHERE id = ? AND role_premier = 'Entreprise'";
@@ -47,7 +48,7 @@ if ($stmtEntreprise) {
     mysqli_stmt_close($stmtEntreprise);
 }
 
-// Récupération de l'offre
+// Récupération de l'offre[cite: 22]
 $sqlOffre = "SELECT num_offre, titre, mission, competences, filiere_ciblee, duree_semaines, date_debut, statut
              FROM Offre_Stage
              WHERE num_offre = ? AND id_entreprise = ?";
@@ -66,7 +67,7 @@ if (!$offre) {
     die("Offre introuvable ou accès interdit.");
 }
 
-// Traitement modification
+// Traitement modification[cite: 22]
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modifier_offre'])) {
     $titre = trim($_POST['titre'] ?? '');
     $duree = trim($_POST['duree'] ?? '');
@@ -122,7 +123,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modifier_offre'])) {
         }
     }
 
-    // Réinjecter les valeurs saisies si erreur
+    // Réinjecter les valeurs saisies si erreur[cite: 22]
     $offre['titre'] = $titre;
     $offre['mission'] = $description;
     $offre['competences'] = $competences;
@@ -131,210 +132,134 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modifier_offre'])) {
     $offre['date_debut'] = $date_debut;
     $offre['statut'] = $statut;
 }
+
+function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
 ?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modifier l'offre - CY Tech</title>
+    <title>Modifier l'offre — CY Stage</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Montserrat+Alternates:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 
     <style>
         :root {
-            --gris-ardoise: #676D6B;
-            --bleu-royal: #255FAA;
-            --bleu-horizon: #5686D9;
-            --brume-acier: #ABBACD;
+            --bleu: #1B4F9B;
+            --bleu-clair: #2563c7;
         }
-
-        body {
-            font-family: 'Montserrat', sans-serif;
-            background: linear-gradient(180deg, #f8fbff 0%, #eef3f9 100%);
-            color: #2d3436;
-        }
-
-        .page-title {
-            font-family: 'Montserrat Alternates', sans-serif;
-            color: var(--bleu-royal);
-            font-size: 2rem;
-            font-weight: 700;
-        }
-
+        body { font-family: 'DM Sans', sans-serif; background: #f4f6fb; }
+        
+        .navbar-cy { background: linear-gradient(135deg, #1B4F9B, #2563c7); }
+        
         .card-cy {
-            border: 1px solid rgba(171, 186, 205, 0.45);
-            border-radius: 1.3rem;
-            box-shadow: 0 12px 32px rgba(37, 95, 170, 0.10);
+            border: 1px solid rgba(171, 186, 205, 0.4);
+            border-radius: 18px;
+            box-shadow: 0 4px 18px rgba(27, 79, 155, 0.06);
             background-color: #ffffff;
         }
-
-        .form-label {
-            color: var(--bleu-royal);
-            font-weight: 700;
-        }
-
-        .form-control,
-        .form-select {
-            border-radius: 0.8rem;
-            border: 1px solid rgba(171, 186, 205, 0.8);
-            padding: 0.75rem 0.9rem;
-        }
-
-        .form-control:focus,
-        .form-select:focus {
-            border-color: var(--bleu-horizon);
-            box-shadow: 0 0 0 0.2rem rgba(86, 134, 217, 0.15);
-        }
-
-        .btn-cy {
-            background: linear-gradient(135deg, var(--bleu-royal), var(--bleu-horizon));
-            color: white;
-            border: none;
-            font-weight: 700;
-            border-radius: 0.8rem;
-            padding: 0.75rem 1.35rem;
-        }
-
-        .btn-cy:hover {
-            color: white;
-            opacity: 0.95;
-        }
-
-        .btn-outline-cy {
-            border: 1px solid var(--bleu-royal);
-            color: var(--bleu-royal);
-            font-weight: 700;
-            border-radius: 0.8rem;
-            padding: 0.75rem 1.35rem;
-            text-decoration: none;
-            background: white;
-        }
-
-        .btn-outline-cy:hover {
-            background: #eef4ff;
-            color: var(--bleu-royal);
-        }
-
-        .back-link {
-            text-decoration: none;
-            color: var(--bleu-royal);
-            font-weight: 600;
-        }
-
-        .back-link:hover {
-            text-decoration: underline;
-        }
+        .form-label { font-weight: 600; color: #111827; font-size: 0.9rem; }
+        .form-control:focus, .form-select:focus { border-color: var(--bleu-clair); box-shadow: 0 0 0 0.25rem rgba(37,99,199,0.15); }
     </style>
 </head>
 <body>
 
-<div class="container py-4 py-md-5">
-    <div class="mb-4">
-        <a href="detail_offre_entreprise.php?id=<?php echo (int) $numOffre; ?>" class="back-link d-inline-block mb-2">← Retour au détail de l'offre</a>
-        <h1 class="page-title mb-1">Modification offre de stage</h1>
-        <p class="text-muted mb-0">
-            Entreprise connectée : <strong><?php echo htmlspecialchars($nomEntreprise); ?></strong>
-        </p>
+<nav class="navbar navbar-expand-lg navbar-cy shadow-sm mb-4">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand" href="#">
+            <img src="../../public/assets/img/logo.png" alt="CY Stage" height="36">
+        </a>
+        <div class="ms-auto d-flex align-items-center">
+            <span class="fw-bold text-white me-3 d-none d-sm-inline">
+                <i class="bi bi-building me-2"></i> <?php echo h($nomEntreprise); ?>
+            </span>
+            <a href="deconnexion.php" class="btn btn-outline-light btn-sm rounded-pill px-3">
+                <i class="bi bi-box-arrow-right d-sm-none"></i> <span class="d-none d-sm-inline">Déconnexion</span>
+            </a>
+        </div>
+    </div>
+</nav>
+
+<div class="container mb-5" style="max-width:800px;">
+    
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <a href="detail_offre_entreprise.php?id=<?php echo (int) $numOffre; ?>" class="btn btn-outline-secondary btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width:38px;height:38px;">
+            <i class="bi bi-chevron-left"></i>
+        </a>
+        <div>
+            <h1 class="h4 mb-0 fw-bold" style="color:var(--bleu); font-family:'Syne',sans-serif;">Modifier l'offre</h1>
+            <p class="text-muted mb-0" style="font-size:.85rem;">Mettez à jour les informations de votre annonce</p>
+        </div>
     </div>
 
     <?php if (!empty($erreur)) : ?>
-        <div class="alert alert-danger rounded-4"><?php echo htmlspecialchars($erreur); ?></div>
+        <div class="alert alert-danger rounded-4 d-flex align-items-center gap-2 mb-4">
+            <i class="bi bi-exclamation-triangle-fill"></i> <strong><?php echo h($erreur); ?></strong>
+        </div>
     <?php endif; ?>
 
-    <div class="card card-cy p-4 p-md-5">
+    <div class="card-cy p-4 p-md-5">
         <form method="POST" action="">
-            <div class="mb-3">
-                <label for="titre" class="form-label">Titre</label>
-                <input
-                    type="text"
-                    id="titre"
-                    name="titre"
-                    class="form-control"
-                    value="<?php echo htmlspecialchars($offre['titre']); ?>"
-                    required
-                >
+            
+            <div class="row g-4 mb-4">
+                <div class="col-12">
+                    <label for="titre" class="form-label">Titre de l'offre <span class="text-danger">*</span></label>
+                    <input type="text" id="titre" name="titre" class="form-control rounded-3" value="<?php echo h($offre['titre']); ?>" required>
+                </div>
+
+                <div class="col-md-6">
+                    <label for="duree" class="form-label">Durée (semaines) <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class="bi bi-calendar-week"></i></span>
+                        <input type="number" id="duree" name="duree" class="form-control" min="1" value="<?php echo h($offre['duree_semaines']); ?>" required>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label for="date_debut" class="form-label">Date de début estimée</label>
+                    <input type="date" id="date_debut" name="date_debut" class="form-control rounded-3" value="<?php echo h($offre['date_debut'] ?? ''); ?>">
+                </div>
+
+                <div class="col-12">
+                    <label for="description" class="form-label">Mission / Description <span class="text-danger">*</span></label>
+                    <textarea id="description" name="description" class="form-control rounded-3" rows="5" required><?php echo h($offre['mission']); ?></textarea>
+                </div>
+
+                <div class="col-12">
+                    <label for="profil" class="form-label">Filière / Profil recherché</label>
+                    <input type="text" id="profil" name="profil" class="form-control rounded-3" value="<?php echo h($offre['filiere_ciblee'] ?? ''); ?>" placeholder="Ex: Informatique, Ingénieur Data...">
+                </div>
+
+                <div class="col-12">
+                    <label for="competences" class="form-label">Compétences clés (séparées par des virgules)</label>
+                    <input type="text" id="competences" name="competences" class="form-control rounded-3" value="<?php echo h($offre['competences'] ?? ''); ?>" placeholder="Ex: PHP, SQL, Gestion de projet">
+                </div>
+
+                <div class="col-12">
+                    <label for="statut" class="form-label">Statut de l'offre</label>
+                    <select id="statut" name="statut" class="form-select rounded-3 bg-light" required>
+                        <option value="ouverte" <?php echo ($offre['statut'] === 'ouverte') ? 'selected' : ''; ?>>🟢 Ouverte aux candidatures</option>
+                        <option value="pourvue" <?php echo ($offre['statut'] === 'pourvue') ? 'selected' : ''; ?>>🔴 Pourvue (Stage trouvé)</option>
+                        <option value="archivee" <?php echo ($offre['statut'] === 'archivee') ? 'selected' : ''; ?>>⚪ Archivée (Désactivée)</option>
+                    </select>
+                </div>
             </div>
 
-            <div class="mb-3">
-                <label for="duree" class="form-label">Durée (en semaines)</label>
-                <input
-                    type="number"
-                    id="duree"
-                    name="duree"
-                    class="form-control"
-                    min="1"
-                    value="<?php echo htmlspecialchars($offre['duree_semaines']); ?>"
-                    required
-                >
-            </div>
+            <hr class="my-4 text-muted">
 
-            <div class="mb-3">
-                <label for="date_debut" class="form-label">Date</label>
-                <input
-                    type="date"
-                    id="date_debut"
-                    name="date_debut"
-                    class="form-control"
-                    value="<?php echo htmlspecialchars($offre['date_debut'] ?? ''); ?>"
-                >
-            </div>
-
-            <div class="mb-3">
-                <label for="description" class="form-label">Description</label>
-                <textarea
-                    id="description"
-                    name="description"
-                    class="form-control"
-                    rows="5"
-                    required
-                ><?php echo htmlspecialchars($offre['mission']); ?></textarea>
-            </div>
-
-            <div class="mb-3">
-                <label for="profil" class="form-label">Profil recherché</label>
-                <textarea
-                    id="profil"
-                    name="profil"
-                    class="form-control"
-                    rows="3"
-                ><?php echo htmlspecialchars($offre['filiere_ciblee'] ?? ''); ?></textarea>
-            </div>
-
-            <div class="mb-3">
-                <label for="competences" class="form-label">Compétences recherchées</label>
-                <input
-                    type="text"
-                    id="competences"
-                    name="competences"
-                    class="form-control"
-                    value="<?php echo htmlspecialchars($offre['competences'] ?? ''); ?>"
-                >
-            </div>
-
-            <div class="mb-4">
-                <label for="statut" class="form-label">Statut</label>
-                <select id="statut" name="statut" class="form-select" required>
-                    <option value="ouverte" <?php echo ($offre['statut'] === 'ouverte') ? 'selected' : ''; ?>>Ouverte</option>
-                    <option value="pourvue" <?php echo ($offre['statut'] === 'pourvue') ? 'selected' : ''; ?>>Pourvue</option>
-                    <option value="archivee" <?php echo ($offre['statut'] === 'archivee') ? 'selected' : ''; ?>>Archivée</option>
-                </select>
-            </div>
-
-            <div class="d-flex flex-column flex-sm-row gap-3">
-                <a href="detail_offre_entreprise.php?id=<?php echo (int) $numOffre; ?>" class="btn btn-outline-cy">
-                    Annuler
-                </a>
-                <button type="submit" name="modifier_offre" class="btn btn-cy">
-                    Confirmer les modifications
+            <div class="d-flex justify-content-end gap-3">
+                <a href="detail_offre_entreprise.php?id=<?php echo (int) $numOffre; ?>" class="btn btn-light border rounded-pill px-4 fw-bold text-muted">Annuler</a>
+                <button type="submit" name="modifier_offre" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" style="background:var(--bleu); border:none;">
+                    <i class="bi bi-save me-1"></i> Enregistrer
                 </button>
             </div>
         </form>
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

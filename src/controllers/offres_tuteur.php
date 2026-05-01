@@ -17,7 +17,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $conn) {
     $num_offre   = (int)($_POST['num_offre']   ?? 0);
 
     if ($id_etudiant > 0 && $num_offre > 0) {
-        /* Vérifier que l'étudiant n'est pas déjà affecté à cette offre */
         $chk = mysqli_prepare($conn, "SELECT 1 FROM Stage WHERE id_etudiant = ? AND num_offre = ?");
         mysqli_stmt_bind_param($chk, 'ii', $id_etudiant, $num_offre);
         mysqli_stmt_execute($chk);
@@ -70,9 +69,7 @@ if ($conn) {
          FROM Utilisateur WHERE role_premier = 'Etudiant' AND actif = 1
          ORDER BY nom, prenom"
     );
-    while ($e = mysqli_fetch_assoc($re)) {
-        $etudiants[] = $e;
-    }
+    while ($e = mysqli_fetch_assoc($re)) $etudiants[] = $e;
 
     /* Requête offres */
     $sql = "SELECT o.num_offre, o.titre, o.mission, o.competences,
@@ -107,23 +104,15 @@ if ($conn) {
     while ($row = mysqli_fetch_assoc($r)) $offres[] = $row;
     mysqli_stmt_close($stmt);
 
-    /* Secteurs et villes pour filtres */
-    $rs = mysqli_query($conn,
-        "SELECT DISTINCT u.secteur FROM Offre_Stage o
-         JOIN Utilisateur u ON u.id = o.id_entreprise
-         WHERE o.statut = 'ouverte' AND u.secteur IS NOT NULL ORDER BY u.secteur"
-    );
+    $rs = mysqli_query($conn, "SELECT DISTINCT u.secteur FROM Offre_Stage o JOIN Utilisateur u ON u.id = o.id_entreprise WHERE o.statut = 'ouverte' AND u.secteur IS NOT NULL ORDER BY u.secteur");
     while ($s = mysqli_fetch_row($rs)) $secteurs[] = $s[0];
 
-    $rv = mysqli_query($conn,
-        "SELECT DISTINCT u.ville FROM Offre_Stage o
-         JOIN Utilisateur u ON u.id = o.id_entreprise
-         WHERE o.statut = 'ouverte' AND u.ville IS NOT NULL ORDER BY u.ville"
-    );
+    $rv = mysqli_query($conn, "SELECT DISTINCT u.ville FROM Offre_Stage o JOIN Utilisateur u ON u.id = o.id_entreprise WHERE o.statut = 'ouverte' AND u.ville IS NOT NULL ORDER BY u.ville");
     while ($v = mysqli_fetch_row($rv)) $villes[] = $v[0];
 
     mysqli_close($conn);
 }
+function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -131,216 +120,173 @@ if ($conn) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Offres de Stage — CY Stage</title>
-    <link rel="stylesheet" href="../../public/assets/css/style_etudiant.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
     <style>
-        .modal-affecter { display:none; position:fixed; inset:0; background:rgba(17,24,39,.45); z-index:100; align-items:flex-end; justify-content:center; }
-        .modal-inner    { background:#fff; border-radius:20px 20px 0 0; width:100%; max-width:520px; padding:20px 18px 32px; }
-        .modal-handle   { width:32px; height:4px; border-radius:2px; background:var(--gris-border); margin:0 auto 17px; }
-        select.select-field { width:100%; padding:10px 12px; border:1px solid var(--gris-border); border-radius:8px; background:var(--gris-fond); font-family:'DM Sans',sans-serif; font-size:.87rem; color:var(--noir); outline:none; appearance:none; margin-top:8px; cursor:pointer; }
-        select.select-field:focus { border-color:var(--bleu); }
-        .btn-affecter { display:inline-flex; align-items:center; gap:5px; padding:6px 12px; border:1px solid var(--bleu); background:var(--bleu); color:#fff; border-radius:20px; font-size:.74rem; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; transition:opacity .2s; }
-        .btn-affecter:hover { opacity:.85; }
+        :root { --bleu: #1B4F9B; --bleu-clair: #2563c7; }
+        body { font-family: 'DM Sans', sans-serif; background: #f4f6fb; }
+        .navbar-cy { background: linear-gradient(135deg, #1B4F9B, #2563c7); }
+        .card-offre { border: 1px solid rgba(171,186,205,.4); border-radius: 18px; background: #fff; padding: 1.5rem; transition: transform 0.2s, box-shadow 0.2s; }
+        .card-offre:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(27,79,155,.08); border-color: var(--bleu-clair); }
     </style>
 </head>
 <body>
-<div class="page anim">
 
-    <header class="entete">
-        <a href="accueil_tuteur.php" class="btn-retour" aria-label="Retour">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="15 18 9 12 15 6"/>
-            </svg>
-        </a>
-        <span class="entete-titre">Offres de Stages</span>
-        <div style="width:36px;"></div>
-    </header>
-
-    <div class="contenu">
-
-        <?php if ($msg_ok) : ?>
-        <div style="background:rgba(22,163,74,.09); border:1px solid var(--vert); border-radius:8px; padding:9px 13px; font-size:.83rem; color:var(--vert); font-weight:600;">
-            ✓ <?php echo htmlspecialchars($msg_ok); ?>
+<nav class="navbar navbar-expand-lg navbar-cy shadow-sm mb-4">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand" href="accueil_tuteur.php"><img src="../../public/assets/img/logo.png" alt="CY Stage" height="36"></a>
+        <div class="ms-auto d-flex align-items-center">
+            <span class="fw-bold text-white me-3 d-none d-sm-inline"><i class="bi bi-person-workspace me-2"></i> <?php echo h($_SESSION['prenom'] . ' ' . $_SESSION['nom']); ?></span>
+            <a href="deconnexion.php" class="btn btn-outline-light btn-sm rounded-pill px-3"><i class="bi bi-box-arrow-right d-sm-none"></i><span class="d-none d-sm-inline">Déconnexion</span></a>
         </div>
-        <?php endif; ?>
-        <?php if ($msg_err) : ?>
-        <div style="background:#fff0f0; border:1px solid #fca5a5; border-radius:8px; padding:9px 13px; font-size:.83rem; color:var(--rouge);">
-            <?php echo htmlspecialchars($msg_err); ?>
-        </div>
-        <?php endif; ?>
+    </div>
+</nav>
 
-        <!-- Barre de recherche -->
+<div class="container mb-5" style="max-width:1000px;">
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <a href="accueil_tuteur.php" class="btn btn-outline-secondary btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width:38px;height:38px;"><i class="bi bi-chevron-left"></i></a>
+        <div>
+            <h1 class="h4 mb-0 fw-bold" style="color:var(--bleu); font-family:'Syne',sans-serif;">Offres de Stages</h1>
+            <p class="text-muted mb-0" style="font-size:.85rem;">Parcourez les offres et affectez vos étudiants</p>
+        </div>
+    </div>
+
+    <!-- Alertes -->
+    <?php if ($msg_ok) : ?><div class="alert alert-success rounded-4"><i class="bi bi-check-circle-fill"></i> <strong><?php echo h($msg_ok); ?></strong></div><?php endif; ?>
+    <?php if ($msg_err) : ?><div class="alert alert-danger rounded-4"><i class="bi bi-exclamation-triangle-fill"></i> <strong><?php echo h($msg_err); ?></strong></div><?php endif; ?>
+
+    <!-- Recherche et Filtres[cite: 20] -->
+    <div class="bg-white p-4 rounded-4 border mb-4 shadow-sm">
         <form method="GET" id="form-recherche">
-            <div class="barre-recherche" style="margin-bottom:10px;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="11" cy="11" r="8"/>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-                </svg>
-                <input type="text" name="q" id="champ-q" placeholder="Rechercher un poste ou une entreprise…"
-                       value="<?php echo htmlspecialchars($q); ?>" autocomplete="off">
+            <div class="input-group mb-3">
+                <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
+                <input type="text" name="q" id="champ-q" class="form-control bg-light border-start-0" placeholder="Rechercher un poste ou une entreprise…" value="<?php echo h($q); ?>" autocomplete="off">
             </div>
 
-            <!-- Chips secteurs -->
             <?php if (!empty($secteurs)) : ?>
-            <div class="filtres" style="margin-bottom:6px;">
-                <a href="offres_tuteur.php" class="chip <?php echo $secteur === '' ? 'actif' : ''; ?>">Tous</a>
+            <div class="d-flex flex-wrap gap-2 mb-2 align-items-center">
+                <span class="text-muted fw-bold" style="font-size: .8rem;"><i class="bi bi-briefcase me-1"></i> Secteur :</span>
+                <a href="offres_tuteur.php?<?php echo http_build_query(array_merge($_GET, ['secteur' => ''])); ?>" class="badge rounded-pill text-decoration-none <?php echo $secteur === '' ? 'bg-primary' : 'bg-light text-dark border'; ?>">Tous</a>
                 <?php foreach ($secteurs as $s) : ?>
-                <a href="?<?php echo http_build_query(array_merge($_GET, ['secteur' => $s])); ?>"
-                   class="chip <?php echo $secteur === $s ? 'actif' : ''; ?>">
-                    <?php echo htmlspecialchars($s); ?>
-                </a>
+                    <a href="?<?php echo http_build_query(array_merge($_GET, ['secteur' => $s])); ?>" class="badge rounded-pill text-decoration-none <?php echo $secteur === $s ? 'bg-primary' : 'bg-light text-dark border'; ?>"><?php echo h($s); ?></a>
                 <?php endforeach; ?>
             </div>
             <?php endif; ?>
 
-            <!-- Chips villes -->
             <?php if (!empty($villes)) : ?>
-            <div class="filtres" style="margin-bottom:8px;">
-                <a href="offres_tuteur.php" class="chip <?php echo $ville === '' ? 'actif' : ''; ?>">Toutes villes</a>
+            <div class="d-flex flex-wrap gap-2 align-items-center">
+                <span class="text-muted fw-bold" style="font-size: .8rem;"><i class="bi bi-geo-alt me-1"></i> Ville :</span>
+                <a href="offres_tuteur.php?<?php echo http_build_query(array_merge($_GET, ['ville' => ''])); ?>" class="badge rounded-pill text-decoration-none <?php echo $ville === '' ? 'bg-primary' : 'bg-light text-dark border'; ?>">Toutes villes</a>
                 <?php foreach ($villes as $v) : ?>
-                <a href="?<?php echo http_build_query(array_merge($_GET, ['ville' => $v])); ?>"
-                   class="chip <?php echo $ville === $v ? 'actif' : ''; ?>">
-                    <?php echo htmlspecialchars($v); ?>
-                </a>
+                    <a href="?<?php echo http_build_query(array_merge($_GET, ['ville' => $v])); ?>" class="badge rounded-pill text-decoration-none <?php echo $ville === $v ? 'bg-primary' : 'bg-light text-dark border'; ?>"><?php echo h($v); ?></a>
                 <?php endforeach; ?>
             </div>
             <?php endif; ?>
         </form>
-
-        <div style="display:flex; align-items:center; justify-content:space-between;">
-            <p style="font-size:.79rem; color:var(--gris-texte); font-weight:600;">
-                <?php echo count($offres); ?> offre<?php echo count($offres) > 1 ? 's' : ''; ?> trouvée<?php echo count($offres) > 1 ? 's' : ''; ?>
-            </p>
-            <?php if ($q || $secteur || $ville) : ?>
-            <a href="offres_tuteur.php" style="font-size:.77rem; color:var(--bleu-clair); font-weight:600; text-decoration:none;">✕ Effacer</a>
-            <?php endif; ?>
-        </div>
-
-        <?php if (empty($offres)) : ?>
-        <div class="etat-vide">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="2" y="7" width="20" height="14" rx="2"/>
-                <path d="M16 7V5a2 2 0 0 0-4 0v2"/>
-            </svg>
-            <h3>Aucune offre disponible</h3>
-            <p>Modifie les critères de recherche ou reviens plus tard.</p>
-        </div>
-
-        <?php else : ?>
-        <?php foreach ($offres as $o) :
-            $desc_courte = mb_strlen($o['mission'] ?? '') > 115 ? mb_substr($o['mission'], 0, 115) . '…' : ($o['mission'] ?? '');
-            $duree = $o['duree_semaines'] ? round($o['duree_semaines'] / 4) . ' mois' : '';
-            $techs = array_slice(array_filter(array_map('trim', explode(',', $o['competences'] ?? ''))), 0, 3);
-        ?>
-
-        <div class="carte-offre">
-            <div class="offre-entete">
-                <div>
-                    <p class="offre-titre"><?php echo htmlspecialchars($o['titre']); ?></p>
-                    <p class="offre-sous">
-                        <?php echo htmlspecialchars($o['nom_entreprise']); ?>
-                        <?php if ($o['ville']) : ?> — <?php echo htmlspecialchars($o['ville']); ?><?php endif; ?>
-                    </p>
-                </div>
-                <!-- Bouton affecter -->
-                <button class="btn-affecter"
-                        onclick="ouvrirModal(<?php echo (int)$o['num_offre']; ?>, '<?php echo htmlspecialchars($o['titre'], ENT_QUOTES); ?>')">
-                    Affecter
-                </button>
-            </div>
-
-            <div class="offre-tags">
-                <?php if ($o['filiere_ciblee']) : ?>
-                <span class="badge badge-bleu"><?php echo htmlspecialchars($o['filiere_ciblee']); ?></span>
-                <?php endif; ?>
-                <?php if ($duree) : ?>
-                <span class="badge badge-vert"><?php echo $duree; ?></span>
-                <?php endif; ?>
-                <?php foreach ($techs as $t) : ?>
-                <span class="tag"><?php echo htmlspecialchars($t); ?></span>
-                <?php endforeach; ?>
-            </div>
-
-            <?php if ($desc_courte) : ?>
-            <p class="offre-desc"><?php echo htmlspecialchars($desc_courte); ?></p>
-            <?php endif; ?>
-
-            <div class="offre-pied">
-                <div class="offre-meta">
-                    <?php if ($o['ville']) : ?>
-                    <span>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;">
-                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                            <circle cx="12" cy="10" r="3"/>
-                        </svg>
-                        <?php echo htmlspecialchars($o['ville']); ?>
-                    </span>
-                    <?php endif; ?>
-                    <?php if ($o['date_debut']) : ?>
-                    <span>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;">
-                            <rect x="3" y="4" width="18" height="18" rx="2"/>
-                            <path d="M16 2v4M8 2v4M3 10h18"/>
-                        </svg>
-                        <?php echo date('d/m/Y', strtotime($o['date_debut'])); ?>
-                    </span>
-                    <?php endif; ?>
-                </div>
-            </div>
-        </div>
-
-        <?php endforeach; ?>
-        <?php endif; ?>
-
     </div>
+
+    <!-- En-tête des résultats -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <h5 class="fw-bold text-dark mb-0"><i class="bi bi-list-ul me-2"></i> <?php echo count($offres); ?> offre(s) trouvée(s)</h5>
+        <?php if ($q || $secteur || $ville) : ?>
+            <a href="offres_tuteur.php" class="btn btn-sm btn-outline-danger rounded-pill"><i class="bi bi-x-circle me-1"></i> Réinitialiser les filtres</a>
+        <?php endif; ?>
+    </div>
+
+    <!-- Liste des offres[cite: 20] -->
+    <?php if (empty($offres)) : ?>
+        <div class="text-center p-5 bg-white rounded-4 border" style="border-style: dashed !important;">
+            <i class="bi bi-folder-x text-muted opacity-50 mb-3 d-block" style="font-size: 3rem;"></i>
+            <h5 class="fw-bold mb-2" style="color:var(--bleu); font-family:'Syne',sans-serif;">Aucune offre disponible</h5>
+            <p class="text-muted mb-0">Essayez de modifier vos critères de recherche.</p>
+        </div>
+    <?php else : ?>
+        <div class="row g-4">
+            <?php foreach ($offres as $o) :
+                $desc_courte = mb_strlen($o['mission'] ?? '') > 150 ? mb_substr($o['mission'], 0, 150) . '...' : ($o['mission'] ?? '');
+                $duree = $o['duree_semaines'] ? round($o['duree_semaines'] / 4) . ' mois' : '';
+                $techs = array_slice(array_filter(array_map('trim', explode(',', $o['competences'] ?? ''))), 0, 3);
+            ?>
+            <div class="col-md-6">
+                <div class="card-offre h-100 d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <h5 class="fw-bold mb-1" style="color:var(--bleu); font-family:'Syne',sans-serif;"><?php echo h($o['titre']); ?></h5>
+                            <p class="text-muted fw-semibold mb-2" style="font-size:.85rem;"><i class="bi bi-building me-1"></i> <?php echo h($o['nom_entreprise']); ?></p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-2 mb-3">
+                        <?php if ($o['filiere_ciblee']) : ?><span class="badge bg-primary rounded-pill"><?php echo h($o['filiere_ciblee']); ?></span><?php endif; ?>
+                        <?php if ($duree) : ?><span class="badge bg-success rounded-pill"><i class="bi bi-clock-history"></i> <?php echo $duree; ?></span><?php endif; ?>
+                        <?php foreach ($techs as $t) : ?><span class="badge bg-light text-dark border rounded-pill"><?php echo h($t); ?></span><?php endforeach; ?>
+                    </div>
+
+                    <p class="text-secondary mb-4 flex-grow-1" style="font-size:.85rem; line-height: 1.5;"><?php echo h($desc_courte); ?></p>
+
+                    <div class="d-flex align-items-center justify-content-between border-top pt-3 mt-auto">
+                        <div class="text-muted" style="font-size:.75rem; font-weight:600;">
+                            <?php if ($o['ville']) : ?><span class="me-3"><i class="bi bi-geo-alt-fill"></i> <?php echo h($o['ville']); ?></span><?php endif; ?>
+                            <?php if ($o['date_debut']) : ?><span><i class="bi bi-calendar-event"></i> <?php echo date('d/m/Y', strtotime($o['date_debut'])); ?></span><?php endif; ?>
+                        </div>
+                        <button type="button" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold shadow-sm" style="background:var(--bleu); border:none;" onclick="ouvrirModal(<?php echo (int)$o['num_offre']; ?>, '<?php echo h($o['titre'], ENT_QUOTES); ?>')">
+                            <i class="bi bi-person-plus-fill me-1"></i> Affecter
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
 </div>
 
-<!-- Modal d'affectation -->
-<div id="modal-bg" class="modal-affecter">
-    <div class="modal-inner">
-        <div class="modal-handle"></div>
-        <p id="modal-titre" style="font-family:'Syne',sans-serif; font-weight:700; font-size:.97rem; margin-bottom:13px;"></p>
+<!-- Modale Bootstrap d'affectation[cite: 20] -->
+<div class="modal fade" id="affecterModal" tabindex="-1" aria-labelledby="modal-titre" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 rounded-4 shadow">
+      <div class="modal-header border-bottom-0 pb-0">
+        <h5 class="modal-title fw-bold" id="modal-titre" style="color:var(--bleu); font-family:'Syne',sans-serif;"></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body pt-3 pb-4">
         <form method="POST" action="offres_tuteur.php">
             <input type="hidden" name="num_offre" id="modal-offre">
-            <label style="font-size:.80rem; font-weight:600; color:var(--gris-texte);">Sélectionner un étudiant</label>
-            <select name="id_etudiant" class="select-field" required>
-                <option value="">-- Choisir un étudiant --</option>
-                <?php foreach ($etudiants as $e) : ?>
-                <option value="<?php echo (int)$e['id']; ?>"><?php echo htmlspecialchars($e['nom_complet']); ?></option>
-                <?php endforeach; ?>
-            </select>
-            <div style="display:flex; gap:9px; margin-top:14px;">
-                <button type="submit" class="btn" style="flex:1;">Affecter l'étudiant</button>
-                <button type="button" onclick="fermerModal()"
-                        style="flex:1; padding:10px; border:1px solid var(--gris-border); border-radius:8px; background:transparent; font-family:'DM Sans',sans-serif; font-weight:600; font-size:.87rem; cursor:pointer; color:var(--gris-texte);">
-                    Annuler
-                </button>
+            <div class="mb-4">
+                <label class="form-label fw-bold text-dark">Sélectionner un étudiant de votre liste</label>
+                <select name="id_etudiant" class="form-select bg-light" required>
+                    <option value="">-- Choisir un étudiant --</option>
+                    <?php foreach ($etudiants as $e) : ?>
+                        <option value="<?php echo (int)$e['id']; ?>"><?php echo h($e['nom_complet']); ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-light border fw-bold flex-grow-1 rounded-pill text-muted" data-bs-dismiss="modal">Annuler</button>
+                <button type="submit" class="btn btn-primary fw-bold flex-grow-1 rounded-pill" style="background:var(--bleu); border:none;">Confirmer l'affectation</button>
             </div>
         </form>
+      </div>
     </div>
+  </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    var delai;
+    // Soumission automatique de la recherche avec délai
+    let delai;
     document.getElementById('champ-q').addEventListener('input', function () {
         clearTimeout(delai);
-        delai = setTimeout(function () {
-            document.getElementById('form-recherche').submit();
-        }, 1000);
+        delai = setTimeout(function () { document.getElementById('form-recherche').submit(); }, 1000);
     });
 
+    // Gestion de la modale Bootstrap 5
+    const modalAffecter = new bootstrap.Modal(document.getElementById('affecterModal'));
     function ouvrirModal(id, titre) {
         document.getElementById('modal-offre').value = id;
         document.getElementById('modal-titre').textContent = 'Affecter à : ' + titre;
-        document.getElementById('modal-bg').style.display = 'flex';
+        modalAffecter.show();
     }
-
-    function fermerModal() {
-        document.getElementById('modal-bg').style.display = 'none';
-    }
-
-    document.getElementById('modal-bg').addEventListener('click', function (e) {
-        if (e.target === this) fermerModal();
-    });
 </script>
 </body>
 </html>

@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $conn) {
         );
         mysqli_stmt_bind_param($upd, 'sii', $statut, $_SESSION['id'], $id_demande);
         mysqli_stmt_execute($upd);
-        $msg_ok = $statut === 'approuvee' ? 'Demande approuvée !' : 'Demande rejetée.';
+        $msg_ok = $statut === 'approuvee' ? 'Demande de filière approuvée !' : 'Demande rejetée.';
         mysqli_stmt_close($upd);
     }
 
@@ -32,8 +32,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $conn) {
     if (isset($_POST['nouveau_domaine'])) {
         $domaine = trim($_POST['nouveau_domaine'] ?? '');
         if (!empty($domaine)) {
-            /* on insère une offre fictive juste pour créer la filière dans la base
-               la vraie façon est d'utiliser la filiere_ciblee dans Offre_Stage */
             $msg_ok = "Domaine \"" . htmlspecialchars($domaine) . "\" enregistré. Il apparaîtra automatiquement dans les filtres dès qu'une offre l'utilisera.";
         } else {
             $msg_err = 'Le nom du domaine ne peut pas être vide.';
@@ -80,6 +78,8 @@ if ($conn) {
 
     mysqli_close($conn);
 }
+
+function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -87,114 +87,146 @@ if ($conn) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Domaines de stage — CY Stage</title>
-    <link rel="stylesheet" href="../../public/assets/css/style-admin.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root { --bleu: #1B4F9B; --bleu-clair: #2563c7; }
+        body { font-family: 'DM Sans', sans-serif; background: #f4f6fb; }
+        .navbar-cy { background: linear-gradient(135deg, #1B4F9B, #2563c7); }
+        .card-cy {
+            border: 1px solid rgba(171,186,205,.4); border-radius: 18px;
+            box-shadow: 0 4px 18px rgba(27,79,155,.06); background: #fff; padding: 1.5rem;
+        }
+        .section-title { font-family: 'Syne', sans-serif; font-size: 1.1rem; color: var(--bleu); font-weight: 700; margin-bottom: 1rem; border-bottom: 2px solid var(--bleu); display: inline-block; padding-bottom: 0.3rem;}
+    </style>
 </head>
 <body>
-<div class="page anim">
 
-    <div class="logo-wrapper">
-        <img src="../../public/assets/img/logo.png" alt="CY Stage">
+<nav class="navbar navbar-expand-lg navbar-cy shadow-sm mb-4">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand" href="accueil_admin.php"><img src="../../public/assets/img/logo.png" alt="CY Stage" height="36"></a>
+        <div class="ms-auto d-flex align-items-center">
+            <span class="fw-bold text-white me-3 d-none d-sm-inline"><i class="bi bi-shield-lock-fill me-2"></i> <?php echo h($_SESSION['prenom'] . ' ' . $_SESSION['nom']); ?></span>
+            <a href="deconnexion.php" class="btn btn-outline-light btn-sm rounded-pill px-3"><i class="bi bi-box-arrow-right d-sm-none"></i><span class="d-none d-sm-inline">Déconnexion</span></a>
+        </div>
+    </div>
+</nav>
+
+<div class="container mb-5" style="max-width:900px;">
+    
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <a href="gestion_stages.php" class="btn btn-outline-secondary btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width:38px;height:38px;"><i class="bi bi-chevron-left"></i></a>
+        <div>
+            <h1 class="h4 mb-0 fw-bold" style="color:var(--bleu); font-family:'Syne',sans-serif;">Domaines de Stage</h1>
+            <p class="text-muted mb-0" style="font-size:.85rem;">Gérez les filières ciblées par les offres de stage</p>
+        </div>
     </div>
 
-    <div class="nom-entreprise">Domaines de Stage</div>
-
-    <!-- messages de retour -->
-    <?php if ($msg_ok) : ?><div class="msg-ok">✓ <?php echo htmlspecialchars($msg_ok); ?></div><?php endif; ?>
-    <?php if ($msg_err) : ?><div class="msg-err"><?php echo htmlspecialchars($msg_err); ?></div><?php endif; ?>
-
-    <!-- les demandes de filières soumises par les étudiants -->
-    <p class="label-section">
-        Demandes de filières en attente
-        <?php if (!empty($demandes_en_attente)) : ?>
-        <span class="badge badge-orange" style="margin-left:8px;"><?php echo count($demandes_en_attente); ?> en attente</span>
-        <?php endif; ?>
-    </p>
-
-    <div class="carte">
-        <?php if (empty($demandes_en_attente)) : ?>
-        <div class="etat-vide">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
-            <p>Aucune demande en attente.</p>
-        </div>
-        <?php else : ?>
-        <?php foreach ($demandes_en_attente as $d) : ?>
-        <div class="liste-ligne" style="flex-wrap:wrap; gap:10px;">
-            <div class="liste-info">
-                <p class="liste-nom"><?php echo htmlspecialchars($d['filiere_demandee']); ?></p>
-                <p class="liste-sous">
-                    Demandée par <?php echo htmlspecialchars($d['etudiant']); ?>
-                    le <?php echo date('d/m/Y', strtotime($d['date_demande'])); ?>
-                    <?php if ($d['justification']) : ?>
-                    · <em><?php echo htmlspecialchars(mb_substr($d['justification'], 0, 60)); ?>…</em>
-                    <?php endif; ?>
-                </p>
-            </div>
-            <!-- les deux boutons approuver / rejeter -->
-            <div style="display:flex; gap:6px;">
-                <form method="POST">
-                    <input type="hidden" name="action" value="approuver">
-                    <input type="hidden" name="id_demande" value="<?php echo $d['id_demande']; ?>">
-                    <button type="submit" class="btn-outline" style="color:var(--vert); border-color:var(--vert);">
-                        <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-                        Approuver
-                    </button>
-                </form>
-                <form method="POST">
-                    <input type="hidden" name="action" value="rejeter">
-                    <input type="hidden" name="id_demande" value="<?php echo $d['id_demande']; ?>">
-                    <button type="submit" class="btn-danger">
-                        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-                        Rejeter
-                    </button>
-                </form>
-            </div>
-        </div>
-        <?php endforeach; ?>
-        <?php endif; ?>
-    </div>
-
-    <!-- les filières déjà présentes dans les offres -->
-    <p class="label-section">Filières actives (<?php echo count($filieres_existantes); ?>)</p>
-    <div class="carte">
-        <?php if (empty($filieres_existantes)) : ?>
-        <p style="font-size:.83rem; color:var(--gris-texte);">Aucune filière référencée pour le moment.</p>
-        <?php else : ?>
-        <div style="display:flex; flex-wrap:wrap; gap:8px;">
-            <?php foreach ($filieres_existantes as $f) : ?>
-            <span class="badge badge-bleu" style="padding:5px 13px; font-size:.78rem;">
-                <?php echo htmlspecialchars($f); ?>
-            </span>
-            <?php endforeach; ?>
-        </div>
-        <?php endif; ?>
-    </div>
-
-    <!-- l'historique des 10 dernières demandes traitées -->
-    <?php if (!empty($demandes_traitees)) : ?>
-    <p class="label-section">Historique des demandes traitées</p>
-    <div class="carte">
-        <?php foreach ($demandes_traitees as $d) :
-            $cls = $d['statut'] === 'approuvee' ? 'badge-vert' : 'badge-rouge';
-            $lbl = $d['statut'] === 'approuvee' ? 'Approuvée' : 'Rejetée';
-        ?>
-        <div class="liste-ligne">
-            <div class="liste-info">
-                <p class="liste-nom"><?php echo htmlspecialchars($d['filiere_demandee']); ?></p>
-                <p class="liste-sous">
-                    <?php echo htmlspecialchars($d['etudiant']); ?>
-                    · Traitée le <?php echo date('d/m/Y', strtotime($d['date_traitement'])); ?>
-                </p>
-            </div>
-            <span class="badge <?php echo $cls; ?>"><?php echo $lbl; ?></span>
-        </div>
-        <?php endforeach; ?>
-    </div>
+    <!-- Alertes -->
+    <?php if ($msg_ok) : ?>
+        <div class="alert alert-success rounded-4 d-flex align-items-center gap-2 mb-4"><i class="bi bi-check-circle-fill"></i> <strong><?php echo h($msg_ok); ?></strong></div>
+    <?php endif; ?>
+    <?php if ($msg_err) : ?>
+        <div class="alert alert-danger rounded-4 d-flex align-items-center gap-2 mb-4"><i class="bi bi-exclamation-triangle-fill"></i> <strong><?php echo h($msg_err); ?></strong></div>
     <?php endif; ?>
 
-    <div class="deconnexion">
-        <a href="gestion_stages.php">← Retour</a>
-    </div>
+    <div class="row g-4">
+        
+        <!-- Demandes en attente -->
+        <div class="col-12">
+            <h2 class="section-title">Demandes en attente <?php if (!empty($demandes_en_attente)) : ?><span class="badge bg-warning text-dark rounded-pill ms-2"><?php echo count($demandes_en_attente); ?></span><?php endif; ?></h2>
+            
+            <div class="card-cy mt-2">
+                <?php if (empty($demandes_en_attente)) : ?>
+                    <div class="text-center p-4">
+                        <i class="bi bi-inbox text-muted opacity-50 mb-3 d-block" style="font-size: 2.5rem;"></i>
+                        <p class="text-muted mb-0 fw-semibold">Aucune demande de filière en attente de validation.</p>
+                    </div>
+                <?php else : ?>
+                    <div class="list-group list-group-flush">
+                        <?php foreach ($demandes_en_attente as $d) : ?>
+                            <div class="list-group-item px-0 py-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                                <div>
+                                    <h6 class="fw-bold mb-1" style="color:var(--bleu);"><?php echo h($d['filiere_demandee']); ?></h6>
+                                    <p class="text-muted mb-0" style="font-size:.8rem;">
+                                        Demandée par <strong class="text-dark"><?php echo h($d['etudiant']); ?></strong> le <?php echo date('d/m/Y', strtotime($d['date_demande'])); ?>
+                                    </p>
+                                    <?php if ($d['justification']) : ?>
+                                        <p class="text-secondary fst-italic mt-1 mb-0" style="font-size:.8rem; border-left: 2px solid #e5e7eb; padding-left: 10px;">"<?php echo h($d['justification']); ?>"</p>
+                                    <?php endif; ?>
+                                </div>
+                                
+                                <!-- Boutons d'action -->
+                                <div class="d-flex gap-2">
+                                    <form method="POST">
+                                        <input type="hidden" name="action" value="approuver">
+                                        <input type="hidden" name="id_demande" value="<?php echo (int)$d['id_demande']; ?>">
+                                        <button type="submit" class="btn btn-sm btn-outline-success rounded-pill fw-bold px-3">
+                                            <i class="bi bi-check-lg me-1"></i> Approuver
+                                        </button>
+                                    </form>
+                                    <form method="POST">
+                                        <input type="hidden" name="action" value="rejeter">
+                                        <input type="hidden" name="id_demande" value="<?php echo (int)$d['id_demande']; ?>">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill fw-bold px-3">
+                                            <i class="bi bi-x-lg me-1"></i> Rejeter
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
 
+        <!-- Filières actives -->
+        <div class="col-md-6">
+            <h2 class="section-title">Filières référencées</h2>
+            <div class="card-cy mt-2 h-100">
+                <?php if (empty($filieres_existantes)) : ?>
+                    <p class="text-muted fst-italic mb-0">Aucune filière référencée dans les offres pour le moment.</p>
+                <?php else : ?>
+                    <div class="d-flex flex-wrap gap-2">
+                        <?php foreach ($filieres_existantes as $f) : ?>
+                            <span class="badge rounded-pill fw-normal" style="background-color: var(--bleu); font-size: .85rem; padding: 8px 15px;">
+                                <?php echo h($f); ?>
+                            </span>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <!-- Historique -->
+        <div class="col-md-6">
+            <h2 class="section-title">Dernières demandes traitées</h2>
+            <div class="card-cy mt-2 h-100">
+                <?php if (empty($demandes_traitees)) : ?>
+                    <p class="text-muted fst-italic mb-0">Aucun historique disponible.</p>
+                <?php else : ?>
+                    <ul class="list-group list-group-flush">
+                        <?php foreach ($demandes_traitees as $d) :
+                            $cls = $d['statut'] === 'approuvee' ? 'text-success' : 'text-danger';
+                            $icon = $d['statut'] === 'approuvee' ? 'bi-check-circle-fill' : 'bi-x-circle-fill';
+                        ?>
+                            <li class="list-group-item px-0 d-flex justify-content-between align-items-start border-0 pb-2">
+                                <div>
+                                    <div class="fw-bold" style="font-size: .9rem;"><i class="bi <?php echo $icon; ?> <?php echo $cls; ?> me-2"></i><?php echo h($d['filiere_demandee']); ?></div>
+                                    <div class="text-muted ms-4" style="font-size: .75rem;"><?php echo h($d['etudiant']); ?> · le <?php echo date('d/m/Y', strtotime($d['date_traitement'])); ?></div>
+                                </div>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                <?php endif; ?>
+            </div>
+        </div>
+
+    </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

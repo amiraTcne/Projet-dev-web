@@ -4,6 +4,9 @@ if (!isset($_SESSION['id']) || $_SESSION['role'] !== 'Etudiant') {
     header('Location: ../../public/login.php?erreur=4');
     exit();
 }
+
+// Fonction utilitaire pour sécuriser l'affichage HTML
+function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -11,167 +14,199 @@ if (!isset($_SESSION['id']) || $_SESSION['role'] !== 'Etudiant') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Espace Étudiant — CY Stage</title>
-    <!-- CSS existant conservé -->
-    <link rel="stylesheet" href="../../public/assets/css/style_acceuil.css">
-    <!-- Bootstrap 5 + Alpine.js -->
-    <?php include '../../public/frameworks.php'; ?>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bleu: #1B4F9B;
+            --bleu-clair: #2563c7;
+            --bs-primary: #1B4F9B;
+            --bs-primary-rgb: 27,79,155;
+        }
+        body { font-family: 'DM Sans', sans-serif; background: #f4f6fb; }
+
+        /* Navbar */
+        .navbar-cy { background: linear-gradient(135deg, #1B4F9B, #2563c7); }
+
+        /* Dashboard Cards */
+        .dashboard-card {
+            display: flex; align-items: center; gap: 1rem;
+            padding: 1.5rem; border: 1px solid rgba(171,186,205,.4);
+            border-radius: 18px; background: #fff;
+            text-decoration: none; color: inherit;
+            transition: all 0.25s ease-in-out;
+            box-shadow: 0 4px 18px rgba(27,79,155,.04);
+            height: 100%;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(27,79,155,.12);
+            border-color: var(--bleu-clair);
+            color: inherit;
+        }
+        .dashboard-card .icon-box {
+            width: 56px; height: 56px; border-radius: 14px;
+            background: #eef2ff; color: var(--bleu);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; flex-shrink: 0;
+            transition: background 0.25s, color 0.25s;
+        }
+        .dashboard-card:hover .icon-box {
+            background: var(--bleu); color: #fff;
+        }
+        .dashboard-card i.bi-chevron-right {
+            transition: transform 0.2s ease;
+        }
+        .dashboard-card:hover i.bi-chevron-right {
+            transform: translateX(4px); color: var(--bleu) !important;
+        }
+    </style>
 </head>
 <body>
 
-<nav class="navbar navbar-expand-lg shadow-sm mb-4"
-     style="background: linear-gradient(135deg, #1B4F9B, #2563c7);">
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-cy shadow-sm mb-5">
     <div class="container-fluid px-4">
 
         <a class="navbar-brand" href="#">
             <img src="../../public/assets/img/logo.png" alt="CY Stage" height="36">
         </a>
 
-        <button class="navbar-toggler border-0" type="button"
-                data-bs-toggle="collapse" data-bs-target="#navEtudiant">
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navEtudiant">
             <span class="navbar-toggler-icon" style="filter:invert(1);"></span>
         </button>
 
         <div class="collapse navbar-collapse" id="navEtudiant">
-            <!-- Nom de l'étudiant centré -->
             <span class="navbar-text mx-auto fw-bold text-white">
                 <i class="bi bi-mortarboard-fill me-2"></i>
-                <?php echo htmlspecialchars($_SESSION['prenom'] . ' ' . $_SESSION['nom']); ?>
+                <?php echo h($_SESSION['prenom'] . ' ' . $_SESSION['nom']); ?>
             </span>
-            <!-- Déconnexion -->
-            <a href="deconnexion.php" class="btn btn-outline-light btn-sm ms-auto">
+            <a href="deconnexion.php" class="btn btn-outline-light btn-sm rounded-pill fw-semibold ms-lg-auto mt-3 mt-lg-0">
                 <i class="bi bi-box-arrow-right me-1"></i> Déconnexion
             </a>
         </div>
     </div>
 </nav>
 
-<!-- ═══ CONTENU PRINCIPAL ═══ -->
-<div class="container" style="max-width:900px;">
+<!-- CONTENU PRINCIPAL -->
+<div class="container mb-5" style="max-width:950px;">
 
-    <!-- Titre section -->
-    <h3 class="options-title mb-3">
-        <i class="bi bi-grid-fill me-2" style="color:#1B4F9B;"></i>Options
-    </h3>
+    <!-- En-tête -->
+    <div class="text-center text-md-start mb-5">
+        <h1 class="fw-bold mb-2" style="color:var(--bleu); font-family:'Syne',sans-serif; font-size: 2.2rem;">
+            Tableau de bord Étudiant
+        </h1>
+        <p class="text-muted" style="font-size:.95rem;">
+            Bienvenue sur votre espace. Que souhaitez-vous faire aujourd'hui ?
+        </p>
+    </div>
 
-    <!-- Grille de navigation Bootstrap (remplace .nav-grid custom) -->
-    <div class="row g-3">
+    <!-- Grille d'options -->
+    <div class="row g-4">
 
         <!-- Profil -->
-        <div class="col-12 col-sm-6 col-lg-4">
-            <a href="profil_etudiant.php" class="nav text-decoration-none d-flex align-items-center gap-3 p-3 rounded-3 border bg-white shadow-sm"
-               style="transition: transform .15s, box-shadow .15s;"
-               onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(27,79,155,.15)'"
-               onmouseout="this.style.transform='';this.style.boxShadow=''">
-                <span class="icon">
-                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#1B4F9B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                        <circle cx="12" cy="7" r="4"/>
-                    </svg>
-                </span>
-                <h4 class="mb-0 flex-grow-1 fs-6 fw-semibold text-dark">Profil</h4>
-                <i class="bi bi-chevron-right text-secondary"></i>
+        <div class="col-12 col-md-6 col-lg-4">
+            <a href="profil_etudiant.php" class="dashboard-card">
+                <div class="icon-box">
+                    <i class="bi bi-person-vcard"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <h5 class="fw-bold mb-1" style="font-family:'Syne',sans-serif; color:#111827; font-size:1.1rem;">Profil</h5>
+                    <p class="text-muted mb-0" style="font-size:.8rem;">Gérez vos informations</p>
+                </div>
+                <i class="bi bi-chevron-right text-muted fs-5"></i>
             </a>
         </div>
 
         <!-- Offres de stage -->
-        <div class="col-12 col-sm-6 col-lg-4">
-            <a href="offres_etudiant.php" class="nav text-decoration-none d-flex align-items-center gap-3 p-3 rounded-3 border bg-white shadow-sm"
-               style="transition: transform .15s, box-shadow .15s;"
-               onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(27,79,155,.15)'"
-               onmouseout="this.style.transform='';this.style.boxShadow=''">
-                <span class="icon">
-                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#1B4F9B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="2" y="7" width="20" height="14" rx="2"/>
-                        <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
-                    </svg>
-                </span>
-                <h4 class="mb-0 flex-grow-1 fs-6 fw-semibold text-dark">Offres de stage</h4>
-                <i class="bi bi-chevron-right text-secondary"></i>
+        <div class="col-12 col-md-6 col-lg-4">
+            <a href="offres_etudiant.php" class="dashboard-card">
+                <div class="icon-box">
+                    <i class="bi bi-search"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <h5 class="fw-bold mb-1" style="font-family:'Syne',sans-serif; color:#111827; font-size:1.1rem;">Offres de stage</h5>
+                    <p class="text-muted mb-0" style="font-size:.8rem;">Parcourez les annonces</p>
+                </div>
+                <i class="bi bi-chevron-right text-muted fs-5"></i>
             </a>
         </div>
 
         <!-- Dossier -->
-        <div class="col-12 col-sm-6 col-lg-4">
-            <a href="dossier_etudiant.php" class="nav text-decoration-none d-flex align-items-center gap-3 p-3 rounded-3 border bg-white shadow-sm"
-               style="transition: transform .15s, box-shadow .15s;"
-               onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(27,79,155,.15)'"
-               onmouseout="this.style.transform='';this.style.boxShadow=''">
-                <span class="icon">
-                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#1B4F9B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8l6 6v12a2 2 0 0 1-2 2z"/>
-                        <path d="M14 2v6h6"/>
-                    </svg>
-                </span>
-                <h4 class="mb-0 flex-grow-1 fs-6 fw-semibold text-dark">Dossier</h4>
-                <i class="bi bi-chevron-right text-secondary"></i>
+        <div class="col-12 col-md-6 col-lg-4">
+            <a href="dossier_etudiant.php" class="dashboard-card">
+                <div class="icon-box">
+                    <i class="bi bi-folder2-open"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <h5 class="fw-bold mb-1" style="font-family:'Syne',sans-serif; color:#111827; font-size:1.1rem;">Mon Dossier</h5>
+                    <p class="text-muted mb-0" style="font-size:.8rem;">CV, lettres, documents</p>
+                </div>
+                <i class="bi bi-chevron-right text-muted fs-5"></i>
             </a>
         </div>
 
         <!-- Avancement -->
-        <div class="col-12 col-sm-6 col-lg-4">
-            <a href="avancement_etudiant.php" class="nav text-decoration-none d-flex align-items-center gap-3 p-3 rounded-3 border bg-white shadow-sm"
-               style="transition: transform .15s, box-shadow .15s;"
-               onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(27,79,155,.15)'"
-               onmouseout="this.style.transform='';this.style.boxShadow=''">
-                <span class="icon">
-                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#1B4F9B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M13 5h8"/><path d="M13 12h8"/><path d="M13 19h8"/>
-                        <path d="m3 17 2 2 4-4"/><path d="m3 7 2 2 4-4"/>
-                    </svg>
-                </span>
-                <h4 class="mb-0 flex-grow-1 fs-6 fw-semibold text-dark">Avancement Stage</h4>
-                <i class="bi bi-chevron-right text-secondary"></i>
+        <div class="col-12 col-md-6 col-lg-4">
+            <a href="avancement_etudiant.php" class="dashboard-card">
+                <div class="icon-box">
+                    <i class="bi bi-clipboard-data"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <h5 class="fw-bold mb-1" style="font-family:'Syne',sans-serif; color:#111827; font-size:1.1rem;">Mon Stage</h5>
+                    <p class="text-muted mb-0" style="font-size:.8rem;">Suivi et évaluation</p>
+                </div>
+                <i class="bi bi-chevron-right text-muted fs-5"></i>
+            </a>
+        </div>
+
+        <!-- Candidatures déposées -->
+        <div class="col-12 col-md-6 col-lg-4">
+            <a href="candidatures_etudiant.php" class="dashboard-card">
+                <div class="icon-box">
+                    <i class="bi bi-send-check"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <h5 class="fw-bold mb-1" style="font-family:'Syne',sans-serif; color:#111827; font-size:1.1rem;">Candidatures</h5>
+                    <p class="text-muted mb-0" style="font-size:.8rem;">Suivez vos postulations</p>
+                </div>
+                <i class="bi bi-chevron-right text-muted fs-5"></i>
             </a>
         </div>
 
         <!-- Favoris -->
-        <div class="col-12 col-sm-6 col-lg-4">
-            <a href="favoris_etudiant.php" class="nav text-decoration-none d-flex align-items-center gap-3 p-3 rounded-3 border bg-white shadow-sm"
-               style="transition: transform .15s, box-shadow .15s;"
-               onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(27,79,155,.15)'"
-               onmouseout="this.style.transform='';this.style.boxShadow=''">
-                <span class="icon">
-                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#1B4F9B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                    </svg>
-                </span>
-                <h4 class="mb-0 flex-grow-1 fs-6 fw-semibold text-dark">Favoris</h4>
-                <i class="bi bi-chevron-right text-secondary"></i>
-            </a>
-        </div>
-         <!-- Notification -->
-        <div class="col-12 col-sm-6 col-lg-4">
-            <a href="notifications_etudiant.php" class="nav text-decoration-none d-flex align-items-center gap-3 p-3 rounded-3 border bg-white shadow-sm"
-               style="transition: transform .15s, box-shadow .15s;"
-               onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(27,79,155,.15)'"
-               onmouseout="this.style.transform='';this.style.boxShadow=''">
-                <span class="icon">
-                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#1B4F9B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                    </svg>
-                </span>
-                <h4 class="mb-0 flex-grow-1 fs-6 fw-semibold text-dark">Notifications</h4>
-                <i class="bi bi-chevron-right text-secondary"></i>
-            </a>
-        </div>
-        <!-- Candidatures déposées -->
-        <div class="col-12 col-sm-6 col-lg-4">
-            <a href="candidatures_etudiant.php" class="nav text-decoration-none d-flex align-items-center gap-3 p-3 rounded-3 border bg-white shadow-sm"
-               style="transition: transform .15s, box-shadow .15s;"
-               onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(27,79,155,.15)'"
-               onmouseout="this.style.transform='';this.style.boxShadow=''">
-                <span class="icon">
-                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#1B4F9B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-                    </svg>
-                </span>
-                <h4 class="mb-0 flex-grow-1 fs-6 fw-semibold text-dark">Candidatures déposées</h4>
-                <i class="bi bi-chevron-right text-secondary"></i>
+        <div class="col-12 col-md-6 col-lg-4">
+            <a href="favoris_etudiant.php" class="dashboard-card">
+                <div class="icon-box">
+                    <i class="bi bi-heart"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <h5 class="fw-bold mb-1" style="font-family:'Syne',sans-serif; color:#111827; font-size:1.1rem;">Offres Favorites</h5>
+                    <p class="text-muted mb-0" style="font-size:.8rem;">Vos annonces sauvegardées</p>
+                </div>
+                <i class="bi bi-chevron-right text-muted fs-5"></i>
             </a>
         </div>
 
-    </div><!-- /row -->
-</div><!-- /container -->
+        <!-- Notifications -->
+        <div class="col-12 col-md-6 col-lg-4">
+            <a href="notifications_etudiant.php" class="dashboard-card">
+                <div class="icon-box">
+                    <i class="bi bi-bell"></i>
+                </div>
+                <div class="flex-grow-1">
+                    <h5 class="fw-bold mb-1" style="font-family:'Syne',sans-serif; color:#111827; font-size:1.1rem;">Notifications</h5>
+                    <p class="text-muted mb-0" style="font-size:.8rem;">Alertes et messages</p>
+                </div>
+                <i class="bi bi-chevron-right text-muted fs-5"></i>
+            </a>
+        </div>
 
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

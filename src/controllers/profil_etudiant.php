@@ -51,6 +51,9 @@ $initiales = strtoupper(
     mb_substr($etudiant['prenom'] ?? '?', 0, 1) .
     mb_substr($etudiant['nom']    ?? '?', 0, 1)
 );
+
+// Fonction utilitaire pour sécuriser l'affichage HTML
+function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -58,159 +61,186 @@ $initiales = strtoupper(
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mon Profil — CY Stage</title>
-    <link rel="stylesheet" href="../../public/assets/css/style_etudiant.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+    
     <style>
-        /* cercle avec les initiales en haut de la page */
-        .avatar {
-            width: 76px;
-            height: 76px;
-            border-radius: 50%;
+        :root {
+            --bleu: #1B4F9B;
+            --bleu-clair: #2563c7;
+            --bs-primary: #1B4F9B;
+        }
+        body { font-family: 'DM Sans', sans-serif; background: #f4f6fb; }
+
+        /* Navbar */
+        .navbar-cy { background: linear-gradient(135deg, #1B4F9B, #2563c7); }
+
+        /* Cards */
+        .card-cy {
+            border: 1px solid rgba(171,186,205,.4);
+            border-radius: 18px;
+            box-shadow: 0 4px 18px rgba(27,79,155,.08);
+            background: #fff;
+        }
+
+        /* Avatar */
+        .avatar-profil {
+            width: 80px; height: 80px; border-radius: 50%;
             background: linear-gradient(135deg, var(--bleu), var(--bleu-clair));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            font-family: 'Syne', sans-serif;
-            font-size: 1.5rem;
-            font-weight: 800;
-            margin: 0 auto 10px;
-            box-shadow: 0 4px 16px rgba(27, 79, 155, 0.25);
-        }
-
-        /* chaque ligne d'info avec son icône à gauche */
-        .info-ligne {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 11px 0;
-            border-bottom: 1px solid var(--gris-border);
-        }
-        .info-ligne:first-child { padding-top: 0; }
-        .info-ligne:last-child  { border-bottom: none; padding-bottom: 0; }
-
-        .info-icone {
-            width: 34px; height: 34px;
-            border-radius: 8px;
-            background: var(--gris-fond);
             display: flex; align-items: center; justify-content: center;
-            color: var(--bleu); flex-shrink: 0;
+            color: #fff; font-family: 'Syne', sans-serif; font-size: 1.8rem; font-weight: 800;
+            margin: 0 auto 15px; box-shadow: 0 4px 16px rgba(27, 79, 155, 0.25);
         }
-        .info-icone svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
-        .info-label  { font-size: .70rem; color: var(--gris-texte); font-weight: 500; margin-bottom: 1px; }
-        .info-valeur { font-size: .88rem; font-weight: 700; }
-
-        /* les deux petites boîtes de statistiques côte à côte */
-        .stats-grille { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-
-        .stat-carte {
-            background: var(--blanc);
-            border: 1px solid var(--gris-border);
-            border-radius: var(--radius);
-            padding: 16px 12px;
+        /* Stats Blocks */
+        .stat-box {
+            background: #fbfdff;
+            border: 1px solid #e5e7eb;
+            border-radius: 14px;
+            padding: 16px;
             text-align: center;
-            box-shadow: var(--shadow);
         }
-        .stat-nombre { font-family: 'Syne', sans-serif; font-size: 1.9rem; font-weight: 800; color: var(--bleu); line-height: 1; }
-        .stat-label  { font-size: .72rem; color: var(--gris-texte); margin-top: 5px; font-weight: 500; line-height: 1.35; }
+        .stat-number {
+            font-family: 'Syne', sans-serif;
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--bleu);
+            line-height: 1;
+            margin-bottom: 5px;
+        }
+
+        /* Icons List */
+        .icon-box {
+            width: 38px; height: 38px; border-radius: 10px;
+            background: #eef2ff; color: var(--bleu);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; flex-shrink: 0;
+        }
+        .info-row {
+            display: flex; align-items: center; gap: 15px;
+            padding: 12px 0; border-bottom: 1px solid #e5e7eb;
+        }
+        .info-row:last-child { border-bottom: none; }
     </style>
 </head>
 <body>
-<div class="page anim">
 
-    <!-- en-tête avec le bouton retour vers l'accueil -->
-    <header class="entete">
-        <a href="accueil_etudiant.php" class="btn-retour" aria-label="Retour">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="15 18 9 12 15 6"/>
-            </svg>
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-cy shadow-sm mb-4">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand" href="accueil_etudiant.php">
+            <img src="../../public/assets/img/logo.png" alt="CY Stage" height="36">
         </a>
-        <span class="entete-titre">Mon Profil</span>
-        <div style="width:36px;"></div>
-    </header>
-
-    <div class="contenu">
-
-        <!-- bloc identité : avatar avec les initiales, nom complet, badge rôle et date d'inscription -->
-        <div class="carte" style="text-align:center; padding:22px 16px;">
-            <div class="avatar"><?php echo htmlspecialchars($initiales); ?></div>
-            <h2 style="font-family:'Syne',sans-serif; font-size:1.1rem; font-weight:800; margin-bottom:6px;">
-                <?php echo htmlspecialchars($etudiant['prenom'] . ' ' . $etudiant['nom']); ?>
-            </h2>
-            <span class="badge badge-bleu">Étudiant</span>
-            <p style="font-size:.76rem; color:var(--gris-texte); margin-top:9px;">
-                Inscrit le <?php echo date('d/m/Y', strtotime($etudiant['date_inscription'])); ?>
-            </p>
+        <div class="ms-auto d-flex align-items-center">
+            <span class="fw-bold text-white me-3 d-none d-sm-inline">
+                <i class="bi bi-mortarboard-fill me-2"></i>
+                <?php echo h($etudiant['prenom'] . ' ' . $etudiant['nom']); ?>
+            </span>
+            <a href="deconnexion.php" class="btn btn-outline-light btn-sm rounded-pill px-3">
+                <i class="bi bi-box-arrow-right d-sm-none"></i>
+                <span class="d-none d-sm-inline">Déconnexion</span>
+            </a>
         </div>
+    </div>
+</nav>
 
-        <!-- le nombre de favoris et  de candidatures envoyées -->
-        <div class="stats-grille">
-            <div class="stat-carte">
-                <p class="stat-nombre"><?php echo (int)$nb_favoris; ?></p>
-                <p class="stat-label">Offre<?php echo $nb_favoris > 1 ? 's' : ''; ?> en favoris</p>
-            </div>
-            <div class="stat-carte">
-                <p class="stat-nombre"><?php echo (int)$nb_stages; ?></p>
-                <p class="stat-label">Candidature<?php echo $nb_stages > 1 ? 's' : ''; ?> envoyée<?php echo $nb_stages > 1 ? 's' : ''; ?></p>
+<div class="container mb-5" style="max-width:800px;">
+
+    <!-- En-tête page -->
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <a href="accueil_etudiant.php" class="btn btn-outline-secondary btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width:38px;height:38px;">
+            <i class="bi bi-chevron-left"></i>
+        </a>
+        <div>
+            <h1 class="h4 mb-0 fw-bold" style="color:var(--bleu); font-family:'Syne',sans-serif;">Mon Profil</h1>
+            <p class="text-muted mb-0" style="font-size:.85rem;">Consultez vos informations personnelles</p>
+        </div>
+    </div>
+
+    <!-- Identité principale[cite: 8] -->
+    <div class="card-cy p-4 text-center mb-4">
+        <div class="avatar-profil"><?php echo h($initiales); ?></div>
+        <h3 class="fw-bold mb-1" style="font-family:'Syne',sans-serif; color:#111827;">
+            <?php echo h($etudiant['prenom'] . ' ' . $etudiant['nom']); ?>
+        </h3>
+        <div class="mb-2">
+            <span class="badge rounded-pill" style="background-color: var(--bleu); font-size:.75rem;">
+                <i class="bi bi-mortarboard-fill me-1"></i> Étudiant
+            </span>
+        </div>
+        <p class="text-muted mb-0" style="font-size:.85rem;">
+            Inscrit le <?php echo date('d/m/Y', strtotime($etudiant['date_inscription'])); ?>
+        </p>
+    </div>
+
+    <!-- Statistiques[cite: 8] -->
+    <div class="row g-3 mb-4">
+        <div class="col-6">
+            <div class="stat-box h-100">
+                <div class="stat-number"><?php echo (int)$nb_favoris; ?></div>
+                <div class="text-muted fw-semibold" style="font-size:.85rem;">Offre<?php echo $nb_favoris > 1 ? 's' : ''; ?> en favoris</div>
             </div>
         </div>
-
-        <!-- infos académiques : filière, niveau et promotion, toutes en lecture seule -->
-        <p class="label-section">Informations académiques</p>
-        <div class="carte">
-
-            <div class="info-ligne">
-                <div class="info-icone">
-                    <svg viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
-                </div>
-                <div>
-                    <p class="info-label">Filière</p>
-                    <p class="info-valeur"><?php echo htmlspecialchars($etudiant['filiere'] ?? '—'); ?></p>
-                </div>
+        <div class="col-6">
+            <div class="stat-box h-100">
+                <div class="stat-number"><?php echo (int)$nb_stages; ?></div>
+                <div class="text-muted fw-semibold" style="font-size:.85rem;">Candidature<?php echo $nb_stages > 1 ? 's' : ''; ?> envoyée<?php echo $nb_stages > 1 ? 's' : ''; ?></div>
             </div>
-
-            <div class="info-ligne">
-                <div class="info-icone">
-                    <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-                </div>
-                <div>
-                    <p class="info-label">Niveau</p>
-                    <p class="info-valeur"><?php echo htmlspecialchars($etudiant['niveau'] ?? '—'); ?></p>
-                </div>
-            </div>
-
-            <div class="info-ligne">
-                <div class="info-icone">
-                    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                </div>
-                <div>
-                    <p class="info-label">Promotion</p>
-                    <p class="info-valeur"><?php echo htmlspecialchars($etudiant['annee_promo'] ?? '—'); ?></p>
-                </div>
-            </div>
-
         </div>
+    </div>
 
-        <!-- on affiche l'email -->
-        <p class="label-section">Contact</p>
-        <div class="carte">
-            <div class="info-ligne">
-                <div class="info-icone">
-                    <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-                </div>
-                <div>
-                    <p class="info-label">Adresse email</p>
-                    <p class="info-valeur"><?php echo htmlspecialchars($etudiant['email'] ?? '—'); ?></p>
-                </div>
+    <!-- Informations Académiques[cite: 8] -->
+    <h5 class="fw-bold mb-3 mt-4" style="font-size: .95rem; color: var(--bleu); text-transform: uppercase; letter-spacing: 1px;">Informations académiques</h5>
+    <div class="card-cy p-4 mb-4">
+        
+        <div class="info-row">
+            <div class="icon-box"><i class="bi bi-journal-bookmark"></i></div>
+            <div>
+                <p class="text-muted mb-0" style="font-size:.75rem; font-weight:600; text-transform:uppercase;">Filière</p>
+                <p class="mb-0 fw-bold" style="font-size:.95rem; color:#374151;"><?php echo h($etudiant['filiere'] ?? '—'); ?></p>
             </div>
         </div>
 
-        <!-- lien de déconnexion en bas de page -->
-        <div class="deconnexion">
-            <a href="deconnexion.php">Se déconnecter</a>
+        <div class="info-row">
+            <div class="icon-box"><i class="bi bi-bar-chart-steps"></i></div>
+            <div>
+                <p class="text-muted mb-0" style="font-size:.75rem; font-weight:600; text-transform:uppercase;">Niveau</p>
+                <p class="mb-0 fw-bold" style="font-size:.95rem; color:#374151;"><?php echo h($etudiant['niveau'] ?? '—'); ?></p>
+            </div>
+        </div>
+
+        <div class="info-row">
+            <div class="icon-box"><i class="bi bi-calendar-event"></i></div>
+            <div>
+                <p class="text-muted mb-0" style="font-size:.75rem; font-weight:600; text-transform:uppercase;">Promotion</p>
+                <p class="mb-0 fw-bold" style="font-size:.95rem; color:#374151;"><?php echo h($etudiant['annee_promo'] ?? '—'); ?></p>
+            </div>
         </div>
 
     </div>
+
+    <!-- Contact[cite: 8] -->
+    <h5 class="fw-bold mb-3 mt-4" style="font-size: .95rem; color: var(--bleu); text-transform: uppercase; letter-spacing: 1px;">Contact</h5>
+    <div class="card-cy p-4 mb-5">
+        <div class="info-row border-0">
+            <div class="icon-box"><i class="bi bi-envelope"></i></div>
+            <div>
+                <p class="text-muted mb-0" style="font-size:.75rem; font-weight:600; text-transform:uppercase;">Adresse email</p>
+                <p class="mb-0 fw-bold" style="font-size:.95rem; color:#374151;"><?php echo h($etudiant['email'] ?? '—'); ?></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Déconnexion en bas de page -->
+    <div class="text-center mb-5">
+        <a href="deconnexion.php" class="btn btn-outline-danger rounded-pill fw-semibold px-4">
+            <i class="bi bi-box-arrow-right me-1"></i> Se déconnecter
+        </a>
+    </div>
+
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

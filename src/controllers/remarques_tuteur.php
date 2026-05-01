@@ -3,6 +3,7 @@ session_start();
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
+
 if (!isset($_SESSION['id']) || $_SESSION['role'] !== 'Tuteur') {
     header('Location: ../../public/login.php?erreur=4');
     exit();
@@ -23,7 +24,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $conn) {
     $id_etudiant = (int)($_POST['id_etudiant'] ?? 0);
 
     if (!empty($contenu) && $id_etudiant > 0) {
-        /* Récupérer le dossier lié à cet étudiant */
         $sd = mysqli_prepare($conn,
             "SELECT d.num_dossier FROM Dossier_Stage d
              JOIN Stage s ON s.num_stage = d.num_stage
@@ -41,12 +41,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $conn) {
             );
             mysqli_stmt_bind_param($ins, 'sii', $contenu, $rdr['num_dossier'], $_SESSION['id']);
             if (mysqli_stmt_execute($ins)) {
-                $msg_ok = 'Remarque envoyée à l\'étudiant !';
+                $msg_ok = 'Remarque envoyée à l\'étudiant avec succès !';
                 $id_etu_sel = $id_etudiant;
             }
             mysqli_stmt_close($ins);
         } else {
-            $msg_err = 'Aucun dossier trouvé pour cet étudiant.';
+            $msg_err = 'Aucun dossier actif trouvé pour cet étudiant.';
         }
     } else {
         $msg_err = 'Veuillez remplir tous les champs.';
@@ -58,13 +58,13 @@ if ($conn) {
 
     /* Liste des étudiants suivis par ce tuteur */
     $se = mysqli_prepare($conn,
-    "SELECT e.id, e.nom, e.prenom, CONCAT(e.prenom, ' ', e.nom) AS nom_complet
-     FROM Stage s
-     JOIN Utilisateur e ON e.id = s.id_etudiant
-     WHERE s.id_tuteur = ?
-     GROUP BY e.id, e.nom, e.prenom
-     ORDER BY e.nom, e.prenom"
-);
+        "SELECT e.id, e.nom, e.prenom, CONCAT(e.prenom, ' ', e.nom) AS nom_complet
+         FROM Stage s
+         JOIN Utilisateur e ON e.id = s.id_etudiant
+         WHERE s.id_tuteur = ?
+         GROUP BY e.id, e.nom, e.prenom
+         ORDER BY e.nom, e.prenom"
+    );
     mysqli_stmt_bind_param($se, 'i', $_SESSION['id']);
     mysqli_stmt_execute($se);
     $re = mysqli_stmt_get_result($se);
@@ -80,23 +80,25 @@ if ($conn) {
              JOIN Stage s         ON s.num_stage   = d.num_stage
              JOIN Utilisateur u   ON u.id = r.id_auteur
              WHERE s.id_etudiant = ? AND s.id_tuteur = ?
-             ORDER BY r.date_creation DESC LIMIT 20"
+             ORDER BY r.date_creation DESC LIMIT 50"
         );
         mysqli_stmt_bind_param($sr, 'ii', $id_etu_sel, $_SESSION['id']);
         mysqli_stmt_execute($sr);
         $rr = mysqli_stmt_get_result($sr);
         while ($row = mysqli_fetch_assoc($rr)) $remarques[] = $row;
         mysqli_stmt_close($sr);
+        
+        // Inverser pour l'affichage du chat (les plus anciens en haut)
+        $remarques = array_reverse($remarques);
     }
-
     mysqli_close($conn);
 }
 
-/* Trouver le nom de l'étudiant sélectionné */
 $nom_etu_sel = '';
 foreach ($etudiants as $e) {
     if ($e['id'] === $id_etu_sel) { $nom_etu_sel = $e['nom_complet']; break; }
 }
+function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -104,133 +106,137 @@ foreach ($etudiants as $e) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Remarques — CY Stage</title>
-    <link rel="stylesheet" href="../../public/assets/css/style_etudiant.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+    
     <style>
-        .etu-pill {
-            display: inline-flex; align-items: center; gap: 7px;
-            padding: 6px 14px; border-radius: 20px;
-            border: 1px solid var(--gris-border); background: var(--blanc);
-            font-size: .80rem; font-weight: 600; cursor: pointer;
-            text-decoration: none; color: var(--noir);
-            transition: all .2s;
+        :root { --bleu: #1B4F9B; --bleu-clair: #2563c7; }
+        body { font-family: 'DM Sans', sans-serif; background: #f4f6fb; }
+        .navbar-cy { background: linear-gradient(135deg, #1B4F9B, #2563c7); }
+        .card-cy {
+            border: 1px solid rgba(171,186,205,.4); border-radius: 18px;
+            box-shadow: 0 4px 18px rgba(27,79,155,.06); background: #fff; padding: 1.5rem;
         }
-        .etu-pill:hover, .etu-pill.actif {
-            border-color: var(--bleu); background: var(--bleu); color: #fff;
-        }
-        .bubble {
-            padding: 10px 13px; border-radius: 12px;
-            font-size: .82rem; line-height: 1.5; max-width: 88%;
-        }
-        .bubble-tuteur {
-            background: var(--bleu); color: #fff; border-bottom-right-radius: 4px;
-            align-self: flex-end;
-        }
-        .bubble-autre {
-            background: var(--gris-fond); color: var(--noir); border-bottom-left-radius: 4px;
-            align-self: flex-start;
-        }
-        .chat-wrapper { display: flex; flex-direction: column; gap: 10px; }
+        
+        /* Chat bubbles */
+        .chat-bubble { max-width: 75%; padding: 12px 18px; border-radius: 18px; font-size: .9rem; line-height: 1.5; margin-bottom: 5px; }
+        .bubble-tuteur { background: var(--bleu); color: #fff; border-bottom-right-radius: 4px; }
+        .bubble-autre { background: #f1f5f9; color: #1e293b; border-bottom-left-radius: 4px; }
+        
+        .chat-container { max-height: 500px; overflow-y: auto; padding-right: 10px; }
     </style>
 </head>
 <body>
-<div class="page anim">
 
-    <header class="entete">
-        <a href="accueil_tuteur.php" class="btn-retour" aria-label="Retour">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="15 18 9 12 15 6"/>
-            </svg>
-        </a>
-        <span class="entete-titre">Remarques</span>
-        <div style="width:36px;"></div>
-    </header>
-
-    <div class="contenu">
-
-        <?php if ($msg_ok) : ?>
-        <div style="background:rgba(22,163,74,.09); border:1px solid var(--vert); border-radius:8px; padding:9px 13px; font-size:.83rem; color:var(--vert); font-weight:600;">
-            ✓ <?php echo htmlspecialchars($msg_ok); ?>
+<nav class="navbar navbar-expand-lg navbar-cy shadow-sm mb-4">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand" href="accueil_tuteur.php"><img src="../../public/assets/img/logo.png" alt="CY Stage" height="36"></a>
+        <div class="ms-auto d-flex align-items-center">
+            <span class="fw-bold text-white me-3 d-none d-sm-inline"><i class="bi bi-person-workspace me-2"></i> <?php echo h($_SESSION['prenom'] . ' ' . $_SESSION['nom']); ?></span>
+            <a href="deconnexion.php" class="btn btn-outline-light btn-sm rounded-pill px-3"><i class="bi bi-box-arrow-right d-sm-none"></i><span class="d-none d-sm-inline">Déconnexion</span></a>
         </div>
-        <?php endif; ?>
-        <?php if ($msg_err) : ?>
-        <div style="background:#fff0f0; border:1px solid #fca5a5; border-radius:8px; padding:9px 13px; font-size:.83rem; color:var(--rouge);">
-            <?php echo htmlspecialchars($msg_err); ?>
+    </div>
+</nav>
+
+<div class="container mb-5" style="max-width:900px;">
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <a href="accueil_tuteur.php" class="btn btn-outline-secondary btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width:38px;height:38px;"><i class="bi bi-chevron-left"></i></a>
+        <div>
+            <h1 class="h4 mb-0 fw-bold" style="color:var(--bleu); font-family:'Syne',sans-serif;">Remarques & Échanges</h1>
+            <p class="text-muted mb-0" style="font-size:.85rem;">Communiquez avec vos étudiants à propos de leurs dossiers</p>
         </div>
-        <?php endif; ?>
+    </div>
 
-        <?php if (empty($etudiants)) : ?>
-        <div class="etat-vide">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-            </svg>
-            <h3>Aucun étudiant suivi</h3>
-            <p>Affectez d'abord un étudiant à une offre de stage.</p>
+    <!-- Alertes -->
+    <?php if ($msg_ok) : ?>
+        <div class="alert alert-success rounded-4 d-flex align-items-center gap-2 mb-4"><i class="bi bi-check-circle-fill"></i> <strong><?php echo h($msg_ok); ?></strong></div>
+    <?php endif; ?>
+    <?php if ($msg_err) : ?>
+        <div class="alert alert-danger rounded-4 d-flex align-items-center gap-2 mb-4"><i class="bi bi-exclamation-triangle-fill"></i> <strong><?php echo h($msg_err); ?></strong></div>
+    <?php endif; ?>
+
+    <?php if (empty($etudiants)) : ?>
+        <div class="text-center p-5 bg-white rounded-4 border" style="border-style: dashed !important;">
+            <i class="bi bi-chat-slash text-muted opacity-50 mb-3 d-block" style="font-size: 3rem;"></i>
+            <h5 class="fw-bold mb-2" style="color:var(--bleu); font-family:'Syne',sans-serif;">Aucun étudiant suivi</h5>
+            <p class="text-muted mb-0">Vous devez d'abord affecter un étudiant à une offre de stage.</p>
         </div>
-
-        <?php else : ?>
-
-        <!-- Sélection de l'étudiant -->
-        <p class="label-section">Sélectionner un étudiant</p>
-        <div style="display:flex; flex-wrap:wrap; gap:7px;">
-            <?php foreach ($etudiants as $e) : ?>
-            <a href="remarques_tuteur.php?etudiant=<?php echo (int)$e['id']; ?>"
-               class="etu-pill <?php echo $id_etu_sel === $e['id'] ? 'actif' : ''; ?>">
-                <?php echo htmlspecialchars($e['nom_complet']); ?>
-            </a>
-            <?php endforeach; ?>
-        </div>
-
-        <!-- Formulaire d'envoi -->
-        <p class="label-section">Remarques :</p>
-        <div class="carte">
-            <form method="POST" action="remarques_tuteur.php<?php echo $id_etu_sel ? '?etudiant=' . $id_etu_sel : ''; ?>">
-                <?php if (!$id_etu_sel) : ?>
-                <label style="font-size:.80rem; font-weight:600; color:var(--gris-texte); display:block; margin-bottom:4px;">Étudiant</label>
-                <select name="id_etudiant" style="width:100%; padding:10px 12px; border:1px solid var(--gris-border); border-radius:8px; background:var(--gris-fond); font-family:'DM Sans',sans-serif; font-size:.87rem; color:var(--noir); outline:none; margin-bottom:10px; appearance:none;" required>
-                    <option value="">-- Choisir un étudiant --</option>
-                    <?php foreach ($etudiants as $e) : ?>
-                    <option value="<?php echo (int)$e['id']; ?>"><?php echo htmlspecialchars($e['nom_complet']); ?></option>
-                    <?php endforeach; ?>
-                </select>
-                <?php else : ?>
-                <input type="hidden" name="id_etudiant" value="<?php echo $id_etu_sel; ?>">
-                <?php endif; ?>
-
-                <textarea class="textarea" name="contenu" rows="4"
-                          placeholder="Écrivez votre remarque pour <?php echo htmlspecialchars($nom_etu_sel ?: 'l\'étudiant'); ?>…"></textarea>
-                <button type="submit" class="btn" style="margin-top:10px;">Valider</button>
-            </form>
-        </div>
-
-        <!-- Historique des échanges -->
-        <?php if ($id_etu_sel && !empty($remarques)) : ?>
-        <p class="label-section">Échanges avec <?php echo htmlspecialchars($nom_etu_sel); ?></p>
-        <div class="carte">
-            <div class="chat-wrapper">
-                <?php foreach ($remarques as $rem) :
-                    $est_tuteur = $rem['role_premier'] === 'Tuteur';
-                ?>
-                <div style="display:flex; flex-direction:column; align-items:<?php echo $est_tuteur ? 'flex-end' : 'flex-start'; ?>">
-                    <p style="font-size:.70rem; color:var(--gris-texte); margin-bottom:3px; font-weight:600;">
-                        <?php echo htmlspecialchars($rem['prenom'] . ' ' . $rem['nom']); ?>
-                        · <?php echo date('d/m/Y', strtotime($rem['date_creation'])); ?>
-                    </p>
-                    <div class="bubble <?php echo $est_tuteur ? 'bubble-tuteur' : 'bubble-autre'; ?>">
-                        <?php echo nl2br(htmlspecialchars($rem['contenu'])); ?>
+    <?php else : ?>
+        <div class="row g-4">
+            
+            <!-- Colonne Sélection Étudiant -->
+            <div class="col-md-4">
+                <div class="card-cy h-100">
+                    <h6 class="fw-bold text-muted text-uppercase mb-3" style="font-size:.8rem; letter-spacing:1px;">Sélectionner un étudiant</h6>
+                    <div class="d-flex flex-column gap-2">
+                        <?php foreach ($etudiants as $e) : ?>
+                            <a href="remarques_tuteur.php?etudiant=<?php echo (int)$e['id']; ?>" class="btn text-start rounded-pill <?php echo $id_etu_sel === $e['id'] ? 'btn-primary shadow-sm' : 'btn-outline-secondary border-0 bg-light'; ?> fw-semibold" style="<?php echo $id_etu_sel === $e['id'] ? 'background-color: var(--bleu); border-color: var(--bleu);' : ''; ?>">
+                                <i class="bi bi-person-circle me-2"></i> <?php echo h($e['nom_complet']); ?>
+                            </a>
+                        <?php endforeach; ?>
                     </div>
                 </div>
-                <?php endforeach; ?>
             </div>
-        </div>
-        <?php elseif ($id_etu_sel && empty($remarques)) : ?>
-        <div class="etat-vide" style="padding:24px;">
-            <p style="font-size:.83rem; color:var(--gris-texte);">Aucun échange pour cet étudiant pour l'instant.</p>
-        </div>
-        <?php endif; ?>
 
-        <?php endif; ?>
+            <!-- Colonne Chat -->
+            <div class="col-md-8">
+                <div class="card-cy h-100 d-flex flex-column">
+                    <?php if (!$id_etu_sel) : ?>
+                        <div class="flex-grow-1 d-flex flex-column align-items-center justify-content-center text-muted p-4">
+                            <i class="bi bi-chat-dots fs-1 mb-3 opacity-50"></i>
+                            <p class="mb-0 text-center">Sélectionnez un étudiant dans la liste de gauche pour visualiser l'historique et lui envoyer un message.</p>
+                        </div>
+                    <?php else : ?>
+                        <h5 class="fw-bold mb-4 pb-2 border-bottom" style="font-family:'Syne',sans-serif; color:#111827;">
+                            Discussion avec <?php echo h($nom_etu_sel); ?>
+                        </h5>
+                        
+                        <!-- Historique des messages[cite: 19] -->
+                        <div class="chat-container flex-grow-1 mb-4 d-flex flex-column">
+                            <?php if (empty($remarques)) : ?>
+                                <div class="text-center text-muted my-auto opacity-75">Aucun échange pour le moment. Lancez la discussion !</div>
+                            <?php else : ?>
+                                <?php foreach ($remarques as $rem) :
+                                    $est_tuteur = $rem['role_premier'] === 'Tuteur';
+                                ?>
+                                    <div class="d-flex flex-column mb-3 <?php echo $est_tuteur ? 'align-items-end' : 'align-items-start'; ?>">
+                                        <span class="text-muted mb-1" style="font-size: .7rem; font-weight: 600;">
+                                            <?php echo h($rem['prenom'] . ' ' . $rem['nom']); ?> • <?php echo date('d/m/Y H:i', strtotime($rem['date_creation'])); ?>
+                                        </span>
+                                        <div class="chat-bubble <?php echo $est_tuteur ? 'bubble-tuteur' : 'bubble-autre'; ?>">
+                                            <?php echo nl2br(h($rem['contenu'])); ?>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </div>
 
-    </div>
+                        <!-- Formulaire d'envoi -->
+                        <form method="POST" action="remarques_tuteur.php?etudiant=<?php echo $id_etu_sel; ?>" class="mt-auto">
+                            <input type="hidden" name="id_etudiant" value="<?php echo $id_etu_sel; ?>">
+                            <div class="input-group">
+                                <textarea class="form-control bg-light rounded-start-4" name="contenu" rows="2" placeholder="Écrivez votre message..." style="resize:none;" required></textarea>
+                                <button type="submit" class="btn btn-primary rounded-end-4 px-4" style="background:var(--bleu); border-color:var(--bleu);">
+                                    <i class="bi bi-send-fill"></i>
+                                </button>
+                            </div>
+                        </form>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+        </div>
+    <?php endif; ?>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Auto-scroll chat to bottom -->
+<script>
+    const chatContainer = document.querySelector('.chat-container');
+    if(chatContainer) {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+</script>
 </body>
 </html>

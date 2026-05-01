@@ -7,7 +7,6 @@ if (!isset($_SESSION['id']) || $_SESSION['role'] !== 'Admin') {
     exit();
 }
 
-
 $conn    = mysqli_connect('localhost', 'userpro', 'projetStage26.', 'cyStages');
 $msg_ok  = '';
 $msg_err = '';
@@ -33,11 +32,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $conn) {
              VALUES (?, ?, ?, ?, ?, ?, 'ouverte', ?)"
         );
 
-        // 3. On sécurise : on vérifie que mysqli_prepare a fonctionné (sinon erreur SQL)
         if ($ins) {
             $date_val = empty($date_debut) ? null : $date_debut;
             
-            // CORRECTION ICI : ssssisi au lieu de ssssiis
+            // ssssisi
             mysqli_stmt_bind_param($ins, 'ssssisi',
                 $titre, $mission, $competences, $filiere, $duree, $date_val, $id_entreprise
             );
@@ -50,7 +48,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $conn) {
             }
             mysqli_stmt_close($ins);
         } else {
-            // Si $ins est false (par exemple si la table n'existe pas ou erreur de syntaxe SQL)
             $msg_err = "Erreur SQL interne : " . mysqli_error($conn);
         }
     }
@@ -68,6 +65,8 @@ if ($conn) {
     while ($row = mysqli_fetch_assoc($q)) $entreprises[] = $row;
     mysqli_close($conn);
 }
+
+function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -75,86 +74,121 @@ if ($conn) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ajouter une offre — CY Stage</title>
-    <link rel="stylesheet" href="../../public/assets/css/style-admin.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root { --bleu: #1B4F9B; --bleu-clair: #2563c7; }
+        body { font-family: 'DM Sans', sans-serif; background: #f4f6fb; }
+        .navbar-cy { background: linear-gradient(135deg, #1B4F9B, #2563c7); }
+        .card-cy {
+            border: 1px solid rgba(171,186,205,.4); border-radius: 18px;
+            box-shadow: 0 4px 18px rgba(27,79,155,.06); background: #fff; padding: 2rem;
+        }
+        .form-label { font-weight: 600; color: #111827; font-size: 0.9rem; }
+        .form-control:focus, .form-select:focus { border-color: var(--bleu-clair); box-shadow: 0 0 0 0.25rem rgba(37,99,199,0.15); }
+    </style>
 </head>
 <body>
-<div class="page anim">
 
-    <div class="logo-wrapper">
-        <img src="../../public/assets/img/logo.png" alt="CY Stage">
+<nav class="navbar navbar-expand-lg navbar-cy shadow-sm mb-4">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand" href="accueil_admin.php"><img src="../../public/assets/img/logo.png" alt="CY Stage" height="36"></a>
+        <div class="ms-auto d-flex align-items-center">
+            <span class="fw-bold text-white me-3 d-none d-sm-inline"><i class="bi bi-shield-lock-fill me-2"></i> <?php echo h($_SESSION['prenom'] . ' ' . $_SESSION['nom']); ?></span>
+            <a href="deconnexion.php" class="btn btn-outline-light btn-sm rounded-pill px-3"><i class="bi bi-box-arrow-right d-sm-none"></i><span class="d-none d-sm-inline">Déconnexion</span></a>
+        </div>
+    </div>
+</nav>
+
+<div class="container mb-5" style="max-width:850px;">
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <a href="gestion_stages.php" class="btn btn-outline-secondary btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width:38px;height:38px;"><i class="bi bi-chevron-left"></i></a>
+        <div>
+            <h1 class="h4 mb-0 fw-bold" style="color:var(--bleu); font-family:'Syne',sans-serif;">Ajouter une offre de stage</h1>
+            <p class="text-muted mb-0" style="font-size:.85rem;">Création d'une nouvelle opportunité pour les étudiants</p>
+        </div>
     </div>
 
-    <div class="nom-entreprise">Ajouter une offre de stage</div>
+    <!-- Alertes -->
+    <?php if ($msg_ok) : ?>
+        <div class="alert alert-success rounded-4 d-flex align-items-center gap-2 mb-4"><i class="bi bi-check-circle-fill"></i> <strong><?php echo h($msg_ok); ?></strong></div>
+    <?php endif; ?>
+    <?php if ($msg_err) : ?>
+        <div class="alert alert-danger rounded-4 d-flex align-items-center gap-2 mb-4"><i class="bi bi-exclamation-triangle-fill"></i> <strong><?php echo h($msg_err); ?></strong></div>
+    <?php endif; ?>
 
-    <!-- messages de retour -->
-    <?php if ($msg_ok) : ?><div class="msg-ok">✓ <?php echo htmlspecialchars($msg_ok); ?></div><?php endif; ?>
-    <?php if ($msg_err) : ?><div class="msg-err"><?php echo htmlspecialchars($msg_err); ?></div><?php endif; ?>
-
-    <!-- le formulaire de création d'offre -->
-    <div class="carte">
+    <div class="card-cy">
         <form method="POST" action="ajouter_stage.php">
+            
+            <h5 class="fw-bold text-primary mb-4 pb-2 border-bottom" style="font-family:'Syne',sans-serif;"><i class="bi bi-info-circle me-2"></i>Informations générales</h5>
 
-            <p class="label-section">Informations de l'offre</p>
-
-            <label class="field-label" for="titre">Titre du poste *</label>
-            <input class="field-input" type="text" name="titre" id="titre"
-                   placeholder="Ex : Développeur web front-end" required>
-
-            <label class="field-label" for="id_entreprise">Entreprise *</label>
-            <select class="field-select" name="id_entreprise" id="id_entreprise" required>
-                <option value="">— Sélectionner une entreprise —</option>
-                <?php foreach ($entreprises as $e) : ?>
-                <option value="<?php echo $e['id']; ?>">
-                    <?php echo htmlspecialchars($e['nom_entreprise']); ?>
-                </option>
-                <?php endforeach; ?>
-            </select>
-
-            <!-- on affiche un message si aucune entreprise n'est enregistrée -->
-            <?php if (empty($entreprises)) : ?>
-            <p style="font-size:.78rem; color:var(--orange); margin-top:-10px; margin-bottom:12px;">
-                ⚠ Aucune entreprise active. Ajoutez d'abord une entreprise via Gestion Utilisateurs.
-            </p>
-            <?php endif; ?>
-
-            <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
-                <div>
-                    <label class="field-label" for="duree_semaines">Durée (semaines) *</label>
-                    <input class="field-input" type="number" name="duree_semaines" id="duree_semaines"
-                           placeholder="Ex : 12" min="1" max="52" required>
+            <div class="row g-4 mb-4">
+                <div class="col-md-6">
+                    <label for="titre" class="form-label">Titre du poste <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control bg-light" name="titre" id="titre" placeholder="Ex : Développeur web front-end" required>
                 </div>
-                <div>
-                    <label class="field-label" for="date_debut">Date de début</label>
-                    <input class="field-input" type="date" name="date_debut" id="date_debut">
+
+                <div class="col-md-6">
+                    <label for="id_entreprise" class="form-label">Entreprise <span class="text-danger">*</span></label>
+                    <select class="form-select bg-light" name="id_entreprise" id="id_entreprise" required>
+                        <option value="">— Sélectionner une entreprise —</option>
+                        <?php foreach ($entreprises as $e) : ?>
+                            <option value="<?php echo (int)$e['id']; ?>"><?php echo h($e['nom_entreprise']); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <?php if (empty($entreprises)) : ?>
+                        <div class="form-text text-danger mt-1"><i class="bi bi-exclamation-triangle"></i> Aucune entreprise active. Ajoutez d'abord une entreprise via Gestion Utilisateurs.</div>
+                    <?php endif; ?>
+                </div>
+
+                <div class="col-md-6">
+                    <label for="duree_semaines" class="form-label">Durée (semaines) <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class="bi bi-calendar-week"></i></span>
+                        <input type="number" class="form-control bg-light" name="duree_semaines" id="duree_semaines" placeholder="Ex : 12" min="1" max="52" required>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label for="date_debut" class="form-label">Date de début (optionnelle)</label>
+                    <input type="date" class="form-control bg-light" name="date_debut" id="date_debut">
                 </div>
             </div>
 
-            <label class="field-label" for="filiere_ciblee">Filière ciblée</label>
-            <input class="field-input" type="text" name="filiere_ciblee" id="filiere_ciblee"
-                   placeholder="Ex : Informatique, Réseaux, IA…">
+            <h5 class="fw-bold text-primary mb-4 pb-2 border-bottom mt-5" style="font-family:'Syne',sans-serif;"><i class="bi bi-card-text me-2"></i>Détails de la mission</h5>
 
-            <p class="label-section" style="margin-top:4px;">Détails de la mission</p>
+            <div class="row g-4 mb-4">
+                <div class="col-12">
+                    <label for="mission" class="form-label">Description de la mission <span class="text-danger">*</span></label>
+                    <textarea class="form-control bg-light" name="mission" id="mission" placeholder="Décris les missions et responsabilités du stage…" rows="5" required></textarea>
+                </div>
 
-            <label class="field-label" for="mission">Description de la mission *</label>
-            <textarea class="field-input field-textarea" name="mission" id="mission"
-                      placeholder="Décris les missions et responsabilités du stage…" rows="5" required></textarea>
+                <div class="col-md-6">
+                    <label for="filiere_ciblee" class="form-label">Filière ciblée (optionnel)</label>
+                    <input type="text" class="form-control bg-light" name="filiere_ciblee" id="filiere_ciblee" placeholder="Ex : Informatique, Réseaux, IA…">
+                </div>
 
-            <label class="field-label" for="competences">Compétences requises</label>
-            <input class="field-input" type="text" name="competences" id="competences"
-                   placeholder="Ex : PHP, JavaScript, MySQL (séparées par des virgules)">
+                <div class="col-md-6">
+                    <label for="competences" class="form-label">Compétences requises (optionnel)</label>
+                    <input type="text" class="form-control bg-light" name="competences" id="competences" placeholder="Ex : PHP, JavaScript, MySQL...">
+                </div>
+            </div>
 
-            <button type="submit" class="btn-principal">
-                <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                Publier l'offre
-            </button>
+            <hr class="my-4 text-muted">
+
+            <div class="d-flex justify-content-end gap-3">
+                <a href="gestion_stages.php" class="btn btn-light border rounded-pill px-4 fw-bold text-muted">Annuler</a>
+                <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" style="background:var(--bleu); border:none;">
+                    <i class="bi bi-plus-circle me-1"></i> Publier l'offre
+                </button>
+            </div>
 
         </form>
     </div>
-
-    <div class="deconnexion">
-        <a href="gestion_stages.php">← Retour</a>
-    </div>
-
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -19,9 +19,10 @@ if (!$connect) {
 
 mysqli_set_charset($connect, "utf8mb4");
 
+// Fonction utilitaire pour sécuriser l'affichage HTML
+function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
+
 $stages = [];
-
-
 $idEntreprise = $_SESSION['id']; 
 
 $sql = "SELECT 
@@ -70,148 +71,140 @@ if ($stmt) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stages en cours</title>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Montserrat+Alternates:wght@600;700&display=swap" rel="stylesheet">
-
+    <title>Stages en cours — CY Stage</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --gris-ardoise: #676D6B;
-            --bleu-royal: #255FAA;
-            --bleu-horizon: #5686D9;
-            --brume-acier: #ABBACD;
-            --fond: #f5f7fb;
-            --blanc: #ffffff;
+            --bleu: #1B4F9B;
+            --bleu-clair: #2563c7;
+            --bs-primary: #1B4F9B;
+            --bs-primary-rgb: 27,79,155;
+        }
+        body { font-family: 'DM Sans', sans-serif; background: #f4f6fb; }
+
+        /* Navbar */
+        .navbar-cy { background: linear-gradient(135deg, #1B4F9B, #2563c7); }
+
+        /* Cards */
+        .card-cy {
+            border: 1px solid rgba(171,186,205,.4);
+            border-radius: 18px;
+            box-shadow: 0 4px 18px rgba(27,79,155,.08);
+            background: #fff;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
+        /* Avatar icône de stage */
+        .avatar-initiales {
+            width: 46px; height: 46px; border-radius: 50%;
+            background: linear-gradient(135deg, #1B4F9B, #2563c7);
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-family: 'Syne', sans-serif;
+            font-weight: 800; font-size: 1.1rem; flex-shrink: 0;
         }
 
-        body {
-            font-family: 'Montserrat', sans-serif;
-            background: linear-gradient(180deg, #f8fbff 0%, #eef3f9 100%);
-            color: #2d3436;
-            padding: 32px 18px;
+        /* Lignes étudiants interactives */
+        .student-row {
+            display: flex; align-items: center; padding: 12px 16px;
+            border: 1px solid #e5e7eb; border-radius: 12px;
+            background: #fbfdff; text-decoration: none; color: inherit;
+            transition: all 0.2s ease-in-out;
         }
-
-        .wrapper {
-            max-width: 950px;
-            margin: 0 auto;
+        .student-row:hover {
+            background: #f0f4fa; border-color: var(--bleu-clair);
+            transform: translateX(4px); color: inherit;
         }
-
-        .header {
-            margin-bottom: 24px;
+        .student-row i.bi-chevron-right {
+            transition: transform 0.2s ease;
         }
-
-        .back-link {
-            display: inline-block;
-            margin-bottom: 8px;
-            color: var(--bleu-royal);
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        .back-link:hover {
-            text-decoration: underline;
-        }
-
-        h1 {
-            font-family: 'Montserrat Alternates', sans-serif;
-            color: var(--bleu-royal);
-            font-size: 2rem;
-        }
-
-        .card-page {
-            background: var(--blanc);
-            border-radius: 24px;
-            box-shadow: 0 14px 35px rgba(37, 95, 170, 0.10);
-            padding: 28px 24px;
-            border: 1px solid rgba(171, 186, 205, 0.35);
-        }
-
-        .stage-block {
-            margin-bottom: 28px;
-        }
-
-        .stage-title {
-            color: var(--bleu-royal);
-            font-weight: 800;
-            font-size: 1.35rem;
-            margin-bottom: 10px;
-        }
-
-        .stage-title a {
-            text-decoration: none;
-            color: inherit;
-        }
-
-        .stage-title a:hover {
-            text-decoration: underline;
-        }
-
-        .stagiaires-label {
-            color: var(--bleu-horizon);
-            font-weight: 700;
-            margin-bottom: 6px;
-        }
-
-        .stagiaire-link {
-            display: block;
-            margin-left: 14px;
-            margin-bottom: 4px;
-            color: var(--gris-ardoise);
-            text-decoration: none;
-            font-weight: 500;
-        }
-
-        .stagiaire-link:hover {
-            color: var(--bleu-royal);
-            text-decoration: underline;
-        }
-
-        .empty {
-            color: var(--gris-ardoise);
-            background: #f8fbff;
-            border: 1px dashed var(--brume-acier);
-            border-radius: 16px;
-            padding: 18px;
+        .student-row:hover i.bi-chevron-right {
+            transform: translateX(3px); color: var(--bleu) !important;
         }
     </style>
 </head>
 <body>
-    <div class="wrapper">
-        <div class="header">
-            <a href="accueil_entreprise.php" class="back-link">← Retour au tableau de bord</a>
-            <h1>Stages en cours</h1>
-        </div>
 
-        <div class="card-page">
-            <?php if (empty($stages)) : ?>
-                <div class="empty">Aucun stage en cours pour le moment.</div>
-            <?php else : ?>
-                <?php foreach ($stages as $stage) : ?>
-                    <div class="stage-block">
-                        <div class="stage-title">
-                            <a href="gestion_stages_en_cours_entreprise.php?num_stage=<?php echo urlencode($stage['num_stage']); ?>">
-                                <?php echo htmlspecialchars($stage['titre']); ?>
-                            </a>
-                        </div>
-                        <div class="stagiaires-label">Etudiant stagiaire<?php echo count($stage['stagiaires']) > 1 ? 's' : ''; ?> :</div>
+<!-- Navbar -->
+<nav class="navbar navbar-cy shadow-sm mb-4">
+    <div class="container-fluid px-4 d-flex align-items-center justify-content-between">
+        <a class="navbar-brand" href="accueil_entreprise.php">
+            <img src="../../public/assets/img/logo.png" alt="CY Stage" height="36">
+        </a>
+        <span class="fw-bold text-white">
+            <i class="bi bi-building me-2"></i>
+            <?php echo h($_SESSION['nom_entreprise'] ?? 'Entreprise'); ?>
+        </span>
+        <a href="deconnexion.php" class="btn btn-outline-light btn-sm">
+            <i class="bi bi-box-arrow-right me-1"></i> Déconnexion
+        </a>
+    </div>
+</nav>
 
-                        <?php foreach ($stage['stagiaires'] as $stagiaire) : ?>
-                            <a class="stagiaire-link" href="gestion_stages_en_cours_entreprise.php?num_stage=<?php echo urlencode($stagiaire['num_stage']); ?>">
-                                <?php echo htmlspecialchars($stagiaire['nom_complet']); ?>
-                            </a>
-                        <?php endforeach; ?>
-                    </div>
-                <?php endforeach; ?>
-            <?php endif; ?>
+<div class="container" style="max-width:900px;">
+
+    <!-- En-tête page -->
+    <div class="d-flex align-items-center gap-3 mb-4">
+        <a href="accueil_entreprise.php" class="btn btn-outline-secondary btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width:38px;height:38px;">
+            <i class="bi bi-chevron-left"></i>
+        </a>
+        <div>
+            <h1 class="h4 mb-0 fw-bold" style="color:var(--bleu); font-family:'Syne',sans-serif;">Stages en cours</h1>
+            <p class="text-muted mb-0" style="font-size:.85rem;">Consultez et gérez vos stages actuellement en cours</p>
         </div>
     </div>
+
+    <!-- Contenu Principal -->
+    <?php if (empty($stages)): ?>
+        <div class="card-cy p-5 text-center mb-4">
+            <i class="bi bi-briefcase fs-1 text-muted opacity-50 mb-3 d-block"></i>
+            <h5 class="fw-bold mb-1" style="color:var(--bleu);">Aucun stage en cours</h5>
+            <p class="text-muted mb-0">Vous n'avez aucun stage en cours pour le moment.</p>
+        </div>
+    <?php else: ?>
+        <div class="d-flex flex-column gap-4 mb-5">
+            <?php foreach ($stages as $stage): ?>
+                <div class="card-cy p-4">
+                    <div class="d-flex align-items-start gap-3 mb-3">
+                        <div class="avatar-initiales">
+                            <i class="bi bi-briefcase"></i>
+                        </div>
+                        <div class="flex-grow-1 w-100">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <h5 class="mb-0 fw-bold" style="font-family:'Syne',sans-serif;">
+                                    <a href="gestion_stages_en_cours_entreprise.php?num_stage=<?php echo urlencode($stage['num_stage']); ?>" class="text-decoration-none text-dark hover-primary">
+                                        <?php echo h($stage['titre']); ?>
+                                    </a>
+                                </h5>
+                            </div>
+                            
+                            <p class="text-muted fw-semibold mb-3 mt-2" style="font-size:.85rem; color:var(--bleu) !important;">
+                                <i class="bi bi-people me-1"></i> 
+                                Étudiant stagiaire<?php echo count($stage['stagiaires']) > 1 ? 's' : ''; ?> :
+                            </p>
+                            
+                            <div class="d-flex flex-column gap-2">
+                                <?php foreach ($stage['stagiaires'] as $stagiaire): ?>
+                                    <a href="gestion_stages_en_cours_entreprise.php?num_stage=<?php echo urlencode($stagiaire['num_stage']); ?>" class="student-row">
+                                        <div class="d-flex align-items-center w-100">
+                                            <i class="bi bi-person-circle me-3 text-secondary fs-5"></i>
+                                            <span class="fw-bold" style="font-size:.95rem; color:#374151;">
+                                                <?php echo h($stagiaire['nom_complet']); ?>
+                                            </span>
+                                            <i class="bi bi-chevron-right ms-auto text-muted" style="font-size:.85rem;"></i>
+                                        </div>
+                                    </a>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        </div>
+    <?php endif; ?>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

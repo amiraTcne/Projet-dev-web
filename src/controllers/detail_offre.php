@@ -52,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $conn) {
                  VALUES (?, ?, ?, ?, 'en_attente')"
             );
 
-            /* on lie les variables aux '?', le 'siii' veut dire (String, Integer, Integer, Integer) */
+            /* on lie les variables aux '?' */
             mysqli_stmt_bind_param($ins, 'siii',
                 $ent['titre'],        /* le titre du stage */
                 $_SESSION['id'],      /* l'ID de l'étudiant récupéré depuis la session */
@@ -121,182 +121,249 @@ if (!$offre) {
 /* on prépare les données d'affichage */
 $techs = array_filter(array_map('trim', explode(',', $offre['competences'] ?? '')));
 $duree = $offre['duree_semaines'] ? round($offre['duree_semaines'] / 4) . ' mois' : '';
+
+// Fonction utilitaire pour sécuriser l'affichage HTML
+function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
 ?>
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo htmlspecialchars($offre['titre']); ?> — CY Stage</title>
-    <link rel="stylesheet" href="../../public/assets/css/style_etudiant.css">
+    <title><?php echo h($offre['titre']); ?> — CY Stage</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bleu: #1B4F9B;
+            --bleu-clair: #2563c7;
+        }
+        body { font-family: 'DM Sans', sans-serif; background: #f4f6fb; }
+
+        /* Navbar */
+        .navbar-cy { background: linear-gradient(135deg, #1B4F9B, #2563c7); }
+
+        /* Cards */
+        .card-cy {
+            border: 1px solid rgba(171,186,205,.4);
+            border-radius: 18px;
+            box-shadow: 0 4px 18px rgba(27,79,155,.06);
+            background: #fff;
+            padding: 2rem;
+        }
+
+        .section-title {
+            font-family: 'Syne', sans-serif;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--bleu);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-row {
+            display: flex; align-items: center; gap: 15px;
+            padding: 12px 0; border-bottom: 1px solid #e5e7eb;
+        }
+        .info-row:last-child { border-bottom: none; }
+        .icon-box {
+            width: 38px; height: 38px; border-radius: 10px;
+            background: #eef2ff; color: var(--bleu);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem; flex-shrink: 0;
+        }
+
+        /* Bouton Favori */
+        .btn-coeur {
+            width: 44px; height: 44px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            border: 1px solid #e5e7eb; background: #fff; color: #9ca3af;
+            transition: all 0.2s; font-size: 1.3rem;
+        }
+        .btn-coeur:hover, .btn-coeur.actif { background: #fee2e2; border-color: #fca5a5; color: #ef4444; }
+
+        /* Toast stylisé */
+        .toast-cy {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px);
+            background: #111827; color: #fff; padding: 12px 24px; border-radius: 999px;
+            font-size: .9rem; font-weight: 600; opacity: 0; transition: all 0.3s ease;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2); z-index: 1050; display: flex; align-items: center; gap: 8px;
+        }
+        .toast-cy.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        .toast-cy.ok { background: #1B4F9B; }
+    </style>
 </head>
 <body>
-<div class="page anim">
 
-    <!-- l'en-tête avec le bouton retour et le bouton favori -->
-    <header class="entete">
-        <a href="offres_etudiant.php" class="btn-retour" aria-label="Retour">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="15 18 9 12 15 6"/>
-            </svg>
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-cy shadow-sm mb-4">
+    <div class="container-fluid px-4">
+        <a class="navbar-brand" href="accueil_etudiant.php">
+            <img src="../../public/assets/img/logo.png" alt="CY Stage" height="36">
         </a>
-        <span class="entete-titre">Détail de l'offre</span>
-
-        <!-- le bouton cœur : rouge si l'offre est en favori, gris sinon -->
-        <button class="btn-coeur <?php echo $est_favori ? 'actif' : ''; ?>"
-                id="btn-fav"
-                data-id="<?php echo $id_offre; ?>"
-                style="border-radius:50%; border:1px solid var(--gris-border);"
-                aria-label="Favori">
-            <svg viewBox="0 0 24 24" fill="<?php echo $est_favori ? 'currentColor' : 'none'; ?>">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
-            </svg>
-        </button>
-    </header>
-
-    <div class="contenu">
-
-        <!-- le bandeau bleu avec le titre et les informations principales -->
-        <div class="bandeau">
-            <h2><?php echo htmlspecialchars($offre['titre']); ?></h2>
-            <p>
-                <?php echo htmlspecialchars($offre['nom_entreprise']); ?>
-                <?php if ($offre['ville']) : ?> · <?php echo htmlspecialchars($offre['ville']); ?><?php endif; ?>
-            </p>
-            <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:8px;">
-                <?php if ($offre['filiere_ciblee']) : ?>
-                <span style="background:rgba(255,255,255,.20); color:#fff; padding:2px 9px; border-radius:20px; font-size:.70rem; font-weight:700;">
-                    <?php echo htmlspecialchars($offre['filiere_ciblee']); ?>
-                </span>
-                <?php endif; ?>
-                <?php if ($duree) : ?>
-                <span style="background:rgba(255,255,255,.20); color:#fff; padding:2px 9px; border-radius:20px; font-size:.70rem; font-weight:700;">
-                    <?php echo $duree; ?>
-                </span>
-                <?php endif; ?>
-            </div>
-        </div>
-
-        <!-- le message de succès après que la candidature a été envoyée -->
-        <?php if ($msg_ok) : ?>
-        <div style="background:rgba(22,163,74,.09); border:1px solid var(--vert); border-radius:10px; padding:11px 14px; display:flex; align-items:center; gap:10px;">
-            <span style="width:32px; height:32px; border-radius:50%; background:var(--vert); display:flex; align-items:center; justify-content:center; flex-shrink:0; color:#fff;">✓</span>
-            <p style="font-weight:700; font-size:.87rem; color:var(--vert);"><?php echo htmlspecialchars($msg_ok); ?></p>
-        </div>
-        <?php endif; ?>
-
-        <!-- le message d'erreur si quelque chose s'est mal passé -->
-        <?php if ($msg_err) : ?>
-        <div style="background:#fff0f0; border:1px solid #fca5a5; border-radius:8px; padding:10px 13px; font-size:.83rem; color:var(--rouge);">
-            <?php echo htmlspecialchars($msg_err); ?>
-        </div>
-        <?php endif; ?>
-
-        <!-- la localisation, la durée et la date de début -->
-        <p class="label-section">Informations</p>
-        <div class="carte">
-            <?php if ($offre['ville']) : ?>
-            <div style="display:flex; gap:10px; align-items:center; padding:9px 0; border-bottom:1px solid var(--gris-border);">
-                <div style="width:30px; height:30px; border-radius:7px; background:var(--gris-fond); display:flex; align-items:center; justify-content:center; color:var(--bleu); flex-shrink:0;">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;">
-                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                        <circle cx="12" cy="10" r="3"/>
-                    </svg>
-                </div>
-                <div>
-                    <p style="font-size:.69rem; color:var(--gris-texte); font-weight:500;">Localisation</p>
-                    <p style="font-size:.87rem; font-weight:700;"><?php echo htmlspecialchars($offre['ville']); ?></p>
-                </div>
-            </div>
-            <?php endif; ?>
-
-            <?php if ($offre['duree_semaines']) : ?>
-            <div style="display:flex; gap:10px; align-items:center; padding:9px 0; border-bottom:1px solid var(--gris-border);">
-                <div style="width:30px; height:30px; border-radius:7px; background:var(--gris-fond); display:flex; align-items:center; justify-content:center; color:var(--bleu); flex-shrink:0;">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;">
-                        <circle cx="12" cy="12" r="10"/>
-                        <polyline points="12 6 12 12 16 14"/>
-                    </svg>
-                </div>
-                <div>
-                    <p style="font-size:.69rem; color:var(--gris-texte); font-weight:500;">Durée</p>
-                    <p style="font-size:.87rem; font-weight:700;">
-                        <?php echo $offre['duree_semaines']; ?> semaines (~<?php echo $duree; ?>)
-                    </p>
-                </div>
-            </div>
-            <?php endif; ?>
-
-            <?php if ($offre['date_debut']) : ?>
-            <div style="display:flex; gap:10px; align-items:center; padding:9px 0;">
-                <div style="width:30px; height:30px; border-radius:7px; background:var(--gris-fond); display:flex; align-items:center; justify-content:center; color:var(--bleu); flex-shrink:0;">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;">
-                        <rect x="3" y="4" width="18" height="18" rx="2"/>
-                        <path d="M16 2v4M8 2v4M3 10h18"/>
-                    </svg>
-                </div>
-                <div>
-                    <p style="font-size:.69rem; color:var(--gris-texte); font-weight:500;">Début du stage</p>
-                    <p style="font-size:.87rem; font-weight:700;">
-                        <?php echo date('d/m/Y', strtotime($offre['date_debut'])); ?>
-                    </p>
-                </div>
-            </div>
-            <?php endif; ?>
-        </div>
-
-        <!-- la description complète de la mission -->
-        <?php if ($offre['mission']) : ?>
-        <p class="label-section">Mission</p>
-        <div class="carte">
-            <p style="font-size:.86rem; color:var(--gris-texte); line-height:1.65;">
-                <?php echo nl2br(htmlspecialchars($offre['mission'])); ?>
-            </p>
-        </div>
-        <?php endif; ?>
-
-        <!-- les technologies et compétences requises pour le stage -->
-        <?php if (!empty($techs)) : ?>
-        <p class="label-section">Compétences recherchées</p>
-        <div class="carte" style="display:flex; flex-wrap:wrap; gap:7px;">
-            <?php foreach ($techs as $t) : ?>
-            <span class="tag" style="padding:4px 11px; font-size:.79rem;">
-                <?php echo htmlspecialchars($t); ?>
+        <div class="ms-auto d-flex align-items-center">
+            <span class="fw-bold text-white me-3 d-none d-sm-inline">
+                <i class="bi bi-mortarboard-fill me-2"></i>
+                <?php echo h($_SESSION['prenom'] . ' ' . $_SESSION['nom']); ?>
             </span>
-            <?php endforeach; ?>
+            <a href="deconnexion.php" class="btn btn-outline-light btn-sm rounded-pill px-3">
+                <i class="bi bi-box-arrow-right d-sm-none"></i>
+                <span class="d-none d-sm-inline">Déconnexion</span>
+            </a>
         </div>
-        <?php endif; ?>
+    </div>
+</nav>
 
-        <!-- si l'étudiant a déjà postulé on lui affiche un message, sinon on affiche le bouton -->
-        <?php if ($deja_postule && !$msg_err) : ?>
-        <div class="btn" style="background:var(--gris-fond); color:var(--gris-texte); cursor:default;">
-            ✓ Candidature déjà envoyée
+<div class="container mb-5" style="max-width: 850px;">
+    
+    <!-- En-tête -->
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <div class="d-flex align-items-center gap-3">
+            <a href="offres_etudiant.php" class="btn btn-outline-secondary btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width:38px;height:38px;">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+            <div>
+                <h1 class="h4 mb-0 fw-bold" style="color:var(--bleu); font-family:'Syne',sans-serif;">Détails de l'offre</h1>
+            </div>
         </div>
-        <?php else : ?>
-        <form method="POST" action="detail_offre.php?id=<?php echo $id_offre; ?>">
-            <button type="submit" class="btn">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="22" y1="2" x2="11" y2="13"/>
-                    <polygon points="22 2 15 22 11 13 2 9 22 2"/>
-                </svg>
-                Postuler à cette offre
-            </button>
-        </form>
-        <?php endif; ?>
+        
+        <!-- Bouton Cœur[cite: 10] -->
+        <button class="btn-coeur <?php echo $est_favori ? 'actif' : ''; ?>" id="btn-fav" data-id="<?php echo $id_offre; ?>" aria-label="Favori">
+            <i class="bi <?php echo $est_favori ? 'bi-heart-fill' : 'bi-heart'; ?>"></i>
+        </button>
+    </div>
 
+    <!-- Alertes[cite: 10] -->
+    <?php if ($msg_ok): ?>
+        <div class="alert alert-success rounded-4 d-flex align-items-center gap-2 mb-4 shadow-sm" role="alert">
+            <i class="bi bi-check-circle-fill fs-5"></i> <strong><?php echo h($msg_ok); ?></strong>
+        </div>
+    <?php endif; ?>
+    
+    <?php if ($msg_err): ?>
+        <div class="alert alert-danger rounded-4 d-flex align-items-center gap-2 mb-4 shadow-sm" role="alert">
+            <i class="bi bi-exclamation-triangle-fill fs-5"></i> <strong><?php echo h($msg_err); ?></strong>
+        </div>
+    <?php endif; ?>
+
+    <div class="card-cy">
+        <!-- Bandeau Titre et Entreprise[cite: 10] -->
+        <div class="border-bottom pb-4 mb-4">
+            <h2 class="fw-bold mb-2" style="font-family:'Syne',sans-serif; color:#111827;"><?php echo h($offre['titre']); ?></h2>
+            <p class="text-muted fw-semibold mb-3 fs-6">
+                <i class="bi bi-building me-1"></i> <?php echo h($offre['nom_entreprise']); ?>
+                <?php if ($offre['ville']): ?> · <i class="bi bi-geo-alt mx-1"></i> <?php echo h($offre['ville']); ?><?php endif; ?>
+            </p>
+            <div class="d-flex flex-wrap gap-2">
+                <?php if ($offre['filiere_ciblee']): ?>
+                    <span class="badge rounded-pill text-white" style="background-color: var(--bleu); font-size:.75rem;">
+                        <i class="bi bi-mortarboard me-1"></i> <?php echo h($offre['filiere_ciblee']); ?>
+                    </span>
+                <?php endif; ?>
+                <?php if ($duree): ?>
+                    <span class="badge rounded-pill bg-success text-white" style="font-size:.75rem;">
+                        <i class="bi bi-clock me-1"></i> <?php echo $duree; ?>
+                    </span>
+                <?php endif; ?>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Informations Rapides[cite: 10] -->
+            <div class="col-md-5">
+                <div class="section-title"><i class="bi bi-info-circle"></i> Informations</div>
+                <div class="bg-light rounded-4 p-3 border">
+                    <?php if ($offre['ville']): ?>
+                        <div class="info-row">
+                            <div class="icon-box" style="width: 32px; height: 32px; font-size: 1rem;"><i class="bi bi-geo-alt"></i></div>
+                            <div>
+                                <p class="text-muted mb-0" style="font-size:.7rem; font-weight:600; text-transform:uppercase;">Localisation</p>
+                                <p class="mb-0 fw-bold" style="font-size:.9rem; color:#374151;"><?php echo h($offre['ville']); ?></p>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if ($offre['duree_semaines']): ?>
+                        <div class="info-row">
+                            <div class="icon-box" style="width: 32px; height: 32px; font-size: 1rem;"><i class="bi bi-calendar3"></i></div>
+                            <div>
+                                <p class="text-muted mb-0" style="font-size:.7rem; font-weight:600; text-transform:uppercase;">Durée</p>
+                                <p class="mb-0 fw-bold" style="font-size:.9rem; color:#374151;"><?php echo $offre['duree_semaines']; ?> semaines (~<?php echo $duree; ?>)</p>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+
+                    <?php if ($offre['date_debut']): ?>
+                        <div class="info-row border-0 pb-0">
+                            <div class="icon-box" style="width: 32px; height: 32px; font-size: 1rem;"><i class="bi bi-play-circle"></i></div>
+                            <div>
+                                <p class="text-muted mb-0" style="font-size:.7rem; font-weight:600; text-transform:uppercase;">Début du stage</p>
+                                <p class="mb-0 fw-bold" style="font-size:.9rem; color:#374151;"><?php echo date('d/m/Y', strtotime($offre['date_debut'])); ?></p>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <!-- Description Mission[cite: 10] -->
+            <?php if ($offre['mission']): ?>
+            <div class="col-md-7">
+                <div class="section-title"><i class="bi bi-card-text"></i> Mission</div>
+                <p class="text-secondary" style="font-size:.9rem; line-height:1.7; white-space:pre-line;">
+                    <?php echo h($offre['mission']); ?>
+                </p>
+            </div>
+            <?php endif; ?>
+
+            <!-- Compétences[cite: 10] -->
+            <?php if (!empty($techs)): ?>
+            <div class="col-12 mt-4 pt-4 border-top">
+                <div class="section-title"><i class="bi bi-stars"></i> Compétences recherchées</div>
+                <div class="d-flex flex-wrap gap-2 mt-2">
+                    <?php foreach ($techs as $t): ?>
+                        <span class="badge rounded-pill bg-light text-dark border px-3 py-2" style="font-size:.8rem;">
+                            <?php echo h($t); ?>
+                        </span>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+            <?php endif; ?>
+        </div>
+
+        <!-- Action Bouton (Postuler)[cite: 10] -->
+        <div class="mt-5 text-center text-md-start">
+            <?php if ($deja_postule && !$msg_err): ?>
+                <button class="btn btn-light border text-success fw-bold rounded-pill px-4 py-2" disabled>
+                    <i class="bi bi-check-circle-fill me-2"></i> Candidature déjà envoyée
+                </button>
+            <?php else: ?>
+                <form method="POST" action="detail_offre.php?id=<?php echo $id_offre; ?>">
+                    <button type="submit" class="btn btn-primary rounded-pill fw-bold px-4 py-2" style="background:var(--bleu); border:none; font-size: 1.05rem;">
+                        <i class="bi bi-send me-2"></i> Postuler à cette offre
+                    </button>
+                </form>
+            <?php endif; ?>
+        </div>
     </div>
 </div>
 
-<!-- le toast est invisible au départ mais il va s'afficher pour
-     confirmer ou signaler une erreur quand on clique sur le cœur -->
-<div class="toast cache" id="toast"></div>
+<!-- Toast Notifications[cite: 10] -->
+<div class="toast-cy" id="toast">
+    <i class="bi" id="toast-icon"></i>
+    <span id="toast-text"></span>
+</div>
 
 <script>
-    /* le toggle favori depuis la page de détail :
-       on envoie une requête vers api_favori.php sans recharger la page,
-       puis on met à jour l'apparence du cœur */
+    /* Toggle favori asynchrone[cite: 10] */
     document.getElementById('btn-fav').addEventListener('click', async function () {
         var action = this.classList.contains('actif') ? 'remove' : 'add';
+        var icon   = this.querySelector('i');
+
         try {
             var r = await fetch('api_favori.php', {
                 method  : 'POST',
@@ -304,18 +371,36 @@ $duree = $offre['duree_semaines'] ? round($offre['duree_semaines'] / 4) . ' mois
                 body    : 'num_offre=' + this.dataset.id + '&action=' + action
             });
             var d = await r.json();
+
             if (d.success) {
                 this.classList.toggle('actif');
-                this.querySelector('svg').setAttribute('fill', action === 'add' ? 'currentColor' : 'none');
-                /* on affiche le toast de confirmation en bas de l'écran */
+
+                // Switch de l'icône Bootstrap
+                if (action === 'add') {
+                    icon.classList.remove('bi-heart');
+                    icon.classList.add('bi-heart-fill');
+                } else {
+                    icon.classList.remove('bi-heart-fill');
+                    icon.classList.add('bi-heart');
+                }
+
+                /* Affichage du toast */
                 var t = document.getElementById('toast');
-                t.textContent = action === 'add' ? '💙 Ajouté aux favoris' : 'Retiré des favoris';
-                t.className   = 'toast' + (action === 'add' ? ' ok' : '');
-                setTimeout(function () { t.className = 'toast cache'; }, 2300);
+                var tText = document.getElementById('toast-text');
+                var tIcon = document.getElementById('toast-icon');
+
+                tText.textContent = action === 'add' ? 'Ajouté à vos favoris' : 'Retiré de vos favoris';
+                t.className = 'toast-cy show ' + (action === 'add' ? 'ok' : '');
+                tIcon.className = action === 'add' ? 'bi bi-check-circle-fill' : 'bi bi-info-circle-fill';
+
+                setTimeout(function () { t.classList.remove('show'); }, 2500);
             }
-        } catch (e) {}
+        } catch (e) {
+            console.error(e);
+        }
     });
 </script>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

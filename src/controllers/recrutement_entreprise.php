@@ -19,7 +19,7 @@ function h($v)
 function formatHistoriqueStatut(string $statut): array
 {
     $map = [
-        'acceptee_entreprise' => ['En attente étudiant', 'badge-orange'],
+        'acceptee_entreprise' => ['En attente de confirmation étudiant', 'badge-orange'],       
         'confirmee_etudiant' => ['Confirmée', 'badge-vert'],
         'refusee_entreprise' => ['Refusée par vous', 'badge-rouge'],
         'refusee_etudiant' => ['Refusée par l’étudiant', 'badge-rouge'],
@@ -473,7 +473,7 @@ try {
 <?php if ($confirmData): ?>
     <div class="overlay" id="overlay-confirm">
         <div class="modal">
-            <h3>Confirmer la validation</h3>
+            <h3>Valider la candidature</h3>
             <p>Vous êtes sur le point d’accepter la candidature de <strong><?php echo h($confirmData['nom_etudiant']); ?></strong>. L’étudiant devra ensuite confirmer ou refuser le stage depuis son espace.</p>
 
             <div class="recap">

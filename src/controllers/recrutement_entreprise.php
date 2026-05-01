@@ -49,7 +49,7 @@ try {
     }
     
         elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'confirmervalidation') {
-            $numStage = (int)($_POST['num_stage'] ?? 0); // Utilise num_stage
+            $numStage = (int)($_POST['num_stage'] ?? 0); 
 
             $stmt = mysqli_prepare($conn, "
                 SELECT num_stage, id_etudiant, titre, convention_validee, statut_candidature
@@ -85,7 +85,6 @@ try {
                 if (!$ok) {
                     $msgErr = "Impossible de valider cette candidature.";
                 } else {
-                    // ... (reste de ton code de notification)
                     $msgOk = "La candidature a bien été validée.";
                 }
             }

@@ -225,7 +225,7 @@ try {
         $sd = mysqli_prepare($conn, "
             SELECT id, type_document, nom_fichier, chemin_fichier, date_envoi
             FROM DocumentCandidature
-            WHERE num_stage = ?
+            WHERE numstage = ?
             ORDER BY date_envoi DESC, id DESC
         ");
         mysqli_stmt_bind_param($sd, 'i', $row['num_stage']);
@@ -363,7 +363,6 @@ try {
         </a>
         <div class="titre-zone" style="flex:1">
             <h1>Gestion des candidatures</h1>
-            <p>Consulte les documents envoyés, valide ou refuse une candidature, puis suis l’historique des réponses.</p>
         </div>
         <div style="width:42px"></div>
     </div>

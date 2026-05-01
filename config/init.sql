@@ -741,7 +741,7 @@ DROP TABLE IF EXISTS DocumentCandidature;
 
 CREATE TABLE DocumentCandidature (
     id INT UNSIGNED NOT NULL AUTO_INCREMENT,
-    num_stage INT UNSIGNED NOT NULL,
+    numstage INT UNSIGNED NOT NULL,
     type_document ENUM('cv','lettre_motivation','convention_stage','supplementaire') NOT NULL,
     nom_fichier VARCHAR(255) NOT NULL,
     chemin_fichier VARCHAR(255) NOT NULL,

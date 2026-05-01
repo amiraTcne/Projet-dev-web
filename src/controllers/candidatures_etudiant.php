@@ -174,7 +174,6 @@ try {
             $msgOk = "La candidature a bien été annulée.";
         }
         if ($action === 'confirmer_stage') {
-            // 1. Récupérer l'état réel actuel
             $stmt = mysqli_prepare($conn, "
                 SELECT statut_candidature, convention_validee
                 FROM Stage
@@ -189,17 +188,14 @@ try {
                 throw new Exception("Candidature introuvable.");
             }
 
-            // 2. Vérifier si l'entreprise a validé la candidature
             if (($stage['statut_candidature'] ?? '') !== 'acceptee_entreprise') {
                 throw new Exception("Ce stage ne peut pas être confirmé car l'entreprise n'a pas encore validé votre candidature.");
             }
 
-            // 3. Vérifier si la convention a été validée (règle métier)
             if ((int)($stage['convention_validee'] ?? 0) !== 1) {
                 throw new Exception("Ce stage ne peut pas être confirmé car la convention de stage n'a pas été validée par l'entreprise.");
             }
 
-            // 4. Si tout est bon, on confirme
             $upd = mysqli_prepare($conn, "
                 UPDATE Stage
                 SET statut_candidature = 'confirmee_etudiant',

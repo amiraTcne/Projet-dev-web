@@ -751,3 +751,6 @@ CREATE TABLE DocumentCandidature (
     CONSTRAINT fk_doc_stage
         FOREIGN KEY (num_stage) REFERENCES Stage(num_stage) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+ALTER TABLE Stage
+ADD COLUMN convention_validee TINYINT(1) NOT NULL DEFAULT 0;

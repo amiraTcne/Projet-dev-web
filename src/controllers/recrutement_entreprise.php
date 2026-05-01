@@ -37,121 +37,33 @@ try {
 
     if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'demander_confirmation') {
         $numStage = (int)($_POST['num_stage'] ?? 0);
+        $confirmData = null;
 
         $stmt = mysqli_prepare($conn, "
-            SELECT
-                s.num_stage,
-                s.titre,
+            SELECT s.num_stage, s.titre, s.convention_validee,
                 CONCAT(u.prenom, ' ', u.nom) AS nom_etudiant,
-                u.filiere,
-                u.niveau,
-                u.email AS email_etudiant,
-                o.duree_semaines,
-                o.date_debut,
-                o.mission
+                u.filiere, u.niveau, u.email AS email_etudiant,
+                o.duree_semaines, o.date_debut, o.mission
             FROM Stage s
             JOIN Utilisateur u ON u.id = s.id_etudiant
             LEFT JOIN Offre_Stage o ON o.num_offre = s.num_offre
             WHERE s.num_stage = ?
-              AND s.id_entreprise = ?
-              AND s.statut_candidature = 'en_attente'
+            AND s.id_entreprise = ?
+            AND s.statut_candidature = 'en_attente'
         ");
         mysqli_stmt_bind_param($stmt, 'ii', $numStage, $idEntreprise);
         mysqli_stmt_execute($stmt);
-        $confirmData = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
+        $data = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
         mysqli_stmt_close($stmt);
 
-        if (!$confirmData) {
+        if (!$data) {
             $msgErr = "Candidature introuvable ou déjà traitée.";
-        }
-    }
-
-    elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'confirmer_validation') {
-        $numStage = (int)($_POST['num_stage'] ?? 0);
-
-        mysqli_begin_transaction($conn);
-
-        $stmt = mysqli_prepare($conn, "
-            SELECT
-                s.num_stage,
-                s.id_etudiant,
-                s.num_offre,
-                s.titre,
-                o.date_debut,
-                o.duree_semaines
-            FROM Stage s
-            LEFT JOIN Offre_Stage o ON o.num_offre = s.num_offre
-            WHERE s.num_stage = ?
-              AND s.id_entreprise = ?
-              AND s.statut_candidature = 'en_attente'
-        ");
-        mysqli_stmt_bind_param($stmt, 'ii', $numStage, $idEntreprise);
-        mysqli_stmt_execute($stmt);
-        $cand = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));
-        mysqli_stmt_close($stmt);
-
-        if (!$cand) {
-            mysqli_rollback($conn);
-            $msgErr = "Candidature introuvable ou déjà traitée.";
+        } elseif ((int)($data['convention_validee'] ?? 0) !== 1) {
+            $msgErr = "Vous n'avez pas encore validé la convention.";
         } else {
-            $idEtudiant = (int)$cand['id_etudiant'];
-            $dateDebutOffre = $cand['date_debut'] ?? null;
-            $duree = (int)($cand['duree_semaines'] ?? 0);
-            $dateFinOffre = $dateDebutOffre ? date('Y-m-d', strtotime($dateDebutOffre . ' +' . $duree . ' weeks')) : null;
-
-            $conflit = false;
-            if ($dateDebutOffre) {
-                $sc = mysqli_prepare($conn, "
-                    SELECT COUNT(*)
-                    FROM Stage
-                    WHERE id_etudiant = ?
-                      AND num_stage != ?
-                      AND statut IN ('en_cours','en_attente')
-                      AND statut_candidature IN ('confirmee_etudiant','acceptee_entreprise')
-                      AND date_debut IS NOT NULL
-                      AND date_debut <= ?
-                      AND (date_fin IS NULL OR date_fin >= ?)
-                ");
-                mysqli_stmt_bind_param($sc, 'iiss', $idEtudiant, $numStage, $dateFinOffre, $dateDebutOffre);
-                mysqli_stmt_execute($sc);
-                mysqli_stmt_bind_result($sc, $nbConflits);
-                mysqli_stmt_fetch($sc);
-                mysqli_stmt_close($sc);
-                $conflit = ((int)$nbConflits > 0);
-            }
-
-            if ($conflit) {
-                mysqli_rollback($conn);
-                $msgErr = "Impossible de valider : cet étudiant a déjà un stage prévu sur cette période.";
-            } else {
-                $upd = mysqli_prepare($conn, "
-                    UPDATE Stage
-                    SET statut_candidature = 'acceptee_entreprise'
-                    WHERE num_stage = ? AND id_entreprise = ?
-                ");
-                mysqli_stmt_bind_param($upd, 'ii', $numStage, $idEntreprise);
-                mysqli_stmt_execute($upd);
-                mysqli_stmt_close($upd);
-
-                $nomEnt = $_SESSION['nom_entreprise'] ?? 'L’entreprise';
-                $titreNotif = "Candidature acceptée — " . $cand['titre'];
-                $messageNotif = $nomEnt . " a accepté votre candidature pour le poste \"" . $cand['titre'] . "\". Rendez-vous dans votre espace pour confirmer ou refuser cette offre.";
-                $lienNotif = "candidatures_etudiant.php";
-
-                $insNotif = mysqli_prepare($conn, "
-                    INSERT INTO Notification (id_user, type, titre, message, lien)
-                    VALUES (?, 'candidature_validee', ?, ?, ?)
-                ");
-                mysqli_stmt_bind_param($insNotif, 'isss', $idEtudiant, $titreNotif, $messageNotif, $lienNotif);
-                mysqli_stmt_execute($insNotif);
-                mysqli_stmt_close($insNotif);
-
-                mysqli_commit($conn);
-                $msgOk = "Candidature validée. L’étudiant a été notifié.";
-            }
+            $confirmData = $data;
         }
     }
-
     elseif ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'valider_convention') {
         $numStage = (int)($_POST['num_stage'] ?? 0);
 
@@ -172,7 +84,6 @@ try {
                 SELECT id
                 FROM DocumentCandidature
                 WHERE num_stage = ? AND type_document = 'convention_stage'
-                ORDER BY date_envoi DESC, id DESC
                 LIMIT 1
             ");
             mysqli_stmt_bind_param($sd, 'i', $numStage);
@@ -181,11 +92,19 @@ try {
             mysqli_stmt_close($sd);
 
             if (!$doc) {
-                $msgErr = "Aucune convention n'a été envoyée par l'étudiant.";
+                $msgErr = "Aucune convention n'a encore été envoyée par l'étudiant.";
             } else {
-                $nomEnt = $_SESSION['nom_entreprise'] ?? 'L’entreprise';
+                $upd = mysqli_prepare($conn, "
+                    UPDATE Stage
+                    SET convention_validee = 1
+                    WHERE num_stage = ? AND id_entreprise = ?
+                ");
+                mysqli_stmt_bind_param($upd, 'ii', $numStage, $idEntreprise);
+                mysqli_stmt_execute($upd);
+                mysqli_stmt_close($upd);
+
                 $titreNotif = "Convention validée — " . $cand['titre'];
-                $messageNotif = $nomEnt . " a validé la convention que vous avez envoyée pour le poste \"" . $cand['titre'] . "\".";
+                $messageNotif = ($_SESSION['nom_entreprise'] ?? "L’entreprise") . " a validé votre convention pour le poste \"" . $cand['titre'] . "\".";
                 $lienNotif = "candidatures_etudiant.php";
 
                 $insNotif = mysqli_prepare($conn, "
@@ -196,7 +115,7 @@ try {
                 mysqli_stmt_execute($insNotif);
                 mysqli_stmt_close($insNotif);
 
-                $msgOk = "La convention a bien été validée. L’étudiant a été notifié.";
+                $msgOk = "La convention a bien été validée.";
             }
         }
     }
@@ -257,7 +176,8 @@ try {
             u.email AS email_etudiant,
             o.date_debut,
             o.duree_semaines,
-            s.statut_candidature
+            s.statut_candidature,
+            s.convention_validee
         FROM Stage s
         JOIN Utilisateur u ON u.id = s.id_etudiant
         LEFT JOIN Offre_Stage o ON o.num_offre = s.num_offre
@@ -402,6 +322,26 @@ try {
             .actions form{width:100%}
             .actions .btn{width:100%}
         }
+        .meta .badge-convention-ok{
+            display:inline-flex !important;
+            align-items:center !important;
+            gap:6px !important;
+            font-size:.78rem !important;
+            color:var(--vert) !important;
+            background:var(--vert-fond) !important;
+            border:1px solid #b7ebc6 !important;
+            padding:7px 10px !important;
+            border-radius:999px !important;
+            font-weight:700 !important;
+        }
+
+        .meta .badge-convention-ok svg{
+            width:14px;
+            height:14px;
+            stroke:currentColor;
+            fill:none;
+            stroke-width:2.4;
+        }
     </style>
 </head>
 <body>
@@ -464,6 +404,14 @@ try {
                             <span>Durée : <?php echo (int)$c['duree_semaines']; ?> semaines</span>
                         <?php endif; ?>
                         <span>N° candidature : <?php echo (int)$c['num_stage']; ?></span>
+                        <?php if ((int)($c['convention_validee'] ?? 0) === 1): ?>
+                            <span class="badge-convention-ok">
+                                <svg viewBox="0 0 24 24" aria-hidden="true">
+                                    <path d="M20 6L9 17l-5-5"></path>
+                                </svg>
+                                Convention validée
+                            </span>
+                        <?php endif; ?>
                     </div>
 
                     <div class="bloc">
@@ -487,7 +435,7 @@ try {
                     </div>
 
                     <div class="actions">
-                        <form method="POST">
+                         <form method="POST">
                             <input type="hidden" name="action" value="demander_confirmation">
                             <input type="hidden" name="num_stage" value="<?php echo (int)$c['num_stage']; ?>">
                             <button type="submit" class="btn btn-ok">Valider la candidature</button>

@@ -193,8 +193,9 @@ cd Projet-dev-web
    exit
 
 # 3. Lancer avec un serveur local
-php -S localhost:8000
+   php -S localhost:8000
 
-#4. Lancer un navigateur web et aller à cet endroit : http://localhost:8000/src/controllers/index.php.
+#4. Lancer un navigateur web et aller à cet endroit :
+   http://localhost:8000/src/controllers/index.php.
 
 #5. Explorer le projet ! 

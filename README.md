@@ -62,7 +62,7 @@ Nous appliquons la méthodologie **Agile (Scrum)** avec un suivi rigoureux :
    
 ![Diagramm de Gantt](./img/diagramme.png)
 
-![Maquette de projet]([https://lien-vers-l-image.com/logo.png](https://www.figma.com/design/Reaf0zOPxGnkdWiyCBb53w/Projet_DEv_Web?node-id=0-1&t=lkvmPQYINIxXBvR7-1))
+![Maquette de projet]([https://lien-vers-l-image.com/logo.png](https://www.figma.com/design/Reaf0zOPxGnkdWiyCBb53w/Projet_DEv_Web?node-id=0-1&t=lkvmPQYINIxXBvR7-1)](https://www.figma.com/proto/Reaf0zOPxGnkdWiyCBb53w/Projet_Dev_Web?node-id=2022-54&p=f&t=a2vosSVTA2M5KPq8-0&scaling=min-zoom&content-scaling=fixed&page-id=2016%3A62&starting-point-node-id=2022%3A23&show-proto-sidebar=1))
 
 
 ## 🌳 Arborescence du Projet
@@ -179,16 +179,24 @@ Chaque entreprise possède une ou deux offres prêtes à être postulées.
 # Avant de commencer : 
 
 # 1. Cloner le projet
-git clone [https://github.com/votre-compte/projet-web-cytech.git](https://github.com/votre-compte/projet-web-cytech.git)
 
 # 2. Se déplacer dans le dossier
-cd projet-web-cytech
+cd Projet-dev-web
 
-# 3. Creer un user sur mysql dans le terminal avec comme nom : userpro et le mdp : projetStage26.N'oubliez pas de vous donner les droits pour accéder à la base de donnée. Pour se connecter à la base de données et télécharger dans la session Sql le fichier init.sql qui se trouve dans config (source config/init.sql si vous etes depuis Projet-dev-Web). 
+# 3. Creer un user sur mysql dans le terminal avec comme nom : userpro et le mdp : projetStage26.
+   CREATE USER 'userpro'@'localhost' IDENTIFIED BY 'projetStage26.';
+   GRANT ALL PRIVILEGES ON cyStages.* TO 'userpro'@'localhost';
+   FLUSH PRIVILEGES;
+# Pour se connecter à la base de données et télécharger dans la session Sql le fichier init.sql qui se trouve dans config (source config/init.sql si vous etes depuis Projet-dev-Web).
+   mysql -u userpro -p
+   entrez le mot de passe : projetStage26.
+   source config/init.sql
+   exit
 
-# 3. Lancer avec un serveur local (ex: XAMPP ou PHP CLI)
-php -S localhost:8000
+# 3. Lancer avec un serveur local
+   php -S localhost:8000
 
-#4. Lancer un navigateur web et aller à cet endroit : http://localhost:8000/src/controllers/index.php.
+#4. Lancer un navigateur web et aller à cet endroit :
+   http://localhost:8000/src/controllers/index.php
 
 #5. Explorer le projet ! 

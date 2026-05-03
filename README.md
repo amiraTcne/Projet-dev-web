@@ -71,15 +71,13 @@ Nous appliquons la méthodologie **Agile (Scrum)** avec un suivi rigoureux :
  ┣ 📂 config
  ┃ ┗ 📜 init.sql              # Base de Données 
  ┃
- ┣ 📂 includes
- ┃ ┣ 📜 header.php          # 🧱 Navigation & Head
- ┃ ┗ 📜 footer.php          # 🧱 Pied de page & Scripts
- ┃
  ┣ 📂 public                # 🌐 RACINE SERVEUR (Public)
  ┃ ┣ 📂 assets
  ┃ ┃ ┣ 📂 css               # 🎨 Feuilles de style
  ┃ ┃ ┣ 📂 js                # ⚡ Logique Client
- ┃ ┃ ┗ 📂 img               # 🖼️ Médias & Icônes
+ ┃ ┃ ┣ 📂 img               # 🖼️ Médias & Icônes
+ ┃ ┃ ┗ 📂 Vendor
+ ┃ ┃ ┃  ┣ 📂                 # ⚡ Logique Client
  ┃ ┗ 📜 login.php           # 🚀 POINT D'ENTRÉE CONNEXION
  ┃ ┗ 📜 frameworks.php           # utilisation framework
  ┃ ┗ 📜 mail.php           

@@ -77,10 +77,15 @@ Nous appliquons la méthodologie **Agile (Scrum)** avec un suivi rigoureux :
  ┃ ┃ ┣ 📂 js                # ⚡ Logique Client
  ┃ ┃ ┣ 📂 img               # 🖼️ Médias & Icônes
  ┃ ┃ ┗ 📂 Vendor
- ┃ ┃ ┃  ┣ 📂                 # ⚡ Logique Client
+ ┃ ┃    ┣ 📂 composer
+ ┃ ┃    ┗ 📂 phpmailer/phpmailer           
  ┃ ┗ 📜 login.php           # 🚀 POINT D'ENTRÉE CONNEXION
  ┃ ┗ 📜 frameworks.php           # utilisation framework
- ┃ ┗ 📜 mail.php           
+ ┃ ┗ 📜 mail.php
+ ┃ ┗ 📜 test_double_auth.php
+ ┃ ┗ 📜 double_auth.php
+ ┃ ┗ 📜 composer.lock
+ ┃ ┗ 📜 composer.json       
  ┃
  ┣ 📂 src                   # 🧠 COEUR DE L'APPLICATION (Privé)
  ┃ ┣ 📂 Controllers         # 🎮 Page des application

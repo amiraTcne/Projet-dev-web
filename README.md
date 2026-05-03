@@ -181,10 +181,10 @@ Chaque entreprise possède une ou deux offres prêtes à être postulées.
 # 1. Cloner le projet
 
 # 2. Se déplacer dans le dossier
-cd projet-web-cytech
+cd Projet-dev-web
 
 # 3. Creer un user sur mysql dans le terminal avec comme nom : userpro et le mdp : projetStage26.
-N'oubliez pas de vous donner les droits pour accéder à la base de donnée.
+# N'oubliez pas de vous donner les droits pour accéder à la base de donnée.
    CREATE USER 'userpro'@'localhost' IDENTIFIED BY 'projetStage26.';
 Pour se connecter à la base de données et télécharger dans la session Sql le fichier init.sql qui se trouve dans config (source config/init.sql si vous etes depuis Projet-dev-Web). 
 

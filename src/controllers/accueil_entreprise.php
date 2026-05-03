@@ -62,7 +62,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
 </head>
 <body>
 
-<!-- Navbar[cite: 5] -->
+<!-- Navbar -->
 <nav class="navbar navbar-cy shadow-sm mb-5">
     <div class="container-fluid px-4 d-flex align-items-center justify-content-between">
         <a class="navbar-brand" href="#">
@@ -104,7 +104,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
         </p>
     </div>
 
-    <!-- Grille d'options[cite: 5] -->
+    <!-- Grille d'options -->
     <div class="row g-4">
         
         <!-- Profil -->
@@ -165,7 +165,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
 
     </div>
 
-    <!-- Message d'aide[cite: 5] -->
+    <!-- Message d'aide -->
     <div class="mt-5 p-4 rounded-4 text-center" style="background:#f8fafc; border: 1px dashed #cbd5e1;">
         <i class="bi bi-info-circle text-muted fs-4 mb-2 d-block"></i>
         <p class="text-muted fw-medium mb-0" style="font-size: .9rem;">

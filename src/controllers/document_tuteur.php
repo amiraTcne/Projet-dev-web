@@ -125,7 +125,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
     <?php else : ?>
         <div class="row g-4">
             
-            <!-- Colonne Sélection Étudiant[cite: 21] -->
+            <!-- Colonne Sélection Étudiant -->
             <div class="col-md-4">
                 <div class="card-cy h-100">
                     <h6 class="fw-bold text-muted text-uppercase mb-3" style="font-size:.8rem; letter-spacing:1px;">Sélectionner un étudiant</h6>
@@ -139,7 +139,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
                 </div>
             </div>
 
-            <!-- Colonne Liste des Documents[cite: 21] -->
+            <!-- Colonne Liste des Documents -->
             <div class="col-md-8">
                 <div class="card-cy h-100 d-flex flex-column">
                     <?php if (!$id_etu_sel) : ?>
@@ -158,14 +158,14 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
                             <i class="bi bi-archive text-muted"></i> Documents de <?php echo h($nom_etu_sel); ?>
                         </h5>
                         
-                        <!-- Informations du stage[cite: 21] -->
+                        <!-- Informations du stage -->
                         <div class="bg-light p-3 rounded-4 border mb-4">
                             <span class="badge bg-primary rounded-pill mb-2">Stage en cours</span>
                             <div class="fw-bold text-dark" style="font-size: .9rem;"><?php echo h($dossier['titre_stage']); ?></div>
                             <div class="text-muted" style="font-size: .85rem;"><i class="bi bi-building me-1"></i> <?php echo h($dossier['nom_entreprise']); ?></div>
                         </div>
 
-                        <!-- Liste des fichiers[cite: 21] -->
+                        <!-- Liste des fichiers -->
                         <div class="d-flex flex-column">
                             <?php foreach ($docs as $champ => $label) :
                                 $url    = $dossier[$champ] ?? null;

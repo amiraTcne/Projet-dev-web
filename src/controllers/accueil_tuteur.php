@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-// Vérification du rôle Tuteur[cite: 16]
+// Vérification du rôle Tuteur
 if (!isset($_SESSION['id']) || $_SESSION['role'] !== 'Tuteur') {
     header('Location: ../../public/login.php?erreur=4');
     exit();
@@ -110,7 +110,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
         </p>
     </div>
 
-    <!-- Grille de navigation[cite: 16] -->
+    <!-- Grille de navigation -->
     <div class="row g-4">
 
         <div class="col-12 col-md-6 col-lg-4">

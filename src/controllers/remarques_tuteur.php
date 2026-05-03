@@ -192,7 +192,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
                             Discussion avec <?php echo h($nom_etu_sel); ?>
                         </h5>
                         
-                        <!-- Historique des messages[cite: 19] -->
+                        <!-- Historique des messages -->
                         <div class="chat-container flex-grow-1 mb-4 d-flex flex-column">
                             <?php if (empty($remarques)) : ?>
                                 <div class="text-center text-muted my-auto opacity-75">Aucun échange pour le moment. Lancez la discussion !</div>

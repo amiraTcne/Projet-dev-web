@@ -156,7 +156,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
     <?php if ($msg_ok) : ?><div class="alert alert-success rounded-4"><i class="bi bi-check-circle-fill"></i> <strong><?php echo h($msg_ok); ?></strong></div><?php endif; ?>
     <?php if ($msg_err) : ?><div class="alert alert-danger rounded-4"><i class="bi bi-exclamation-triangle-fill"></i> <strong><?php echo h($msg_err); ?></strong></div><?php endif; ?>
 
-    <!-- Recherche et Filtres[cite: 20] -->
+    <!-- Recherche et Filtres -->
     <div class="bg-white p-4 rounded-4 border mb-4 shadow-sm">
         <form method="GET" id="form-recherche">
             <div class="input-group mb-3">
@@ -194,7 +194,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
         <?php endif; ?>
     </div>
 
-    <!-- Liste des offres[cite: 20] -->
+    <!-- Liste des offres -->
     <?php if (empty($offres)) : ?>
         <div class="text-center p-5 bg-white rounded-4 border" style="border-style: dashed !important;">
             <i class="bi bi-folder-x text-muted opacity-50 mb-3 d-block" style="font-size: 3rem;"></i>
@@ -241,7 +241,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
     <?php endif; ?>
 </div>
 
-<!-- Modale Bootstrap d'affectation[cite: 20] -->
+<!-- Modale Bootstrap d'affectation -->
 <div class="modal fade" id="affecterModal" tabindex="-1" aria-labelledby="modal-titre" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 rounded-4 shadow">

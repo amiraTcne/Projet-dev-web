@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-// 1. Vérification de sécurité[cite: 30]
+// 1. Vérification de sécurité
 if (!isset($_SESSION['id']) || $_SESSION['role'] !== 'Etudiant') {
     header('Location: ../../public/login.php?erreur=4');
     exit();
@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     mysqli_begin_transaction($conn);
 
     try {
-        // A. Mise à jour du stage et statut candidature[cite: 30]
+        // A. Mise à jour du stage et statut candidature
         $sql_update = "UPDATE Stage 
                        SET statut = IF(date_debut > CURDATE(), 'en_attente', 'en_cours'), 
                            statut_candidature = 'confirmee_etudiant' 
@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         mysqli_stmt_bind_param($stmt, "ii", $num_stage, $id_etudiant);
         mysqli_stmt_execute($stmt);
 
-        // B. Attribution aléatoire d'un Tuteur au Stage[cite: 30]
+        // B. Attribution aléatoire d'un Tuteur au Stage
         $sql_tuteur = "SELECT id FROM Utilisateur 
                        WHERE role_premier = 'Tuteur' OR role_second = 'Tuteur' OR role_troisieme = 'Tuteur' 
                        ORDER BY RAND() LIMIT 1";
@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
             mysqli_stmt_execute($stmt_t);
         }
 
-        // C. Création du Dossier de Stage[cite: 30]
+        // C. Création du Dossier de Stage
         $sql_dossier = "INSERT INTO Dossier_Stage (num_stage, id_etudiant, statut, date_creation) 
                         VALUES (?, ?, 'incomplet', NOW())";
         $stmt_dos = mysqli_prepare($conn, $sql_dossier);
@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         // On récupère l'ID du dossier créé
         $num_dossier = mysqli_insert_id($conn);
 
-        // D. Sélection aléatoire d'un Jury[cite: 30]
+        // D. Sélection aléatoire d'un Jury
         $sql_jury = "SELECT id FROM Utilisateur 
                      WHERE role_premier = 'Jury' OR role_second = 'Jury' OR role_troisieme = 'Jury' 
                      ORDER BY RAND() LIMIT 1";
@@ -67,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
         }
         $id_jury_aleatoire = $jury['id'];
 
-        // E. Création de l'évaluation Jury[cite: 30]
+        // E. Création de l'évaluation Jury
         $sql_eval = "INSERT INTO Evaluation_Jury (id_jury, num_dossier, valide) 
                      VALUES (?, ?, 0)";
         $stmt_eval = mysqli_prepare($conn, $sql_eval);
@@ -83,7 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
     }
 }
 
-// Récupération des candidatures pour l'affichage[cite: 30]
+// Récupération des candidatures pour l'affichage
 $query = "SELECT s.*, u.nom_entreprise 
           FROM Stage s 
           JOIN Utilisateur u ON s.id_entreprise = u.id 

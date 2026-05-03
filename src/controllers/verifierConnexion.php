@@ -23,7 +23,7 @@ if (empty($email) || empty($mdp)) {
     exit();
 }
 
-// On récupère bien role_premier, role_second et role_troisieme[cite: 8]
+// On récupère bien role_premier, role_second et role_troisieme 
 $stmt = mysqli_prepare($connect,
     "SELECT id, nom, prenom, email, mot_de_passe,
             role_premier, role_second, role_troisieme,
@@ -70,7 +70,7 @@ unset($_SESSION['tmp_2fa_role_second']);
 unset($_SESSION['tmp_2fa_role_troisieme']);
 unset($_SESSION['tmp_2fa_code_sent']);
 
-// Stockage des informations en session temporaire (avant validation 2FA)[cite: 8]
+// Stockage des informations en session temporaire (avant validation 2FA) 
 $_SESSION['tmp_2fa_user_id']        = $row['id'];
 $_SESSION['tmp_2fa_email']          = $row['email'];
 $_SESSION['tmp_2fa_nom']            = $row['nom'];

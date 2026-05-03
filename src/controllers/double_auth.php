@@ -43,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         foreach($to_unset as $key) { unset($_SESSION[$key]); }
 
         // --- REDIRECTION VERS L'INTERFACE APPROPRIÉE ---
-        // On redirige selon le rôle principal qui vient d'être activé[cite: 1, 9]
+        // On redirige selon le rôle principal qui vient d'être activé
         $redirect = match($_SESSION['role']) {
             'Admin'      => '../private/admin/accueil_admin.php',
             'Tuteur'     => '../private/tuteur/accueil_tuteur.php',

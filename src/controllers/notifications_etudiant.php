@@ -204,7 +204,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
         </div>
     </div>
 
-    <!-- Contrôles et Compteur[cite: 14] -->
+    <!-- Contrôles et Compteur -->
     <div class="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom">
         <div class="fw-bold text-dark d-flex align-items-center gap-2">
             Vos notifications
@@ -223,7 +223,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
         <?php endif; ?>
     </div>
 
-    <!-- Liste des notifications[cite: 14] -->
+    <!-- Liste des notifications -->
     <?php if (empty($notifications)): ?>
         <div class="text-center p-5 bg-white rounded-4 border" style="border-style: dashed !important;">
             <i class="bi bi-bell-slash text-muted opacity-50 mb-3 d-block" style="font-size: 3rem;"></i>
@@ -236,7 +236,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
                 $cfg = $type_cfg[$n['type']] ?? $type_cfg['autre'];
                 $est_lue = (bool)$n['lu'];
                 
-                // Formattage date relative[cite: 14]
+                // Formattage date relative
                 $ts = strtotime($n['date_creation']);
                 $diff = time() - $ts;
                 if ($diff < 3600)       $date_str = round($diff / 60) . ' min';
@@ -285,7 +285,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
 
 <script>
 /**
- * Clic sur une notif : AJAX marque lue + redirect[cite: 14]
+ * Clic sur une notif : AJAX marque lue + redirect
  */
 async function lireNotif(el) {
     const id = el.dataset.id;

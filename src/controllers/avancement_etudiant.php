@@ -203,7 +203,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
                 </div>
             <?php else : ?>
                 
-                <!-- Détails du stage en cours[cite: 12] -->
+                <!-- Détails du stage en cours-->
                 <div class="border-bottom pb-4 mb-4">
                     <h4 class="fw-bold mb-1" style="font-family:'Syne',sans-serif; color:#111827;"><?php echo h($stage['titre']); ?></h4>
                     <p class="text-muted fw-semibold mb-0"><i class="bi bi-building me-1"></i> <?php echo h($stage['nom_entreprise']); ?></p>
@@ -223,7 +223,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
                     <span class="badge bg-primary text-white fs-6 rounded-pill px-3"><?php echo $prochain; ?></span>
                 </div>
 
-                <!-- Formulaires[cite: 12] -->
+                <!-- Formulaires-->
                 <div class="row g-4 mt-2 border-top pt-2">
                     <div class="col-12">
                         <form method="POST" action="avancement_etudiant.php">

@@ -136,7 +136,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
         </div>
     </div>
 
-    <!-- Alertes[cite: 18] -->
+    <!-- Alertes -->
     <?php if ($msg_ok) : ?>
         <div class="alert alert-success rounded-4 d-flex align-items-center gap-2 mb-4"><i class="bi bi-check-circle-fill"></i> <strong><?php echo h($msg_ok); ?></strong></div>
     <?php endif; ?>

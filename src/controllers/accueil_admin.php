@@ -101,7 +101,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
         </p>
     </div>
 
-    <!-- Grille de navigation[cite: 25] -->
+    <!-- Grille de navigation -->
     <div class="row g-4">
 
         <div class="col-12 col-md-6">

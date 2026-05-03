@@ -6,7 +6,7 @@ $dbname = "cyStages";
 $user = "userpro";
 $pass = "projetStage26.";
 
-// Vérifier qu'une entreprise est connectée[cite: 4]
+// Vérifier qu'une entreprise est connectée
 if (!isset($_SESSION['id'])) {
     die("Utilisateur non connecté.");
 }
@@ -21,7 +21,7 @@ try {
 $idEntreprise = $_SESSION['id'];
 $message = "";
 
-// Mise à jour de la description[cite: 4]
+// Mise à jour de la description
 if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['description'])) {
     $description = trim($_POST['description']);
 
@@ -35,7 +35,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['description'])) {
     $message = "Description mise à jour avec succès.";
 }
 
-// Récupération des infos de l'entreprise[cite: 4]
+// Récupération des infos de l'entreprise
 $sql = "SELECT nom_entreprise, email, description, secteur, ville, date_inscription 
         FROM Utilisateur 
         WHERE id = :id AND role_premier = 'Entreprise'";
@@ -47,17 +47,17 @@ if (!$entreprise) {
     die("Entreprise introuvable.");
 }
 
-// Comptage des offres publiées par l'entreprise[cite: 4]
+// Comptage des offres publiées par l'entreprise
 $stmtOffres = $pdo->prepare("SELECT COUNT(*) FROM Offre_Stage WHERE id_entreprise = :id");
 $stmtOffres->execute([':id' => $idEntreprise]);
 $nb_offres = $stmtOffres->fetchColumn();
 
-// Comptage des stages liés à cette entreprise[cite: 4]
+// Comptage des stages liés à cette entreprise
 $stmtStages = $pdo->prepare("SELECT COUNT(*) FROM Stage WHERE id_entreprise = :id");
 $stmtStages->execute([':id' => $idEntreprise]);
 $nb_stages = $stmtStages->fetchColumn();
 
-// Initiales pour l'avatar (2 premières lettres du nom de l'entreprise)[cite: 4]
+// Initiales pour l'avatar (2 premières lettres du nom de l'entreprise)
 $nomEnt = $entreprise['nom_entreprise'] ?? 'EN';
 $initiales = strtoupper(mb_substr($nomEnt, 0, 2));
 
@@ -172,7 +172,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
         </div>
     </div>
 
-    <!-- Alertes de succès[cite: 4] -->
+    <!-- Alertes de succès -->
     <?php if (!empty($message)): ?>
         <div class="alert alert-success rounded-4 d-flex align-items-center gap-2 mb-4" role="alert">
             <i class="bi bi-check-circle-fill"></i> <?php echo h($message); ?>
@@ -211,7 +211,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
         </div>
     </div>
 
-    <!-- Description modifiable[cite: 4] -->
+    <!-- Description modifiable -->
     <h5 class="fw-bold mb-3" style="font-size: .95rem; color: var(--bleu); text-transform: uppercase; letter-spacing: 1px;">À propos</h5>
     <div class="card-cy p-4 mb-4">
         <div id="mode-affichage">
@@ -238,7 +238,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
         </div>
     </div>
 
-    <!-- Informations Générales[cite: 4] -->
+    <!-- Informations Générales -->
     <h5 class="fw-bold mb-3" style="font-size: .95rem; color: var(--bleu); text-transform: uppercase; letter-spacing: 1px;">Informations générales</h5>
     <div class="card-cy p-4 mb-5">
         <div class="info-row">

@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-// Sécurité : Rôle Entreprise[cite: 22]
+// Sécurité : Rôle Entreprise
 if (!isset($_SESSION['id']) || !isset($_SESSION['role']) || $_SESSION['role'] !== 'Entreprise') {
     header('Location: ../../public/login.php');
     exit();
@@ -28,7 +28,7 @@ $message = '';
 $offre = null;
 $nomEntreprise = 'Entreprise';
 
-// Nom entreprise connectée[cite: 22]
+// Nom entreprise connectée
 $sqlEntreprise = "SELECT nom_entreprise
                   FROM Utilisateur
                   WHERE id = ? AND role_premier = 'Entreprise'";
@@ -48,7 +48,7 @@ if ($stmtEntreprise) {
     mysqli_stmt_close($stmtEntreprise);
 }
 
-// Récupération de l'offre[cite: 22]
+// Récupération de l'offre
 $sqlOffre = "SELECT num_offre, titre, mission, competences, filiere_ciblee, duree_semaines, date_debut, statut
              FROM Offre_Stage
              WHERE num_offre = ? AND id_entreprise = ?";
@@ -67,7 +67,7 @@ if (!$offre) {
     die("Offre introuvable ou accès interdit.");
 }
 
-// Traitement modification[cite: 22]
+// Traitement modification
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modifier_offre'])) {
     $titre = trim($_POST['titre'] ?? '');
     $duree = trim($_POST['duree'] ?? '');
@@ -123,7 +123,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modifier_offre'])) {
         }
     }
 
-    // Réinjecter les valeurs saisies si erreur[cite: 22]
+    // Réinjecter les valeurs saisies si erreur
     $offre['titre'] = $titre;
     $offre['mission'] = $description;
     $offre['competences'] = $competences;

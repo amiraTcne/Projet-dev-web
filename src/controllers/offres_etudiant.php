@@ -189,7 +189,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
         </div>
     </div>
 
-    <!-- Formulaire de filtres[cite: 9] -->
+    <!-- Formulaire de filtres -->
     <form method="GET" action="offres_etudiant.php" id="form-recherche" class="mb-4">
         
         <!-- Barre de recherche -->
@@ -228,7 +228,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
         <?php endif; ?>
     </div>
 
-    <!-- Liste des offres[cite: 9] -->
+    <!-- Liste des offres -->
     <?php if (empty($offres)): ?>
         <div class="text-center p-5 bg-white rounded-4 border" style="border-style: dashed !important;">
             <i class="bi bi-search text-muted opacity-50 mb-3 d-block" style="font-size: 3rem;"></i>
@@ -305,14 +305,14 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
 
 </div>
 
-<!-- Toast Notifications[cite: 9] -->
+<!-- Toast Notifications -->
 <div class="toast-cy" id="toast">
     <i class="bi" id="toast-icon"></i>
     <span id="toast-text"></span>
 </div>
 
 <script>
-    /* Recherche en temps réel avec délai[cite: 9] */
+    /* Recherche en temps réel avec délai */
     var delai;
     document.getElementById('champ-q').addEventListener('input', function () {
         clearTimeout(delai);
@@ -321,7 +321,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
         }, 1000);
     });
 
-    /* Gestion des favoris via AJAX[cite: 9] */
+    /* Gestion des favoris via AJAX */
     document.querySelectorAll('.btn-coeur').forEach(function (btn) {
         btn.addEventListener('click', async function (e) {
             e.preventDefault();

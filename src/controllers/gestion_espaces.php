@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $conn) {
     $id_user = (int)($_POST['id_user'] ?? 0);
     $roles_ok = ['Etudiant', 'Tuteur', 'Jury', 'Entreprise', 'Admin', ''];
 
-    // Modification des 3 rôles[cite: 39]
+    // Modification des 3 rôles
     if (isset($_POST['action']) && $_POST['action'] === 'modifier_roles' && $id_user > 0) {
         $r1 = in_array($_POST['role_premier'], $roles_ok) ? $_POST['role_premier'] : null;
         $r2 = !empty($_POST['role_second']) && in_array($_POST['role_second'], $roles_ok) ? $_POST['role_second'] : null;
@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $conn) {
         mysqli_stmt_close($upd);
     }
 
-    // Activation / Désactivation du compte[cite: 39]
+    // Activation / Désactivation du compte
     if (isset($_POST['action']) && $_POST['action'] === 'toggle_actif' && $id_user > 0) {
         $actif_actuel = (int)($_POST['actif_actuel'] ?? 1);
         $nouvel_actif = $actif_actuel === 1 ? 0 : 1;
@@ -118,7 +118,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
         <div class="alert alert-danger rounded-4 d-flex align-items-center gap-2 mb-4 shadow-sm"><i class="bi bi-exclamation-triangle-fill"></i> <strong><?php echo h($msg_err); ?></strong></div>
     <?php endif; ?>
 
-    <!-- Onglets de navigation[cite: 39] -->
+    <!-- Onglets de navigation -->
     <ul class="nav nav-pills gap-2 mb-4 pb-3 border-bottom">
         <?php foreach ($roles_dispo as $r) : ?>
             <li class="nav-item">
@@ -159,7 +159,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
                             </div>
                         </div>
                         
-                        <!-- Formulaire des rôles[cite: 39] -->
+                        <!-- Formulaire des rôles -->
                         <form method="POST" class="flex-grow-1 d-flex flex-column">
                             <input type="hidden" name="action" value="modifier_roles">
                             <input type="hidden" name="id_user" value="<?php echo $u['id']; ?>">
@@ -200,7 +200,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
                             </button>
                         </form>
 
-                        <!-- Formulaire d'activation / désactivation[cite: 39] -->
+                        <!-- Formulaire d'activation / désactivation -->
                         <form method="POST" class="mt-auto">
                             <input type="hidden" name="action" value="toggle_actif">
                             <input type="hidden" name="id_user" value="<?php echo $u['id']; ?>">

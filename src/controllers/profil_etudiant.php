@@ -158,7 +158,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
         </div>
     </div>
 
-    <!-- Identité principale[cite: 8] -->
+    <!-- Identité principale -->
     <div class="card-cy p-4 text-center mb-4">
         <div class="avatar-profil"><?php echo h($initiales); ?></div>
         <h3 class="fw-bold mb-1" style="font-family:'Syne',sans-serif; color:#111827;">
@@ -174,7 +174,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
         </p>
     </div>
 
-    <!-- Statistiques[cite: 8] -->
+    <!-- Statistiques -->
     <div class="row g-3 mb-4">
         <div class="col-6">
             <div class="stat-box h-100">
@@ -190,7 +190,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
         </div>
     </div>
 
-    <!-- Informations Académiques[cite: 8] -->
+    <!-- Informations Académiques -->
     <h5 class="fw-bold mb-3 mt-4" style="font-size: .95rem; color: var(--bleu); text-transform: uppercase; letter-spacing: 1px;">Informations académiques</h5>
     <div class="card-cy p-4 mb-4">
         
@@ -220,7 +220,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
 
     </div>
 
-    <!-- Contact[cite: 8] -->
+    <!-- Contact -->
     <h5 class="fw-bold mb-3 mt-4" style="font-size: .95rem; color: var(--bleu); text-transform: uppercase; letter-spacing: 1px;">Contact</h5>
     <div class="card-cy p-4 mb-5">
         <div class="info-row border-0">

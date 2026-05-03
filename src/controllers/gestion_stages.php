@@ -84,7 +84,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
         </div>
     </div>
 
-    <!-- Statistiques[cite: 33] -->
+    <!-- Statistiques -->
     <div class="row g-3 mb-5">
         <div class="col-6 col-md-3">
             <div class="stat-card">
@@ -113,7 +113,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
     </div>
 
     <div class="row g-4">
-        <!-- Actions[cite: 33] -->
+        <!-- Actions -->
         <div class="col-lg-4">
             <h5 class="fw-bold text-dark mb-3"><i class="bi bi-lightning-charge-fill text-warning me-2"></i>Actions rapides</h5>
             <div class="d-flex flex-column gap-3">
@@ -135,7 +135,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
             </div>
         </div>
 
-        <!-- Affichage des offres si demandé[cite: 33] -->
+        <!-- Affichage des offres si demandé -->
         <div class="col-lg-8">
             <?php if (isset($_GET['voir'])) :
                 $conn2 = mysqli_connect('localhost', 'userpro', 'projetStage26.', 'cyStages');

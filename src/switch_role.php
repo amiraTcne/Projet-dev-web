@@ -5,7 +5,7 @@ session_start();
 $nouveau_role = $_GET['role'] ?? '';
 
 /* 2. Liste des rôles que l'utilisateur possède réellement en base de données */
-// Ces variables doivent avoir été définies dans $_SESSION lors du login[cite: 7]
+// Ces variables doivent avoir été définies dans $_SESSION lors du login
 $roles_possibles = [
     $_SESSION['role_premier'] ?? '',
     $_SESSION['role_second'] ?? '',
@@ -15,7 +15,7 @@ $roles_possibles = [
 /* 3. Vérification de sécurité : le rôle demandé fait-il partie de ses rôles autorisés ? */
 if (in_array($nouveau_role, $roles_possibles) && !empty($nouveau_role)) {
     
-    // On met à jour le rôle "actif" pour cette session[cite: 1]
+    // On met à jour le rôle "actif" pour cette session
     $_SESSION['role'] = $nouveau_role; 
     
     // Redirection vers la page d'accueil correspondante au nouveau rôle

@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-// 1. Sécurité : Uniquement pour les étudiants[cite: 11]
+// 1. Sécurité : Uniquement pour les étudiants
 if (!isset($_SESSION['id']) || $_SESSION['role'] !== 'Etudiant') {
     header('Location: ../../public/login.php?erreur=4');
     exit();
@@ -16,7 +16,7 @@ $msg_ok = '';
 $msg_err = '';
 
 /**
- * LOGIQUE D'UPLOAD DES DOCUMENTS[cite: 11]
+ * LOGIQUE D'UPLOAD DES DOCUMENTS
  */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['type_doc'])) {
     $type_doc = $_POST['type_doc']; // ex: rapport_url, convention_url...
@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['type_doc'])) {
         $chemin_final = $repertoire . $nom_fichier;
 
         if (move_uploaded_file($_FILES['fichier']['tmp_name'], $chemin_final)) {
-            // Mise à jour du dossier dans la base (uniquement si non validé)[cite: 11]
+            // Mise à jour du dossier dans la base (uniquement si non validé)
             $sql_upd = "UPDATE Dossier_Stage SET $type_doc = ? WHERE id_etudiant = ? AND statut != 'valide'";
             $stmt_upd = mysqli_prepare($conn, $sql_upd);
             mysqli_stmt_bind_param($stmt_upd, "si", $chemin_final, $id_etudiant);
@@ -43,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['type_doc'])) {
 }
 
 /**
- * RÉCUPÉRATION DU DOSSIER[cite: 11]
+ * RÉCUPÉRATION DU DOSSIER
  * On récupère le dossier lié au stage 'en_cours' de l'étudiant
  */
 $sql = "SELECT d.*, s.titre AS titre_stage, ent.nom_entreprise 
@@ -158,7 +158,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
         </div>
     </div>
 
-    <!-- Alertes[cite: 11] -->
+    <!-- Alertes -->
     <?php if ($msg_ok): ?>
         <div class="alert alert-success rounded-4 d-flex align-items-center gap-2 mb-4 shadow-sm" role="alert">
             <i class="bi bi-check-circle-fill fs-5"></i> <strong><?php echo h($msg_ok); ?></strong>
@@ -170,10 +170,10 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
         </div>
     <?php endif; ?>
 
-    <!-- Contenu Principal[cite: 11] -->
+    <!-- Contenu Principal -->
     <div class="card-cy">
         <?php if (!$dossier): ?>
-            <!-- État vide si aucun dossier actif[cite: 11] -->
+            <!-- État vide si aucun dossier actif -->
             <div class="text-center py-5">
                 <i class="bi bi-folder-x text-muted opacity-50 mb-3 d-block" style="font-size: 3.5rem;"></i>
                 <h3 class="fw-bold mb-2" style="color:var(--bleu); font-family:'Syne',sans-serif;">Aucun dossier actif</h3>
@@ -184,7 +184,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
             </div>
         <?php else: ?>
             
-            <!-- Informations du stage[cite: 11] -->
+            <!-- Informations du stage -->
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start border-bottom pb-4 mb-4 gap-3">
                 <div>
                     <h4 class="fw-bold mb-2" style="font-family:'Syne',sans-serif; color:#111827;">
@@ -207,10 +207,10 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
                 </div>
             </div>
 
-            <!-- Grille des documents[cite: 11] -->
+            <!-- Grille des documents -->
             <div class="row g-4">
                 
-                <!-- Convention de Stage[cite: 11] -->
+                <!-- Convention de Stage -->
                 <div class="col-md-6">
                     <div class="doc-box">
                         <div class="icon-circle"><i class="bi bi-file-earmark-text"></i></div>
@@ -228,7 +228,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
                             <?php endif; ?>
                         </div>
 
-                        <!-- Formulaire d'upload (masqué si le dossier est totalement validé)[cite: 11] -->
+                        <!-- Formulaire d'upload (masqué si le dossier est totalement validé) -->
                         <?php if ($dossier['statut'] !== 'valide'): ?>
                             <form method="POST" enctype="multipart/form-data" class="mt-4">
                                 <input type="hidden" name="type_doc" value="convention_url">
@@ -244,7 +244,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
                     </div>
                 </div>
 
-                <!-- Rapport de Stage[cite: 11] -->
+                <!-- Rapport de Stage -->
                 <div class="col-md-6">
                     <div class="doc-box">
                         <div class="icon-circle"><i class="bi bi-journal-bookmark"></i></div>

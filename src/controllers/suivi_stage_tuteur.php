@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-// Vérification Tuteur[cite: 17]
+// Vérification Tuteur
 if (!isset($_SESSION['id']) || $_SESSION['role'] !== 'Tuteur') {
     header('Location: ../../public/login.php?erreur=4');
     exit();
@@ -83,7 +83,7 @@ if ($conn) {
     mysqli_close($conn);
 }
 
-// Couleurs Bootstrap pour les statuts[cite: 17]
+// Couleurs Bootstrap pour les statuts
 $statuts_labels = [
     'en_attente' => ['En attente', 'bg-warning text-dark'],
     'en_cours'   => ['En cours',   'bg-primary text-white'],
@@ -182,7 +182,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
         </div>
     </div>
 
-    <!-- Alertes[cite: 17] -->
+    <!-- Alertes -->
     <?php if ($msg_ok) : ?>
         <div class="alert alert-success rounded-4 d-flex align-items-center gap-2 mb-4 shadow-sm" role="alert">
             <i class="bi bi-check-circle-fill"></i> <strong><?php echo h($msg_ok); ?></strong>
@@ -191,7 +191,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
 
     <div class="row g-4">
         
-        <!-- Colonne de gauche : Liste des étudiants[cite: 17] -->
+        <!-- Colonne de gauche : Liste des étudiants -->
         <div class="col-lg-5">
             <div class="card-cy h-100">
                 <h5 class="fw-bold mb-4" style="color:var(--bleu); font-family:'Syne',sans-serif;">
@@ -229,7 +229,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
             </div>
         </div>
 
-        <!-- Colonne de droite : Détails du stage sélectionné[cite: 17] -->
+        <!-- Colonne de droite : Détails du stage sélectionné -->
         <div class="col-lg-7">
             <?php if (!$stage) : ?>
                 <div class="card-cy h-100 d-flex flex-column align-items-center justify-content-center text-center p-5 bg-light" style="border-style: dashed;">
@@ -258,7 +258,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
                         </div>
                     </div>
 
-                    <!-- Formulaire de mise à jour[cite: 17] -->
+                    <!-- Formulaire de mise à jour -->
                     <div class="section-title mt-0"><i class="bi bi-sliders"></i> Mettre à jour l'avancement</div>
                     <form method="POST" action="suivi_stage_tuteur.php?stage=<?php echo $stage['num_stage']; ?>" class="bg-white border rounded-4 p-4 mb-4">
                         <input type="hidden" name="action" value="avancement">
@@ -288,7 +288,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
                         </button>
                     </form>
 
-                    <!-- Échanges récents[cite: 17] -->
+                    <!-- Échanges récents -->
                     <?php if (!empty($remarques)) : ?>
                         <div class="section-title"><i class="bi bi-chat-text"></i> Historique des échanges</div>
                         <div class="d-flex flex-column gap-3">

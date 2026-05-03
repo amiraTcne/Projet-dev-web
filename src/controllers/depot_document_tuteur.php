@@ -5,7 +5,7 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-// Sécurité Tuteur[cite: 23]
+// Sécurité Tuteur
 if (!isset($_SESSION['id']) || $_SESSION['role'] !== 'Tuteur') {
     header('Location: ../../public/login.php?erreur=4');
     exit();
@@ -17,7 +17,7 @@ $msg_err = '';
 $etudiants = [];
 $id_etu_sel = (int)($_GET['etudiant'] ?? 0);
 
-/* Traitement de l'upload[cite: 23] */
+/* Traitement de l'upload */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['type_doc']) && $conn) {
     $type_doc    = $_POST['type_doc'] ?? '';
     $id_etudiant = (int)($_POST['id_etudiant'] ?? 0);
@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['type_doc']) && $conn)
         } elseif ($taille > 5 * 1024 * 1024) {
             $msg_err = 'Fichier trop lourd (5 Mo maximum).';
         } else {
-            // Création du répertoire et de l'url[cite: 23]
+            // Création du répertoire et de l'url
             $dir = __DIR__ . '/../../uploads/tuteur_' . $_SESSION['id'] . '_etu_' . $id_etudiant . '/';
             if (!is_dir($dir)) mkdir($dir, 0755, true);
 
@@ -74,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['type_doc']) && $conn)
 if ($conn) {
     mysqli_set_charset($conn, 'utf8mb4');
 
-    /* Chargement de la liste des étudiants[cite: 23] */
+    /* Chargement de la liste des étudiants */
     $se = mysqli_prepare($conn,
         "SELECT e.id, e.nom, e.prenom, CONCAT(e.prenom, ' ', e.nom) AS nom_complet
          FROM Stage s
@@ -159,7 +159,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
         </div>
     </div>
 
-    <!-- Alertes[cite: 23] -->
+    <!-- Alertes -->
     <?php if ($msg_ok) : ?>
         <div class="alert alert-success rounded-4 d-flex align-items-center gap-2 mb-4"><i class="bi bi-check-circle-fill"></i> <strong><?php echo h($msg_ok); ?></strong></div>
     <?php endif; ?>
@@ -190,7 +190,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
                 </div>
             </div>
 
-            <!-- Dépôt des documents[cite: 23] -->
+            <!-- Dépôt des documents -->
             <div class="col-md-8">
                 <div class="card-cy h-100 d-flex flex-column">
                     <?php if (!$id_etu_sel) : ?>
@@ -223,7 +223,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
     <?php endif; ?>
 </div>
 
-<!-- Modal Upload Bootstrap 5[cite: 23] -->
+<!-- Modal Upload Bootstrap 5 -->
 <div class="modal fade" id="uploadModal" tabindex="-1" aria-labelledby="modal-titre" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 rounded-4 shadow">

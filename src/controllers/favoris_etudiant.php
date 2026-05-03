@@ -166,7 +166,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
                             <?php if ($o['ville']) : ?> — <?php echo h($o['ville']); ?><?php endif; ?>
                         </p>
                     </div>
-                    <!-- Bouton pour retirer des favoris[cite: 13] -->
+                    <!-- Bouton pour retirer des favoris -->
                     <button class="btn-coeur" data-id="<?php echo (int)$o['num_offre']; ?>" aria-label="Retirer des favoris">
                         <i class="bi bi-heart-fill fs-5"></i>
                     </button>
@@ -205,14 +205,14 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
 
 </div>
 
-<!-- Toast Notification[cite: 13] -->
+<!-- Toast Notification -->
 <div class="toast-cy" id="toast">
     <i class="bi bi-info-circle-fill"></i>
     <span id="toast-text"></span>
 </div>
 
 <script>
-    /* Retrait asynchrone des favoris avec animation[cite: 13] */
+    /* Retrait asynchrone des favoris avec animation */
     document.querySelectorAll('.btn-coeur').forEach(function (btn) {
         btn.addEventListener('click', async function () {
             var id   = this.dataset.id;

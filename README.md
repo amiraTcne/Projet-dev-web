@@ -62,7 +62,7 @@ Nous appliquons la méthodologie **Agile (Scrum)** avec un suivi rigoureux :
    
 ![Diagramm de Gantt](./img/diagramme.png)
 
-![Maquette de projet]([https://lien-vers-l-image.com/logo.png](https://www.figma.com/design/Reaf0zOPxGnkdWiyCBb53w/Projet_DEv_Web?node-id=0-1&t=lkvmPQYINIxXBvR7-1))
+![Maquette de projet]([[https://lien-vers-l-image.com/logo.png](https://www.figma.com/design/Reaf0zOPxGnkdWiyCBb53w/Projet_DEv_Web?node-id=0-1&t=lkvmPQYINIxXBvR7-1)](https://www.figma.com/proto/Reaf0zOPxGnkdWiyCBb53w/Projet_Dev_Web?node-id=2022-54&p=f&t=a2vosSVTA2M5KPq8-0&scaling=min-zoom&content-scaling=fixed&page-id=2016%3A62&starting-point-node-id=2022%3A23&show-proto-sidebar=1))
 
 
 ## 🌳 Arborescence du Projet

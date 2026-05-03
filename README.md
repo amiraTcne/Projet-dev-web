@@ -40,9 +40,8 @@ Le système est conçu autour de 6 piliers fonctionnels :
 * **Accessibilité :** Conformité aux normes **WCAG** (textes alternatifs, contrastes).
 
 ### **Backend & Data**
-* **Serveur :** `PHP`
+* **Serveur :** `PHP`/`JSON`
 * **Base de données :** `MySQL` 
-* **Optimisation :** Lazy loading, compression des assets et gestion du cache serveur.
 
 ---
 

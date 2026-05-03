@@ -196,24 +196,63 @@ try {
                 throw new Exception("Ce stage ne peut pas être confirmé car la convention de stage n'a pas été validée par l'entreprise.");
             }
 
-            $upd = mysqli_prepare($conn, "
-                UPDATE Stage
-                SET statut_candidature = 'confirmee_etudiant',
-                    statut = 'en_cours'
-                WHERE num_stage = ?
-                AND id_etudiant = ?
-                AND statut_candidature = 'acceptee_entreprise'
-                AND convention_validee = 1
-            ");
-            mysqli_stmt_bind_param($upd, "ii", $numStage, $idEtudiant);
-            mysqli_stmt_execute($upd);
+            // DÉBUT DE LA CORRECTION : Utilisation d'une transaction globale
+            mysqli_begin_transaction($conn);
             
-            if (mysqli_stmt_affected_rows($upd) <= 0) {
-                throw new Exception("Une erreur est survenue lors de la confirmation.");
-            }
-            mysqli_stmt_close($upd);
+            try {
+                // 1. Mise à jour du statut
+                $upd = mysqli_prepare($conn, "
+                    UPDATE Stage
+                    SET statut_candidature = 'confirmee_etudiant',
+                        statut = 'en_cours'
+                    WHERE num_stage = ?
+                    AND id_etudiant = ?
+                    AND statut_candidature = 'acceptee_entreprise'
+                    AND convention_validee = 1
+                ");
+                mysqli_stmt_bind_param($upd, "ii", $numStage, $idEtudiant);
+                mysqli_stmt_execute($upd);
+                
+                if (mysqli_stmt_affected_rows($upd) <= 0) {
+                    throw new Exception("Une erreur est survenue lors de la confirmation.");
+                }
+                mysqli_stmt_close($upd);
 
-            $msgOk = "Le stage a bien été confirmé.";
+                // 2. Attribution aléatoire d'un Tuteur
+                $sql_tuteur = "SELECT id FROM Utilisateur WHERE role_premier = 'Tuteur' OR role_second = 'Tuteur' OR role_troisieme = 'Tuteur' ORDER BY RAND() LIMIT 1";
+                $res_tuteur = mysqli_query($conn, $sql_tuteur);
+                if ($tuteur = mysqli_fetch_assoc($res_tuteur)) {
+                    $stmt_t = mysqli_prepare($conn, "UPDATE Stage SET id_tuteur = ? WHERE num_stage = ?");
+                    mysqli_stmt_bind_param($stmt_t, "ii", $tuteur['id'], $numStage);
+                    mysqli_stmt_execute($stmt_t);
+                    mysqli_stmt_close($stmt_t);
+                }
+
+                // 3. Création du Dossier de Stage
+                $stmt_dos = mysqli_prepare($conn, "INSERT INTO Dossier_Stage (num_stage, id_etudiant, statut, date_creation) VALUES (?, ?, 'incomplet', NOW())");
+                mysqli_stmt_bind_param($stmt_dos, "ii", $numStage, $idEtudiant);
+                mysqli_stmt_execute($stmt_dos);
+                $num_dossier = mysqli_insert_id($conn);
+                mysqli_stmt_close($stmt_dos);
+
+                // 4. Sélection aléatoire d'un Jury et création de l'évaluation
+                $sql_jury = "SELECT id FROM Utilisateur WHERE role_premier = 'Jury' OR role_second = 'Jury' OR role_troisieme = 'Jury' ORDER BY RAND() LIMIT 1";
+                $res_jury = mysqli_query($conn, $sql_jury);
+                if ($jury = mysqli_fetch_assoc($res_jury)) {
+                    $stmt_eval = mysqli_prepare($conn, "INSERT INTO Evaluation_Jury (id_jury, num_dossier, valide) VALUES (?, ?, 0)");
+                    mysqli_stmt_bind_param($stmt_eval, "ii", $jury['id'], $num_dossier);
+                    mysqli_stmt_execute($stmt_eval);
+                    mysqli_stmt_close($stmt_eval);
+                }
+
+                // Validation de toutes les requêtes
+                mysqli_commit($conn);
+                $msgOk = "Le stage a bien été confirmé. Votre dossier a été créé et un tuteur/jury vous ont été affectés !";
+                
+            } catch (Exception $e) {
+                mysqli_rollback($conn); // On annule tout en cas d'erreur (ex: plus de jury dispo)
+                throw new Exception("Erreur technique lors de la création du dossier : " . $e->getMessage());
+            }
         }
     }
 

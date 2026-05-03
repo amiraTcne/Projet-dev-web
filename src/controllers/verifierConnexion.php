@@ -23,6 +23,7 @@ if (empty($email) || empty($mdp)) {
     exit();
 }
 
+// On récupère bien role_premier, role_second et role_troisieme[cite: 8]
 $stmt = mysqli_prepare($connect,
     "SELECT id, nom, prenom, email, mot_de_passe,
             role_premier, role_second, role_troisieme,
@@ -59,6 +60,7 @@ if (strlen($hash) >= 60 && strpos($hash, '$2y$') === 0) {
     }
 }
 
+// Nettoyage des anciennes sessions temporaires
 unset($_SESSION['tmp_2fa_user_id']);
 unset($_SESSION['tmp_2fa_email']);
 unset($_SESSION['tmp_2fa_nom']);
@@ -68,14 +70,18 @@ unset($_SESSION['tmp_2fa_role_second']);
 unset($_SESSION['tmp_2fa_role_troisieme']);
 unset($_SESSION['tmp_2fa_code_sent']);
 
+// Stockage des informations en session temporaire (avant validation 2FA)[cite: 8]
 $_SESSION['tmp_2fa_user_id']        = $row['id'];
 $_SESSION['tmp_2fa_email']          = $row['email'];
 $_SESSION['tmp_2fa_nom']            = $row['nom'];
 $_SESSION['tmp_2fa_prenom']         = $row['prenom'];
-$_SESSION['tmp_2fa_role']           = $row['role_premier'];
-$_SESSION['tmp_2fa_role_second']    = $row['role_second'];
-$_SESSION['tmp_2fa_role_troisieme'] = $row['role_troisieme'];
 
+// GESTION DES RÔLES MULTIPLES
+$_SESSION['tmp_2fa_role']           = $row['role_premier'];   // Rôle actif par défaut
+$_SESSION['tmp_2fa_role_second']    = $row['role_second'];    // Rôle secondaire
+$_SESSION['tmp_2fa_role_troisieme'] = $row['role_troisieme']; // Troisième rôle
+
+// Informations spécifiques selon le profil
 $_SESSION['tmp_2fa_filiere']        = $row['filiere'] ?? null;
 $_SESSION['tmp_2fa_niveau']         = $row['niveau'] ?? null;
 $_SESSION['tmp_2fa_annee_promo']    = $row['annee_promo'] ?? null;
@@ -89,7 +95,7 @@ $_SESSION['tmp_2fa_secteur']        = $row['secteur'] ?? null;
 $_SESSION['tmp_2fa_ville']          = $row['ville'] ?? null;
 $_SESSION['tmp_2fa_nb_stagiere']    = $row['nb_stagiere'] ?? null;
 
-// Redirection vers la seconde étape
+// Redirection vers l'étape de vérification du code (double authentification)
 header('Location: ../../public/double_auth.php');
 exit();
 ?>

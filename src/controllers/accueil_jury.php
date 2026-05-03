@@ -96,6 +96,20 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
         <a class="navbar-brand" href="#"><img src="../../public/assets/img/logo.png" alt="CY Stage" height="36"></a>
         <div class="ms-auto d-flex align-items-center">
             <span class="fw-bold text-white me-3 d-none d-sm-inline"><i class="bi bi-person-badge-fill me-2"></i> <?php echo h($_SESSION['prenom'] . ' ' . $_SESSION['nom']); ?> (Jury)</span>
+                        <?php // On filtre pour ne garder que les rôles qui ne sont pas NULL ou vides
+            $mes_autres_roles = array_filter([
+                $_SESSION['role_premier'] ?? null, 
+                $_SESSION['role_second'] ?? null, 
+                $_SESSION['role_troisieme'] ?? null
+            ]);
+
+            foreach ($mes_autres_roles as $r): 
+                if ($r !== $_SESSION['role']): // On affiche le bouton uniquement pour les rôles inactifs ?>
+                    <a href="../switch_role.php?role=<?= htmlspecialchars($r) ?>" class="btn btn-sm btn-warning rounded-pill me-2 fw-bold">
+                        <i class="bi bi-arrow-repeat me-1"></i> Mode <?= htmlspecialchars($r) ?>
+                    </a>
+                <?php endif; 
+            endforeach;?>
             <a href="deconnexion.php" class="btn btn-outline-light btn-sm rounded-pill px-3"><i class="bi bi-box-arrow-right d-sm-none"></i><span class="d-none d-sm-inline">Déconnexion</span></a>
         </div>
     </div>

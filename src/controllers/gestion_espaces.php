@@ -1,8 +1,6 @@
 <?php
-/* on démarre la session */
 session_start();
 
-/* on vérifie que c'est bien un admin connecté */
 if (!isset($_SESSION['id']) || $_SESSION['role'] !== 'Admin') {
     header('Location: ../../public/login.php?erreur=4');
     exit();
@@ -12,21 +10,23 @@ $conn    = mysqli_connect('localhost', 'userpro', 'projetStage26.', 'cyStages');
 $msg_ok  = '';
 $msg_err = '';
 
-/* on traite le changement de rôle quand l'admin soumet le formulaire */
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && $conn) {
-    $id_user      = (int)($_POST['id_user'] ?? 0);
-    $nouveau_role = trim($_POST['nouveau_role'] ?? '');
-    $roles_ok     = ['Etudiant', 'Tuteur', 'Jury', 'Entreprise', 'Admin'];
+    $id_user = (int)($_POST['id_user'] ?? 0);
+    $roles_ok = ['Etudiant', 'Tuteur', 'Jury', 'Entreprise', 'Admin', ''];
 
-    if (isset($_POST['action']) && $_POST['action'] === 'changer_role' && $id_user > 0 && in_array($nouveau_role, $roles_ok)) {
-        /* on met à jour le rôle principal de l'utilisateur */
-        $upd = mysqli_prepare($conn, "UPDATE Utilisateur SET role_premier = ? WHERE id = ?");
-        mysqli_stmt_bind_param($upd, 'si', $nouveau_role, $id_user);
-        mysqli_stmt_execute($upd) ? $msg_ok = 'Rôle mis à jour.' : $msg_err = 'Erreur de mise à jour.';
+    // Modification des 3 rôles[cite: 39]
+    if (isset($_POST['action']) && $_POST['action'] === 'modifier_roles' && $id_user > 0) {
+        $r1 = in_array($_POST['role_premier'], $roles_ok) ? $_POST['role_premier'] : null;
+        $r2 = !empty($_POST['role_second']) && in_array($_POST['role_second'], $roles_ok) ? $_POST['role_second'] : null;
+        $r3 = !empty($_POST['role_troisieme']) && in_array($_POST['role_troisieme'], $roles_ok) ? $_POST['role_troisieme'] : null;
+
+        $upd = mysqli_prepare($conn, "UPDATE Utilisateur SET role_premier = ?, role_second = ?, role_troisieme = ? WHERE id = ?");
+        mysqli_stmt_bind_param($upd, 'sssi', $r1, $r2, $r3, $id_user);
+        mysqli_stmt_execute($upd) ? $msg_ok = 'Rôles mis à jour.' : $msg_err = 'Erreur de mise à jour.';
         mysqli_stmt_close($upd);
     }
 
-    /* on peut aussi activer ou désactiver un compte */
+    // Activation / Désactivation du compte[cite: 39]
     if (isset($_POST['action']) && $_POST['action'] === 'toggle_actif' && $id_user > 0) {
         $actif_actuel = (int)($_POST['actif_actuel'] ?? 1);
         $nouvel_actif = $actif_actuel === 1 ? 0 : 1;
@@ -38,46 +38,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $conn) {
     }
 }
 
-/* on récupère l'onglet actif — par défaut on affiche les étudiants */
 $onglet       = $_GET['role'] ?? 'Etudiant';
 $roles_dispo  = ['Etudiant', 'Tuteur', 'Jury', 'Entreprise'];
-
 $utilisateurs = [];
-$stats        = [];
 
 if ($conn) {
     mysqli_set_charset($conn, 'utf8mb4');
-
-    /* on compte les utilisateurs actifs par rôle pour les stats du haut */
-    foreach ($roles_dispo as $r) {
-        $sq = mysqli_prepare($conn, "SELECT COUNT(*) FROM Utilisateur WHERE role_premier = ? AND actif = 1");
-        mysqli_stmt_bind_param($sq, 's', $r);
-        mysqli_stmt_execute($sq);
-        mysqli_stmt_bind_result($sq, $nb);
-        mysqli_stmt_fetch($sq);
-        $stats[$r] = (int)$nb;
-        mysqli_stmt_close($sq);
-    }
-
-    /* on charge tous les utilisateurs de l'onglet sélectionné (actifs et inactifs) */
-    $stmt = mysqli_prepare($conn,
-        "SELECT id, nom, prenom, email, role_premier, role_second, role_troisieme,
-                actif, filiere, niveau, annee_promo, specialite, nom_entreprise, secteur
-         FROM Utilisateur
-         WHERE role_premier = ?
-         ORDER BY nom ASC"
-    );
+    $stmt = mysqli_prepare($conn, "SELECT * FROM Utilisateur WHERE role_premier = ? ORDER BY nom ASC");
     mysqli_stmt_bind_param($stmt, 's', $onglet);
     mysqli_stmt_execute($stmt);
     $r = mysqli_stmt_get_result($stmt);
     while ($row = mysqli_fetch_assoc($r)) $utilisateurs[] = $row;
     mysqli_stmt_close($stmt);
-
     mysqli_close($conn);
 }
-
-/* les labels affichés sur les onglets */
-$labels = ['Etudiant'=>'Étudiants', 'Tuteur'=>'Tuteurs', 'Jury'=>'Jurys', 'Entreprise'=>'Entreprises'];
 
 function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
 ?>
@@ -95,26 +69,23 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
         :root { --bleu: #1B4F9B; --bleu-clair: #2563c7; }
         body { font-family: 'DM Sans', sans-serif; background: #f4f6fb; }
         .navbar-cy { background: linear-gradient(135deg, #1B4F9B, #2563c7); }
-        .card-cy { border: 1px solid rgba(171,186,205,.4); border-radius: 18px; box-shadow: 0 4px 18px rgba(27,79,155,.06); background: #fff; padding: 1.5rem; }
-        
-        .stat-card {
-            background: #fff; border: 1px solid rgba(171,186,205,.4); border-radius: 14px;
-            padding: 1.2rem; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,.03);
+        .card-cy {
+            border: 1px solid rgba(171,186,205,.4); border-radius: 18px;
+            box-shadow: 0 4px 18px rgba(27,79,155,.06); background: #fff; padding: 1.5rem;
+            transition: transform 0.2s;
         }
-        .stat-card .display-6 { font-family: 'Syne', sans-serif; font-weight: 800; color: var(--bleu); }
-
+        .card-cy:hover { transform: translateY(-3px); border-color: var(--bleu-clair); }
+        
         .avatar-sm {
             width: 45px; height: 45px; border-radius: 50%; background: linear-gradient(135deg, var(--bleu), var(--bleu-clair));
             color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; flex-shrink: 0;
+            font-family: 'Syne', sans-serif;
         }
 
         /* Nav Pills Custom */
         .nav-pills .nav-link { color: var(--gris-texte); font-weight: 600; border-radius: 20px; padding: 8px 20px; transition: all 0.2s; }
         .nav-pills .nav-link:hover { background-color: #eef2ff; color: var(--bleu); }
         .nav-pills .nav-link.active { background-color: var(--bleu); color: #fff; box-shadow: 0 4px 10px rgba(27,79,155,.2); }
-        
-        /* Select inline */
-        .form-select-sm { width: auto; display: inline-block; border-radius: 8px; font-weight: 600; }
     </style>
 </head>
 <body>
@@ -129,13 +100,13 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
     </div>
 </nav>
 
-<div class="container mb-5" style="max-width:1000px;">
+<div class="container mb-5" style="max-width:1100px;">
     
     <div class="d-flex align-items-center gap-3 mb-4">
         <a href="accueil_admin.php" class="btn btn-outline-secondary btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width:38px;height:38px;"><i class="bi bi-chevron-left"></i></a>
         <div>
-            <h1 class="h4 mb-0 fw-bold" style="color:var(--bleu); font-family:'Syne',sans-serif;">Gestion Utilisateurs</h1>
-            <p class="text-muted mb-0" style="font-size:.85rem;">Gérez les comptes, les rôles et les accès</p>
+            <h1 class="h4 mb-0 fw-bold" style="color:var(--bleu); font-family:'Syne',sans-serif;">Gestion des accès</h1>
+            <p class="text-muted mb-0" style="font-size:.85rem;">Gérez les rôles multiples et le statut des utilisateurs</p>
         </div>
     </div>
 
@@ -147,104 +118,103 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
         <div class="alert alert-danger rounded-4 d-flex align-items-center gap-2 mb-4 shadow-sm"><i class="bi bi-exclamation-triangle-fill"></i> <strong><?php echo h($msg_err); ?></strong></div>
     <?php endif; ?>
 
-    <!-- Statistiques (Comptes Actifs) -->
-    <div class="row g-3 mb-4">
-        <?php foreach ($labels as $r => $label) : ?>
-        <div class="col-6 col-md-3">
-            <div class="stat-card">
-                <div class="display-6 mb-1"><?php echo $stats[$r] ?? 0; ?></div>
-                <div class="text-muted fw-bold text-uppercase" style="font-size:.7rem; letter-spacing:1px;"><?php echo h($label); ?> actifs</div>
-            </div>
-        </div>
-        <?php endforeach; ?>
-    </div>
-
-    <!-- Navigation par Onglets (Bootstrap Nav Pills) -->
-    <ul class="nav nav-pills gap-2 mb-4 border-bottom pb-3">
-        <?php foreach ($labels as $r => $label) : ?>
+    <!-- Onglets de navigation[cite: 39] -->
+    <ul class="nav nav-pills gap-2 mb-4 pb-3 border-bottom">
+        <?php foreach ($roles_dispo as $r) : ?>
             <li class="nav-item">
-                <a class="nav-link <?php echo $onglet === $r ? 'active' : ''; ?>" href="gestion_espaces.php?role=<?php echo $r; ?>">
-                    <?php echo h($label); ?> <span class="badge bg-light text-dark rounded-pill ms-1"><?php echo $stats[$r] ?? 0; ?></span>
+                <a class="nav-link <?php echo $onglet === $r ? 'active' : ''; ?>" href="?role=<?php echo $r; ?>">
+                    <?php echo h($r); ?>s
                 </a>
             </li>
         <?php endforeach; ?>
     </ul>
 
-    <!-- Liste des utilisateurs -->
-    <div class="card-cy p-0 overflow-hidden">
-        <h6 class="fw-bold text-dark p-3 m-0 border-bottom bg-light"><i class="bi bi-people-fill text-primary me-2"></i>Liste des <?php echo h($labels[$onglet] ?? $onglet); ?></h6>
-        
+    <!-- Grille des utilisateurs -->
+    <div class="row g-4">
         <?php if (empty($utilisateurs)) : ?>
-            <div class="text-center p-5">
-                <i class="bi bi-person-x text-muted opacity-50 mb-3 d-block" style="font-size: 2.5rem;"></i>
-                <p class="text-muted mb-0 fw-semibold">Aucun utilisateur dans cette catégorie.</p>
+            <div class="col-12">
+                <div class="text-center p-5 bg-white rounded-4 border" style="border-style: dashed !important;">
+                    <i class="bi bi-person-x text-muted opacity-50 mb-3 d-block" style="font-size: 2.5rem;"></i>
+                    <p class="text-muted mb-0 fw-semibold">Aucun utilisateur trouvé dans cette catégorie.</p>
+                </div>
             </div>
         <?php else : ?>
-            <div class="list-group list-group-flush">
-                <?php foreach ($utilisateurs as $u) :
-                    $ini = strtoupper(mb_substr($u['prenom'], 0, 1) . mb_substr($u['nom'], 0, 1));
-                    $sous = match ($u['role_premier']) {
-                        'Etudiant'   => trim(($u['filiere'] ?? '') . ($u['niveau'] ? ' · ' . $u['niveau'] : '')),
-                        'Tuteur'     => $u['specialite'] ?? '',
-                        'Entreprise' => $u['nom_entreprise'] ?? '',
-                        'Jury'       => $u['specialite'] ?? '',
-                        default      => ''
-                    };
-                ?>
-                <div class="list-group-item p-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-                    
-                    <!-- Info Utilisateur -->
-                    <div class="d-flex align-items-center gap-3">
-                        <div class="avatar-sm"><?php echo h($ini); ?></div>
-                        <div>
-                            <h6 class="fw-bold mb-1 text-dark d-flex align-items-center gap-2">
-                                <?php echo h($u['prenom'] . ' ' . $u['nom']); ?>
-                                <span class="badge <?php echo $u['actif'] ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'; ?> rounded-pill" style="font-size:.65rem;"><?php echo $u['actif'] ? 'Actif' : 'Inactif'; ?></span>
-                            </h6>
-                            <p class="text-muted mb-0" style="font-size:.8rem;">
-                                <i class="bi bi-envelope me-1"></i> <?php echo h($u['email']); ?>
-                                <?php if ($sous) : ?> <span class="mx-1">•</span> <?php echo h($sous); ?><?php endif; ?>
-                            </p>
-                            <?php if ($u['role_second'] || $u['role_troisieme']) : ?>
-                                <div class="mt-1 d-flex gap-1">
-                                    <?php if ($u['role_second']) : ?><span class="badge border text-secondary" style="font-size:.65rem;"><i class="bi bi-plus"></i> <?php echo h($u['role_second']); ?></span><?php endif; ?>
-                                    <?php if ($u['role_troisieme']) : ?><span class="badge border text-secondary" style="font-size:.65rem;"><i class="bi bi-plus"></i> <?php echo h($u['role_troisieme']); ?></span><?php endif; ?>
-                                </div>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-
-                    <!-- Actions Administratives -->
-                    <div class="d-flex flex-wrap gap-2 align-items-center justify-content-end">
+            <?php foreach ($utilisateurs as $u) : 
+                $ini = strtoupper(mb_substr($u['prenom'], 0, 1) . mb_substr($u['nom'], 0, 1));
+            ?>
+                <div class="col-md-6 col-lg-4">
+                    <div class="card-cy h-100 d-flex flex-column position-relative">
                         
-                        <!-- Changement de Rôle -->
-                        <form method="POST" action="gestion_espaces.php?role=<?php echo $onglet; ?>" class="m-0">
-                            <input type="hidden" name="action" value="changer_role">
+                        <!-- Badge d'état -->
+                        <span class="position-absolute top-0 end-0 mt-3 me-3 badge <?php echo $u['actif'] ? 'bg-success-subtle text-success' : 'bg-danger-subtle text-danger'; ?> rounded-pill border">
+                            <?php echo $u['actif'] ? 'Actif' : 'Inactif'; ?>
+                        </span>
+
+                        <!-- Info utilisateur -->
+                        <div class="d-flex align-items-center gap-3 mb-3">
+                            <div class="avatar-sm"><?php echo h($ini); ?></div>
+                            <div class="flex-grow-1 pe-4">
+                                <h6 class="fw-bold mb-0 text-dark" style="font-family:'Syne',sans-serif; font-size:.95rem;"><?php echo h($u['prenom'] . ' ' . $u['nom']); ?></h6>
+                                <small class="text-muted text-truncate d-block" style="max-width: 180px;"><i class="bi bi-envelope me-1"></i><?php echo h($u['email']); ?></small>
+                            </div>
+                        </div>
+                        
+                        <!-- Formulaire des rôles[cite: 39] -->
+                        <form method="POST" class="flex-grow-1 d-flex flex-column">
+                            <input type="hidden" name="action" value="modifier_roles">
                             <input type="hidden" name="id_user" value="<?php echo $u['id']; ?>">
-                            <select name="nouveau_role" class="form-select form-select-sm bg-light text-primary" onchange="this.form.submit()">
-                                <?php foreach (['Etudiant','Tuteur','Jury','Entreprise','Admin'] as $r) : ?>
-                                    <option value="<?php echo $r; ?>" <?php echo $u['role_premier'] === $r ? 'selected' : ''; ?>><?php echo $r; ?></option>
-                                <?php endforeach; ?>
-                            </select>
+                            
+                            <div class="bg-light p-3 rounded-3 mb-3 flex-grow-1">
+                                <div class="mb-2">
+                                    <label class="form-label small fw-bold text-dark mb-1">Rôle Principal</label>
+                                    <select name="role_premier" class="form-select form-select-sm border-0 shadow-sm fw-semibold text-primary">
+                                        <?php foreach (['Etudiant','Tuteur','Jury','Entreprise','Admin'] as $role) : ?>
+                                            <option value="<?php echo $role; ?>" <?php echo $u['role_premier'] === $role ? 'selected' : ''; ?>><?php echo $role; ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+
+                                <div class="mb-2">
+                                    <label class="form-label small fw-bold text-dark mb-1">Rôle Secondaire</label>
+                                    <select name="role_second" class="form-select form-select-sm border-0 shadow-sm">
+                                        <option value="" class="text-muted">-- Aucun --</option>
+                                        <?php foreach (['Tuteur','Jury','Entreprise','Admin'] as $role) : ?>
+                                            <option value="<?php echo $role; ?>" <?php echo $u['role_second'] === $role ? 'selected' : ''; ?>><?php echo $role; ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+
+                                <div class="mb-1">
+                                    <label class="form-label small fw-bold text-dark mb-1">Rôle Tertiaire</label>
+                                    <select name="role_troisieme" class="form-select form-select-sm border-0 shadow-sm">
+                                        <option value="" class="text-muted">-- Aucun --</option>
+                                        <?php foreach (['Tuteur','Jury','Entreprise','Admin'] as $role) : ?>
+                                            <option value="<?php echo $role; ?>" <?php echo $u['role_troisieme'] === $role ? 'selected' : ''; ?>><?php echo $role; ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-sm w-100 rounded-pill fw-bold shadow-sm mb-2" style="background:var(--bleu); border:none;">
+                                <i class="bi bi-save me-1"></i> Sauvegarder les rôles
+                            </button>
                         </form>
 
-                        <!-- Activation/Désactivation -->
-                        <form method="POST" action="gestion_espaces.php?role=<?php echo $onglet; ?>" class="m-0">
+                        <!-- Formulaire d'activation / désactivation[cite: 39] -->
+                        <form method="POST" class="mt-auto">
                             <input type="hidden" name="action" value="toggle_actif">
                             <input type="hidden" name="id_user" value="<?php echo $u['id']; ?>">
                             <input type="hidden" name="actif_actuel" value="<?php echo $u['actif']; ?>">
-                            <button type="submit" class="btn btn-sm <?php echo $u['actif'] ? 'btn-outline-danger' : 'btn-outline-success'; ?> fw-bold rounded-pill" onclick="return confirm('Confirmer cette action ?')">
-                                <i class="bi <?php echo $u['actif'] ? 'bi-lock-fill' : 'bi-unlock-fill'; ?> me-1"></i> <?php echo $u['actif'] ? 'Désactiver' : 'Activer'; ?>
+                            <button type="submit" class="btn <?php echo $u['actif'] ? 'btn-outline-danger' : 'btn-outline-success'; ?> btn-sm w-100 rounded-pill fw-bold" onclick="return confirm('Confirmer cette action ?')">
+                                <i class="bi <?php echo $u['actif'] ? 'bi-lock-fill' : 'bi-unlock-fill'; ?> me-1"></i> <?php echo $u['actif'] ? 'Désactiver le compte' : 'Activer le compte'; ?>
                             </button>
                         </form>
 
                     </div>
                 </div>
-                <?php endforeach; ?>
-            </div>
+            <?php endforeach; ?>
         <?php endif; ?>
     </div>
-
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>

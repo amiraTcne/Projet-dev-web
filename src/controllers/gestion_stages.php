@@ -122,7 +122,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
                     <div class="flex-grow-1"><h6 class="fw-bold mb-0 text-dark">Ajouter une offre</h6></div>
                     <i class="bi bi-chevron-right text-muted"></i>
                 </a>
-                <a href="gestion_filieres.php" class="action-card">
+                <a href="ajouter_domaine_stage.php" class="action-card">
                     <div class="icon-box"><i class="bi bi-mortarboard"></i></div>
                     <div class="flex-grow-1"><h6 class="fw-bold mb-0 text-dark">Gérer les domaines</h6></div>
                     <i class="bi bi-chevron-right text-muted"></i>

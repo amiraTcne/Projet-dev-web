@@ -24,6 +24,8 @@ mysqli_set_charset($connect, "utf8mb4");
 
 $offre = null;
 $nomEntreprise = 'Entreprise';
+$msgOk = '';
+$msgErr = '';
 
 // Récupération du nom de l'entreprise
 $sqlEntreprise = "SELECT nom_entreprise FROM Utilisateur WHERE id = ? AND role_premier = 'Entreprise'";
@@ -39,7 +41,7 @@ if ($stmtEntreprise) {
     mysqli_stmt_close($stmtEntreprise);
 }
 
-// Suppression de l'offre
+// 1. Suppression de l'offre
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['supprimer_offre'])) {
     $sqlDelete = "DELETE FROM Offre_Stage WHERE num_offre = ? AND id_entreprise = ?";
     $stmtDelete = mysqli_prepare($connect, $sqlDelete);
@@ -53,7 +55,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['supprimer_offre'])) {
     }
 }
 
-// Récupération des détails de l'offre
+// 2. Modification de l'offre (INCLUANT LE STATUT)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['modifier_offre'])) {
+    $titre = trim($_POST['titre']);
+    $mission = trim($_POST['mission']);
+    $filiere = trim($_POST['filiere_ciblee']);
+    $competences = trim($_POST['competences']);
+    $duree = (int)$_POST['duree_semaines'];
+    $date_debut = !empty($_POST['date_debut']) ? $_POST['date_debut'] : null;
+    $statut = trim($_POST['statut']); // Nouvelle variable pour le statut
+
+    $sqlUpdate = "UPDATE Offre_Stage 
+                  SET titre = ?, mission = ?, filiere_ciblee = ?, competences = ?, duree_semaines = ?, date_debut = ?, statut = ? 
+                  WHERE num_offre = ? AND id_entreprise = ?";
+    
+    $stmtUpdate = mysqli_prepare($connect, $sqlUpdate);
+    if ($stmtUpdate) {
+        // Ajout du statut ("s") dans le bind_param : ssssissii
+        mysqli_stmt_bind_param($stmtUpdate, "ssssissii", $titre, $mission, $filiere, $competences, $duree, $date_debut, $statut, $numOffre, $idEntreprise);
+        if (mysqli_stmt_execute($stmtUpdate)) {
+            $msgOk = "L'offre a été modifiée avec succès.";
+        } else {
+            $msgErr = "Une erreur est survenue lors de la modification.";
+        }
+        mysqli_stmt_close($stmtUpdate);
+    }
+}
+
+// 3. Récupération des détails de l'offre (placé APRES l'update pour afficher les nouvelles données)
 $sqlOffre = "SELECT * FROM Offre_Stage WHERE num_offre = ? AND id_entreprise = ?";
 $stmtOffre = mysqli_prepare($connect, $sqlOffre);
 
@@ -70,6 +99,15 @@ if (!$offre) {
 }
 
 function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
+
+// Petite fonction pour définir la couleur du badge selon le statut
+function getBadgeClass($statut) {
+    $s = strtolower($statut);
+    if (strpos($s, 'ouverte') !== false || strpos($s, 'publié') !== false) return 'bg-success-subtle text-success border-success-subtle';
+    if (strpos($s, 'fermé') !== false || strpos($s, 'annulé') !== false) return 'bg-danger-subtle text-danger border-danger-subtle';
+    if (strpos($s, 'pourvue') !== false) return 'bg-warning-subtle text-warning-emphasis border-warning-subtle';
+    return 'bg-secondary-subtle text-secondary border-secondary-subtle';
+}
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -122,17 +160,22 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
             gap: 6px;
         }
 
-        /* Overlay Modale Suppression */
-        #overlay-delete {
+        /* Overlay Modales */
+        .overlay-cy {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center;
-            z-index: 2000; backdrop-filter: blur(4px);
+            z-index: 2000; backdrop-filter: blur(4px); padding: 20px;
         }
-        #overlay-delete.show { display: flex; }
+        .overlay-cy.show { display: flex; }
+        
         .modal-cy {
-            background: white; border-radius: 20px; width: 90%; max-width: 400px;
+            background: white; border-radius: 20px; width: 100%; max-width: 400px;
             padding: 2rem; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            max-height: 90vh; overflow-y: auto;
         }
+        
+        /* Modale de modification plus large */
+        .modal-edit { max-width: 600px; text-align: left; }
     </style>
 </head>
 <body>
@@ -161,23 +204,40 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
         </div>
     </div>
 
+    <!-- Alertes de succès ou d'erreur -->
+    <?php if ($msgOk): ?>
+        <div class="alert alert-success d-flex align-items-center rounded-4 mb-4 gap-2 shadow-sm">
+            <i class="bi bi-check-circle-fill fs-5"></i> <strong><?php echo h($msgOk); ?></strong>
+        </div>
+    <?php endif; ?>
+    <?php if ($msgErr): ?>
+        <div class="alert alert-danger d-flex align-items-center rounded-4 mb-4 gap-2 shadow-sm">
+            <i class="bi bi-exclamation-triangle-fill fs-5"></i> <strong><?php echo h($msgErr); ?></strong>
+        </div>
+    <?php endif; ?>
+
     <div class="card-cy">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3 mb-4 border-bottom pb-4">
             <div>
                 <h2 class="fw-bold mb-2" style="font-family:'Syne',sans-serif; color:#111827;"><?php echo h($offre['titre']); ?></h2>
-                <div class="d-flex flex-wrap gap-2">
+                <div class="d-flex flex-wrap gap-2 align-items-center">
                     <span class="info-pill"><i class="bi bi-clock"></i> <?php echo h($offre['duree_semaines']); ?> semaines</span>
                     <?php if($offre['date_debut']): ?>
                         <span class="info-pill"><i class="bi bi-calendar-event"></i> Début : <?php echo date('d/m/Y', strtotime($offre['date_debut'])); ?></span>
                     <?php endif; ?>
-                    <span class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-3 py-2" style="font-size: .8rem;">
-                        <i class="bi bi-check-circle me-1"></i> <?php echo h($offre['statut']); ?>
+                    <span class="badge rounded-pill border px-3 py-2 <?php echo getBadgeClass($offre['statut']); ?>" style="font-size: .8rem;">
+                        <i class="bi bi-record-circle me-1"></i> <?php echo h($offre['statut']); ?>
                     </span>
                 </div>
             </div>
-            <button class="btn btn-outline-danger rounded-pill fw-bold btn-sm px-3" onclick="ouvrirModal()">
-                <i class="bi bi-trash3 me-1"></i> Supprimer l'offre
-            </button>
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-primary rounded-pill fw-bold btn-sm px-3" onclick="ouvrirModalModif()">
+                    <i class="bi bi-pencil me-1"></i> Modifier
+                </button>
+                <button class="btn btn-outline-danger rounded-pill fw-bold btn-sm px-3" onclick="ouvrirModalSupp()">
+                    <i class="bi bi-trash3 me-1"></i> Supprimer
+                </button>
+            </div>
         </div>
 
         <div class="row g-4">
@@ -211,7 +271,8 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
     </div>
 </div>
 
-<div id="overlay-delete">
+<!-- Modale de Suppression -->
+<div id="overlay-delete" class="overlay-cy">
     <div class="modal-cy">
         <div class="mb-3 text-danger">
             <i class="bi bi-exclamation-octagon fs-1"></i>
@@ -224,7 +285,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
                 <button type="submit" name="supprimer_offre" class="btn btn-danger rounded-pill fw-bold py-2">
                     Confirmer la suppression
                 </button>
-                <button type="button" class="btn btn-light border rounded-pill fw-bold py-2" onclick="fermerModal()">
+                <button type="button" class="btn btn-light border rounded-pill fw-bold py-2" onclick="fermerModalSupp()">
                     Annuler
                 </button>
             </div>
@@ -232,17 +293,77 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
     </div>
 </div>
 
+<!-- Modale de Modification -->
+<div id="overlay-edit" class="overlay-cy">
+    <div class="modal-cy modal-edit">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="fw-bold mb-0" style="font-family:'Syne',sans-serif; color:var(--bleu);">Modifier l'offre</h4>
+            <button type="button" class="btn-close" aria-label="Close" onclick="fermerModalModif()"></button>
+        </div>
+        
+        <form method="POST">
+            <div class="mb-3">
+                <label class="form-label fw-bold small text-muted">Titre de l'offre *</label>
+                <input type="text" name="titre" class="form-control rounded-3" value="<?php echo h($offre['titre']); ?>" required>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold small text-muted">Mission *</label>
+                <textarea name="mission" class="form-control rounded-3" rows="5" required><?php echo h($offre['mission']); ?></textarea>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label fw-bold small text-muted">Statut *</label>
+                    <select name="statut" class="form-select rounded-3" required>
+                        <option value="Ouverte" <?php echo ($offre['statut'] === 'Ouverte') ? 'selected' : ''; ?>>Ouverte</option>
+                        <option value="Pourvue" <?php echo ($offre['statut'] === 'Pourvue') ? 'selected' : ''; ?>>Pourvue</option>
+                        <option value="Fermée" <?php echo ($offre['statut'] === 'Fermée') ? 'selected' : ''; ?>>Fermée</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label fw-bold small text-muted">Durée (semaines) *</label>
+                    <input type="number" name="duree_semaines" class="form-control rounded-3" value="<?php echo (int)$offre['duree_semaines']; ?>" required>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label fw-bold small text-muted">Date de début</label>
+                    <input type="date" name="date_debut" class="form-control rounded-3" value="<?php echo h($offre['date_debut']); ?>">
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label fw-bold small text-muted">Filière ciblée</label>
+                <input type="text" name="filiere_ciblee" class="form-control rounded-3" value="<?php echo h($offre['filiere_ciblee']); ?>">
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label fw-bold small text-muted">Compétences clés</label>
+                <input type="text" name="competences" class="form-control rounded-3" value="<?php echo h($offre['competences']); ?>">
+            </div>
+
+            <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                <button type="button" class="btn btn-light border rounded-pill fw-bold px-4" onclick="fermerModalModif()">Annuler</button>
+                <button type="submit" name="modifier_offre" class="btn btn-primary rounded-pill fw-bold px-4" style="background:var(--bleu); border-color:var(--bleu);">
+                    Enregistrer les modifications
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
-    function ouvrirModal() {
-        document.getElementById('overlay-delete').classList.add('show');
-    }
-    function fermerModal() {
-        document.getElementById('overlay-delete').classList.remove('show');
-    }
-    // Fermer si clic en dehors
+    // Gestion Modale Suppression
+    function ouvrirModalSupp() { document.getElementById('overlay-delete').classList.add('show'); }
+    function fermerModalSupp() { document.getElementById('overlay-delete').classList.remove('show'); }
+    
+    // Gestion Modale Modification
+    function ouvrirModalModif() { document.getElementById('overlay-edit').classList.add('show'); }
+    function fermerModalModif() { document.getElementById('overlay-edit').classList.remove('show'); }
+
+    // Fermer les modales si on clique en dehors
     window.onclick = function(event) {
-        let overlay = document.getElementById('overlay-delete');
-        if (event.target == overlay) fermerModal();
+        if (event.target == document.getElementById('overlay-delete')) fermerModalSupp();
+        if (event.target == document.getElementById('overlay-edit')) fermerModalModif();
     }
 </script>
 

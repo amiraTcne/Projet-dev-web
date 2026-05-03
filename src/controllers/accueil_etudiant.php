@@ -83,6 +83,20 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
                 <i class="bi bi-mortarboard-fill me-2"></i>
                 <?php echo h($_SESSION['prenom'] . ' ' . $_SESSION['nom']); ?>
             </span>
+            <?php // On filtre pour ne garder que les rôles qui ne sont pas NULL ou vides
+            $mes_autres_roles = array_filter([
+                $_SESSION['role_premier'] ?? null, 
+                $_SESSION['role_second'] ?? null, 
+                $_SESSION['role_troisieme'] ?? null
+            ]);
+
+            foreach ($mes_autres_roles as $r): 
+                if ($r !== $_SESSION['role']): // On affiche le bouton uniquement pour les rôles inactifs ?>
+                    <a href="../switch_role.php?role=<?= htmlspecialchars($r) ?>" class="btn btn-sm btn-warning rounded-pill me-2 fw-bold">
+                        <i class="bi bi-arrow-repeat me-1"></i> Mode <?= htmlspecialchars($r) ?>
+                    </a>
+                <?php endif; 
+            endforeach;?>
             <a href="deconnexion.php" class="btn btn-outline-light btn-sm rounded-pill fw-semibold ms-lg-auto mt-3 mt-lg-0">
                 <i class="bi bi-box-arrow-right me-1"></i> Déconnexion
             </a>
@@ -102,7 +116,7 @@ function h($v) { return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8'); }
             Bienvenue sur votre espace. Que souhaitez-vous faire aujourd'hui ?
         </p>
     </div>
-
+    
     <!-- Grille d'options -->
     <div class="row g-4">
 

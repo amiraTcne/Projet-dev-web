@@ -736,6 +736,15 @@ INSERT INTO Offre_Stage (titre, mission, filiere_ciblee, duree_semaines, date_de
 ('Chef de Projet Digital', 'Gestion de campagne', 'Marketing', 12, '2026-05-01', 'ouverte', 16),
 ('UX Designer', 'Design d''interface', 'Marketing', 12, '2026-05-01', 'ouverte', 16);
 
+-- ================================================================================================
+-- INSERTION DES 3 ADMINS
+-- ================================================================================================
+INSERT INTO Utilisateur (nom, prenom, email, mot_de_passe, actif, role_premier) 
+VALUES 
+('Admin', 'Grand', 'admin.grand@yopmail.com', 'grand2026!', 1, 'Admin'),
+('Admin', 'Tech', 'admin.tech@yopmail.com', 'tech2026!', 1, 'Admin'),
+('Admin', 'Sup', 'admin.sup@yopmail.com', 'sup2026!', 1, 'Admin');
+
 
 DROP TABLE IF EXISTS DocumentCandidature;
 
@@ -753,4 +762,4 @@ CREATE TABLE DocumentCandidature (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 ALTER TABLE Stage
-ADD COLUMN convention_validee TINYINT(1) NOT NULL DEFAULT 0;
+ADD COLUMN convention_validee TINYINT(1) NOT NULL DEFAULT 0; 

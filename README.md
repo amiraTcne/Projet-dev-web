@@ -1,6 +1,5 @@
 # 🎓 Plateforme d'Archivage et de Suivi de Stages (PASS)
-
-![Statut](https://img.shields.io/badge/Statut-En%20Cours-orange?style=for-the-badge)
+![Statut](https://img.shields.io/badge/Statut-Terminé-brightgreen?style=for-the-badge)
 ![Tech](https://img.shields.io/badge/Stack-PHP%20%7C%20MySQL%20%7C%20JS-blue?style=for-the-badge)
 ![School](https://img.shields.io/badge/CY_Tech-ING1--GI-red?style=for-the-badge)
 

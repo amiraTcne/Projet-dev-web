@@ -198,4 +198,5 @@ cd Projet-dev-web
 #4. Lancer un navigateur web et aller à cet endroit :
    http://localhost:8000/src/controllers/index.php
 
-#5. Explorer le projet ! 
+#5. Explorer le projet !
+   #N'oubliez pas de utiliser yopmail.com pour les adresse mail des comptes pré-creer.

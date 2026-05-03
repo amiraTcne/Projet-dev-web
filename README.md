@@ -179,7 +179,6 @@ Chaque entreprise possède une ou deux offres prêtes à être postulées.
 # Avant de commencer : 
 
 # 1. Cloner le projet
-git clone [https://github.com/votre-compte/projet-web-cytech.git](https://github.com/votre-compte/projet-web-cytech.git)
 
 # 2. Se déplacer dans le dossier
 cd projet-web-cytech

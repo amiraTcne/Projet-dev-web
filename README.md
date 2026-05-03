@@ -184,8 +184,9 @@ Chaque entreprise possède une ou deux offres prêtes à être postulées.
 cd Projet-dev-web
 
 # 3. Creer un user sur mysql dans le terminal avec comme nom : userpro et le mdp : projetStage26.
-# N'oubliez pas de vous donner les droits pour accéder à la base de donnée.
    CREATE USER 'userpro'@'localhost' IDENTIFIED BY 'projetStage26.';
+# N'oubliez pas de vous donner les droits pour accéder à la base de donnée.
+   GRANT ALL PRIVILEGES ON *.* TO 'nom_utilisateur'@'localhost' WITH GRANT OPTION;
 # Pour se connecter à la base de données et télécharger dans la session Sql le fichier init.sql qui se trouve dans config (source config/init.sql si vous etes depuis Projet-dev-Web).
    mysql -u userpro -p
    entrez le mot de passe

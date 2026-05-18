@@ -1,0 +1,122 @@
+/* =============================================================
+   IMPORTATION DES POLICES (Comme sur l'index)
+   ============================================================= */
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&family=Montserrat+Alternates:wght@400;600;700&display=swap');
+
+/* =============================================================
+   VARIABLES GLOBALES
+   ============================================================= */
+:root {
+    --bleu-horizon: #5686D9;
+    --bleu-fonce: #255FAA;
+    --text-main: #1e293b;
+    --bg-body: #f8fafc;
+    --bg-input: #eef1f7;
+    --border-input: #dde4ef;
+    --white: #ffffff;
+}
+
+/* =============================================================
+   STYLE DE BASE ET CENTRAGE DE LA PAGE
+   ============================================================= */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Montserrat', sans-serif;
+    background-color: var(--bg-body);
+    color: var(--text-main);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+/* =============================================================
+   EN-TÊTE DE CONNEXION (Logo et Titres)
+   ============================================================= */
+.logo_connexion {
+    max-width: 100px;
+    margin: 0 auto 15px;
+    display: block;
+    border-radius: 12px; /* Optionnel : si le logo s'y prête */
+}
+
+/* =============================================================
+   CONTENEUR DU FORMULAIRE (Style Carte)
+   ============================================================= */
+form {
+    width: 100%;
+    max-width: 420px;
+    background-color: var(--white);
+    padding: 30px;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
+    margin: 0 auto;
+    border: 1px solid rgba(0, 0, 0, 0.03);
+}
+
+/* =============================================================
+   CHAMPS DE SAISIE (Surcharge Bootstrap pour cohérence)
+   ============================================================= */
+.form-control:focus {
+    border-color: var(--bleu-horizon) !important;
+    box-shadow: 0 0 0 0.25rem rgba(86, 134, 217, 0.15) !important;
+    background-color: var(--white) !important;
+}
+
+.input-group-text {
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+/* =============================================================
+   BOUTON DE SOUMISSION (Style btn-primary de l'index)
+   ============================================================= */
+input[type="submit"] {
+    width: 100%;
+    padding: 12px 20px;
+    background-color: var(--bleu-horizon);
+    color: var(--white);
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    font-family: 'Montserrat', sans-serif;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+}
+
+input[type="submit"]:hover {
+    background-color: var(--bleu-fonce);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(37, 95, 170, 0.2);
+}
+
+/* =============================================================
+   LIENS
+   ============================================================= */
+a {
+    color: var(--bleu-horizon);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+a:hover {
+    color: var(--bleu-fonce) !important;
+    text-decoration: underline !important;
+}
+
+/* =============================================================
+   ALERTE BOOTSTRAP (Ajustement visuel)
+   ============================================================= */
+.alert {
+    border-radius: 12px;
+    font-size: 0.9rem;
+    font-weight: 500;
+}

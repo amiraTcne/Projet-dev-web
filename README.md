@@ -96,10 +96,10 @@ Nous appliquons la méthodologie **Agile (Scrum)** avec un suivi rigoureux :
 ---
 
 ## 👥 L'Équipe (Groupe 1)
-* **Sirine AJIMI** - *Developpeuse & Rédaction*
-* **Amina ATTAF** - *Design IHM & Organisation & Rédaction*
-* **Ambre FLORETTE** - *Organisation & gestion projet & developpeuse php*
-* **Amira TARCHOUNE** - *Design IHM & Conception*
+* **Sirine** - *Developpeuse & Rédaction*
+* **Amina** - *Design IHM & Organisation & Rédaction*
+* **Ambre** - *Organisation & gestion projet & developpeuse php*
+* **Amira** - *Design IHM & Conception*
 
 ##### **Enseignant référent :** M. FASSI Dieudonné
 --- 
